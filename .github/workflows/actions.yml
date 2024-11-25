@@ -33,3 +33,5 @@ jobs:
         with:
           target_repo_url: ${{ env.REPOSITORY_MIRROR }}
           ssh_private_key: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
+          run: |
+            git push --mirror
