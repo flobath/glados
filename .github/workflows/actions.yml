@@ -25,7 +25,12 @@ jobs:
           fetch-depth: 0
       
   push:
+    needs: build
     runs-on: ubuntu-latest
+
+
+    if: ${{ github.event_name == 'push' }}
+
     steps:
       - uses: actions/checkout@v4
       - name: Mirror to target repository
