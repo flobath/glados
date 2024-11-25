@@ -14,24 +14,20 @@ on:
 env:
     REPOSITORY_MIRROR: "git@github.com:EpitechPromo2027/B-FUN-500-NAN-5-2-glados-florent.charpentier.git"
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Fetch repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       
   push:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Mirror to target repository
         uses: pixta-dev/repository-mirroring-action@v1
         with:
