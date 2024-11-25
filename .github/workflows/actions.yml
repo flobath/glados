@@ -32,10 +32,16 @@ jobs:
     if: ${{ github.event_name == 'push' }}
 
     steps:
-      - name: Mirror to target repository
+      - name: checkout
         uses: actions/checkout@v4
-              pixta-dev/repository-mirroring-action@v1
         with:
           fetch-depth: 0
           target_repo_url: ${{ env.REPOSITORY_MIRROR }}
           ssh_private_key: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
+      
+      - name: Push changes
+        uses: pixta-dev/repository-mirroring-action@v1
+        with: 
+            fetch-depth: 0
+            target_repo_url: ${{ env.REPOSITORY_MIRROR }}
+            ssh_private_key: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
