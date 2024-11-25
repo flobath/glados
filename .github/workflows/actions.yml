@@ -28,6 +28,7 @@ jobs:
       #   with:
       #     fetch-depth: 0
 
+      - uses: actions/checkout@v4
       - name: Mirror to target repository
         uses: pixta-dev/repository-mirroring-action@v1
         with:
