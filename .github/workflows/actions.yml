@@ -27,11 +27,16 @@ jobs:
       #   uses: actions/checkout@v2
       #   with:
       #     fetch-depth: 0
-
+      
       - uses: actions/checkout@v4
+      - name: Test SSH connection
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GIT_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh -T git@github.com
       - name: Mirror to target repository
         uses: pixta-dev/repository-mirroring-action@v1
         with:
           target_repo_url: ${{ env.REPOSITORY_MIRROR }}
           ssh_private_key: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
-
