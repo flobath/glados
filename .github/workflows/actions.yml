@@ -12,7 +12,7 @@ on:
       - 'skip-ci-*'
     
 env:
-    REPOSITORY_MIRROR: "https://github.com/EpitechPromo2027/B-FUN-500-NAN-5-2-glados-florent.charpentier"
+    REPOSITORY_MIRROR: "git@github.com:EpitechPromo2027/B-FUN-500-NAN-5-2-glados-florent.charpentier.git"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -27,8 +27,6 @@ jobs:
       #   uses: actions/checkout@v2
       #   with:
       #     fetch-depth: 0
-      - name: List workspace files
-        run: ls -la
 
       - name: Mirror to target repository
         uses: pixta-dev/repository-mirroring-action@v1
