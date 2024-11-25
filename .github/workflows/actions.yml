@@ -12,7 +12,7 @@ on:
       - 'skip-ci-*'
     
 env:
-    REPOSITORY_MIRROR:"https://github.com/EpitechPromo2027/B-FUN-500-NAN-5-2-glados-florent.charpentier"
+    REPOSITORY_MIRROR: "https://github.com/EpitechPromo2027/B-FUN-500-NAN-5-2-glados-florent.charpentier"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
