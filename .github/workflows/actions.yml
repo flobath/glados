@@ -4,14 +4,15 @@ name: CI
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
+    branches-ignore:
+      - 'skip-ci-*'
   pull_request:
-    branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+    branches-ignore:
+      - 'skip-ci-*'
+    
+env:
+    REPOSITORY_MIRROR:"https://github.com/EpitechPromo2027/B-FUN-500-NAN-5-2-glados-florent.charpentier"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -22,11 +23,13 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Fetch repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+      - name: Mirror to target repository
+        uses: pixta-dev/repository-mirroring-action@v1
+        with:
+          target_repo_url: ${{ env.REPOSITORY_MIRROR }}
+          ssh_private_key: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
