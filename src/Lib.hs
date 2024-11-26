@@ -11,6 +11,7 @@ module Lib (
     oppositeOperator, addOperator, subtractOperator, multiplyOperator, divideOperator,
     notOperator, eqOperator, neqOperator, inferiorOperator,
     ifOperator, callOperator, defineOperator, lambdaOperator) where
+import Data.Functor ((<&>))
 
 newtype Symbol = Symbol String
     deriving Eq
@@ -162,9 +163,7 @@ defaultEnvironment = Environment defaultOperators []
 zipStrict [] [] = Just []
 zipStrict [] _ = Nothing
 zipStrict _ [] = Nothing
-zipStrict (x:xs) (y:ys) = case zipStrict xs ys of
-    Just pairs -> Just ((x, y) : pairs)
-    Nothing -> Nothing
+zipStrict (x:xs) (y:ys) = zipStrict xs ys <&> ((x, y):)
 
 dereference env symbol = lookup symbol $ symbols env
 
