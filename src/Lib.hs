@@ -11,6 +11,7 @@ module Lib (
     oppositeOperator, addOperator, subtractOperator, multiplyOperator, divideOperator,
     notOperator, eqOperator, neqOperator, inferiorOperator,
     ifOperator, callOperator, defineOperator, lambdaOperator) where
+
 import Data.Functor ((<&>))
 
 newtype Symbol = Symbol String
