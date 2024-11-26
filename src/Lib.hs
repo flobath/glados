@@ -8,9 +8,11 @@ module Lib (
     evaluate,
     symbolRef, symbolList, constant, boolean, text, --void,
     defaultEnvironment,
-    oppositeOperator, addOperator, substractOperator, multiplyOperator, divideOperator,
+    oppositeOperator, addOperator, subtractOperator, multiplyOperator, divideOperator,
     notOperator, eqOperator, neqOperator, inferiorOperator,
     ifOperator, callOperator, defineOperator, lambdaOperator) where
+
+import Data.Functor ((<&>))
 
 newtype Symbol = Symbol String
     deriving Eq
@@ -87,9 +89,9 @@ addOperator = Binary "+"
 add env (Pair (evaluate env -> Left (_, Primitive (Constant a))) (evaluate env -> Left (_, Primitive (Constant b)))) = Left (env, constant $ a + b)
 add env _ = Right env
 
-substractOperator = Binary "-"
-substract env (Pair (evaluate env -> Left (_, Primitive (Constant a))) (evaluate env -> Left (_, Primitive (Constant b)))) = Left (env, constant $ a - b)
-substract env _ = Right env
+subtractOperator = Binary "-"
+subtract env (Pair (evaluate env -> Left (_, Primitive (Constant a))) (evaluate env -> Left (_, Primitive (Constant b)))) = Left (env, constant $ a - b)
+subtract env _ = Right env
 
 multiplyOperator = Binary "*"
 multiply env (Pair (evaluate env -> Left (_, Primitive (Constant a))) (evaluate env -> Left (_, Primitive (Constant b)))) = Left (env, constant $ a * b)
@@ -144,7 +146,7 @@ lambda env _ = Right env
 defaultOperators = [
     (oppositeOperator, opposite),
     (addOperator, add),
-    (substractOperator, substract),
+    (subtractOperator, Lib.subtract),
     (multiplyOperator, multiply),
     (divideOperator, divide),
     (notOperator, notOperation),
@@ -162,9 +164,7 @@ defaultEnvironment = Environment defaultOperators []
 zipStrict [] [] = Just []
 zipStrict [] _ = Nothing
 zipStrict _ [] = Nothing
-zipStrict (x:xs) (y:ys) = case zipStrict xs ys of
-    Just pairs -> Just ((x, y) : pairs)
-    Nothing -> Nothing
+zipStrict (x:xs) (y:ys) = zipStrict xs ys <&> ((x, y):)
 
 dereference env symbol = lookup symbol $ symbols env
 

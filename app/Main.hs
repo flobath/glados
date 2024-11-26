@@ -11,7 +11,7 @@ functionDefinition = Operation defineOperator $ Pair (symbolList [factorialSymbo
         (constant 1)
         (Operation multiplyOperator $ Pair
             (Operation callOperator $ List [symbolRef factorialSymbol,
-                Operation substractOperator $ Pair (symbolRef nSymbol) (constant 1)
+                Operation subtractOperator $ Pair (symbolRef nSymbol) (constant 1)
             ])
             (symbolRef nSymbol))
 
