@@ -36,7 +36,7 @@ jobs:
 
       - name : run_tests
         run: |
-          make testrun
+          make tests_run
       
   push:
     needs: tests
