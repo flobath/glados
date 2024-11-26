@@ -21,7 +21,7 @@
         ...
       }: {
         haskellProjects.default = {
-          basePackages = pkgs.haskell.packages.ghc925;
+          basePackages = pkgs.haskell.packages.ghc964;
 
           devShell = {
             # Disable the automatically generated devShell to
@@ -43,7 +43,7 @@
         devShells.default = pkgs.mkShell {
           name = "Superb haskell flake shell";
           inputsFrom = [config.haskellProjects.default.outputs.devShell];
-          nativeBuildInputs = with pkgs; [bashInteractiveFHS chez];
+          nativeBuildInputs = with pkgs; [bashInteractiveFHS chez stack];
         };
 
         packages.default = self'.packages.GLaDOS;
