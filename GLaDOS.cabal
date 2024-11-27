@@ -35,6 +35,7 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
+    , megaparsec
   default-language: Haskell2010
 
 executable GLaDOS-exe
@@ -49,6 +50,7 @@ executable GLaDOS-exe
   build-depends:
       GLaDOS
     , base >=4.7 && <5
+    , megaparsec
   default-language: Haskell2010
 
 test-suite GLaDOS-test
@@ -64,4 +66,5 @@ test-suite GLaDOS-test
   build-depends:
       GLaDOS
     , base >=4.7 && <5
+    , megaparsec
   default-language: Haskell2010
