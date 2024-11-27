@@ -1,1 +1,1 @@
-# glados
+# GLaDOS
