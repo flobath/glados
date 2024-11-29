@@ -1,6 +1,6 @@
 module Parser where
 
-import Text.Megaparsec (Parsec, MonadParsec (lookAhead), choice)
+import Text.Megaparsec (Parsec, MonadParsec (lookAhead, hidden, eof, try), choice, skipSome)
 import Data.Void (Void)
 import Lib (Primitive (Boolean))
 import Text.Megaparsec.Char (space1, char)
@@ -10,9 +10,16 @@ import qualified Text.Megaparsec.Char.Lexer as L
 
 type Parser = Parsec Void String
 
+-- Patched version of Text.MegaParsec.Char.Lexer.space
+-- to only succeed if some space is encountered, or at eof
+someSpace :: MonadParsec e s m => m a -> m a -> m a -> m ()
+someSpace sp line block = skipSome (choice
+    [hidden sp, hidden line, hidden block]
+    ) <|> eof
+
 -- Parse any amount of whitespace or chez-scheme comments
 pWhiteSpace :: Parser ()
-pWhiteSpace = L.space
+pWhiteSpace = someSpace
     space1
     (L.skipLineComment ";")
     (L.skipBlockComment "#|" "|#")
