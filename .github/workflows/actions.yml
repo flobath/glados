@@ -44,6 +44,11 @@ jobs:
         with:
           command: "make testrun"
           hpc: true
+          hpc-options: "--exclude=Main"
+          hpc-reporter: "codecov"
+          hpc-threshold: "90"
+          hpc-flags: "-fhpc"
+          hpc-root: "."
 
       
   push:
