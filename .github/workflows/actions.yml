@@ -37,6 +37,18 @@ jobs:
       - name : run_tests
         run: |
           make testrun
+        
+                    
+      - name: hpc-codecov-action     
+        uses: freckle/stack-action@v5
+        with:
+          command: "make testrun"
+          hpc: true
+          hpc-options: "--exclude-dir=tests"
+          hpc-reporter: "codecov"
+          hpc-threshold: "90"
+          hpc-flags: "-j4"
+
       
   push:
     needs: tests
