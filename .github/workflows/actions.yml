@@ -44,10 +44,6 @@ jobs:
         with:
           command: "make testrun"
           hpc: true
-          hpc-options: "--exclude-dir=tests"
-          hpc-reporter: "codecov"
-          hpc-threshold: "90"
-          hpc-flags: "-j4"
 
       
   push:
