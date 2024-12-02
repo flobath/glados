@@ -49,9 +49,13 @@ pLexeme = L.lexeme pDelimiter
 pSymbol :: Text -> Parser Text
 pSymbol = L.symbol pDelimiter
 
+-- pSymbol, case insensitive
+pSymbol' :: Text -> Parser Text
+pSymbol' = L.symbol' pDelimiter
+
 -- Parser for chez-scheme boolean literals #f and #t
 booleanParser :: Parser Primitive
-booleanParser = (pSymbol "#t" $> Boolean True) <|> (pSymbol "#f" $> Boolean False)
+booleanParser = (pSymbol' "#t" $> Boolean True) <|> (pSymbol' "#f" $> Boolean False)
 
 -- Parser for chez-scheme string literals
 stringParser :: Parser Primitive
