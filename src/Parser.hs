@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Parser where
 
@@ -10,8 +11,8 @@ import Data.Functor (($>), void)
 import Control.Applicative ((<|>))
 import qualified Text.Megaparsec.Char.Lexer as L
 import Text.Megaparsec.Char.Lexer (signed)
-import Data.Text (Text, unpack)
-import Data.Char (isAlphaNum, isSpace, generalCategory, GeneralCategory (UppercaseLetter, LowercaseLetter, TitlecaseLetter, ModifierLetter, OtherLetter, NonSpacingMark, LetterNumber, OtherNumber, DashPunctuation, OtherPunctuation, CurrencySymbol, MathSymbol, ModifierSymbol, OtherSymbol, PrivateUse, DecimalNumber, SpacingCombiningMark, EnclosingMark))
+import Data.Text (Text, unpack, uncons, all, splitAt)
+import Data.Char (isSpace, generalCategory, GeneralCategory (UppercaseLetter, LowercaseLetter, TitlecaseLetter, ModifierLetter, OtherLetter, NonSpacingMark, LetterNumber, OtherNumber, DashPunctuation, OtherPunctuation, CurrencySymbol, MathSymbol, ModifierSymbol, OtherSymbol, PrivateUse, DecimalNumber, SpacingCombiningMark, EnclosingMark))
 
 type Parser = Parsec Void Text
 
@@ -21,6 +22,42 @@ type Parser = Parsec Void Text
 
 chezSchemeNonSpaceDelimiter :: String
 chezSchemeNonSpaceDelimiter = "()[]#\";"
+
+-- Checks if a character is a valid initial for a symbol name,
+-- as defined in https://scheme.com/tspl4/grammar.html#APPENDIXFORMALSYNTAX
+isChezSchemeSymbolInitial :: Char -> Bool
+isChezSchemeSymbolInitial c
+    = c `elem` basicLetters
+    || (c > '\x7f' && generalCategory c `elem` [
+        UppercaseLetter,
+        LowercaseLetter,
+        TitlecaseLetter,
+        ModifierLetter,
+        OtherLetter,
+        NonSpacingMark,
+        LetterNumber,
+        OtherNumber,
+        DashPunctuation,
+        OtherPunctuation,
+        CurrencySymbol,
+        MathSymbol,
+        ModifierSymbol,
+        OtherSymbol,
+        PrivateUse
+    ])
+    where basicLetters = ['a'..'z'] ++ ['A'..'Z'] ++ "!$%&*/:<=>?~_^"
+
+-- Checks if a character is a valid non-initial for a symbol name,
+-- as defined in https://scheme.com/tspl4/grammar.html#APPENDIXFORMALSYNTAX
+isChezSchemeSymbolSubsequent :: Char -> Bool
+isChezSchemeSymbolSubsequent c
+    = isChezSchemeSymbolInitial c
+    || c `elem` ['0'..'9'] ++ ".+-@"
+    || generalCategory c `elem` [
+        DecimalNumber,
+        SpacingCombiningMark,
+        EnclosingMark
+    ]
 
 isChezSchemeDelimiter :: Char -> Bool
 isChezSchemeDelimiter = isSpace .|| (`elem` chezSchemeNonSpaceDelimiter)
@@ -48,7 +85,7 @@ pDelimiterCharacter = choice . map (void . lookAhead . char)
 -- - either some whitespace/comment (which will be consumed)
 -- - or the next character is a delimiter which will not be consumed
 pDelimiter :: Parser ()
-pDelimiter = pWhiteSpace <|> pDelimiterCharacter "()[]#\""
+pDelimiter = pWhiteSpace <|> pDelimiterCharacter chezSchemeNonSpaceDelimiter
 
 -- Parse a chez-scheme lexeme: apply the parser
 -- passed as parameter and then check make sure we
@@ -76,12 +113,37 @@ stringParser = undefined
 integerParser :: Parser Primitive
 integerParser = Constant <$> pLexeme (signed (return ()) L.decimal)
 
+parseUntilDelimiter :: Parser Text
+parseUntilDelimiter = takeWhile1P
+    (Just "any non-delimiter character")
+    (not . isChezSchemeDelimiter)
+
+parseSymName :: Parser Text
+parseSymName = do
+    tok <- parseUntilDelimiter
+    if checkSymName tok then
+        return tok
+    else
+        fail "Symbol contains invalid character(s)"
+
+    where
+        -- Symbol names can contain almost any characters but
+        -- have very weird constraints.
+        -- See https://scheme.com/tspl4/grammar.html#Strings for details
+        checkSymName :: Text -> Bool
+        checkSymName "+" = True
+        checkSymName "-" = True
+        checkSymName "..." = True
+        checkSymName (Data.Text.splitAt 2 -> ("->", subsequents))
+            = Data.Text.all isChezSchemeSymbolSubsequent subsequents
+        checkSymName (uncons -> (Just (initial, subsequents)))
+            = isChezSchemeSymbolInitial initial
+            && Data.Text.all isChezSchemeSymbolSubsequent subsequents
+        checkSymName _ = False
+
 -- Parser for symbol references
 symbolRefParser :: Parser Primitive
 symbolRefParser = pLexeme (SymbolReference . Symbol . unpack <$> parseSymName)
-    where parseSymName = takeWhile1P
-            (Just "viable symbol character")
-            (not . isChezSchemeDelimiter)
 
 -- Parser for lambda declaration
 lambdaParser :: Parser Primitive

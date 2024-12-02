@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Test.Hspec.Megaparsec (shouldParse, succeedsLeaving, initialState, shouldFailOn)
+import Test.Hspec.Megaparsec (shouldParse, succeedsLeaving, initialState, shouldFailOn, shouldSucceedOn)
 import Test.Hspec (hspec, describe, it)
 import Text.Megaparsec (parse, runParser')
 import Parser (booleanParser, pDelimiter, pWhiteSpace, integerParser, symbolRefParser)
@@ -60,3 +60,17 @@ main = hspec $ do
             let ret@(_, res) = runParser' symbolRefParser (initialState "my!super$@symb0ln4me()")
             ret `succeedsLeaving` "()"
             res `shouldParse` SymbolReference (Symbol "my!super$@symb0ln4me")
+
+        it "fail on number" $ do
+            parse symbolRefParser "" `shouldFailOn` "1234"
+        it "fail on +abc" $ do
+            parse symbolRefParser "" `shouldFailOn` "+abc"
+        it "fail on -def" $ do
+            parse symbolRefParser "" `shouldFailOn` "-def"
+        it "fail on -3" $ do
+            parse symbolRefParser "" `shouldFailOn` "-3"
+
+        it "succeed on +" $ do
+            parse symbolRefParser "" `shouldSucceedOn` "+"
+        it "succeed on -" $ do
+            parse symbolRefParser "" `shouldSucceedOn` "+"
