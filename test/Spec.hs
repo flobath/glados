@@ -23,6 +23,11 @@ main = hspec $ do
         it "parse a simple #f" $
             parse booleanParser "" "#f" `shouldParse` Boolean False
 
+        it "parse an uppercase #t" $
+            parse booleanParser "" "#T" `shouldParse` Boolean True
+        it "parse an uppercase #f" $
+            parse booleanParser "" "#F" `shouldParse` Boolean False
+
         it "consume trailing whitespace" $
             runParser' booleanParser (initialState "#t  \n   \t(abc") `succeedsLeaving` "(abc"
 
