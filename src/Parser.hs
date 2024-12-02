@@ -2,11 +2,12 @@ module Parser where
 
 import Text.Megaparsec (Parsec, MonadParsec (lookAhead, hidden, eof), choice, skipSome)
 import Data.Void (Void)
-import Lib (Primitive (Boolean))
+import Lib (Primitive (Boolean, Constant))
 import Text.Megaparsec.Char (space1, char)
 import Data.Functor (($>), void)
 import Control.Applicative ((<|>))
 import qualified Text.Megaparsec.Char.Lexer as L
+import Text.Megaparsec.Char.Lexer (signed)
 
 type Parser = Parsec Void String
 
@@ -55,7 +56,7 @@ stringParser = undefined
 
 -- Parser for chez-scheme integer literals
 integerParser :: Parser Primitive
-integerParser = undefined
+integerParser = Constant <$> pLexeme (signed (return ()) L.decimal)
 
 -- Parser for symbol references
 symbolRefParser :: Parser Primitive
