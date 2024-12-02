@@ -2,17 +2,28 @@
 
 module Parser where
 
-import Text.Megaparsec (Parsec, MonadParsec (lookAhead, hidden, eof), choice, skipSome)
+import Text.Megaparsec (Parsec, MonadParsec (lookAhead, hidden, eof, takeWhile1P), choice, skipSome)
 import Data.Void (Void)
-import Lib (Primitive (Boolean, Constant))
+import Lib (Primitive (Boolean, Constant, SymbolReference), Symbol (Symbol))
 import Text.Megaparsec.Char (space1, char)
 import Data.Functor (($>), void)
 import Control.Applicative ((<|>))
 import qualified Text.Megaparsec.Char.Lexer as L
 import Text.Megaparsec.Char.Lexer (signed)
 import Data.Text (Text, unpack)
+import Data.Char (isAlphaNum, isSpace, generalCategory, GeneralCategory (UppercaseLetter, LowercaseLetter, TitlecaseLetter, ModifierLetter, OtherLetter, NonSpacingMark, LetterNumber, OtherNumber, DashPunctuation, OtherPunctuation, CurrencySymbol, MathSymbol, ModifierSymbol, OtherSymbol, PrivateUse, DecimalNumber, SpacingCombiningMark, EnclosingMark))
 
 type Parser = Parsec Void Text
+
+-- Helper function to combine predicates
+(.||) :: (a -> Bool) -> (a -> Bool) -> a -> Bool
+(.||) f1 f2 x = f1 x || f2 x
+
+chezSchemeNonSpaceDelimiter :: String
+chezSchemeNonSpaceDelimiter = "()[]#\";"
+
+isChezSchemeDelimiter :: Char -> Bool
+isChezSchemeDelimiter = isSpace .|| (`elem` chezSchemeNonSpaceDelimiter)
 
 -- Patched version of Text.MegaParsec.Char.Lexer.space
 -- to only succeed if some space is encountered, or at eof
@@ -67,7 +78,10 @@ integerParser = Constant <$> pLexeme (signed (return ()) L.decimal)
 
 -- Parser for symbol references
 symbolRefParser :: Parser Primitive
-symbolRefParser = undefined
+symbolRefParser = pLexeme (SymbolReference . Symbol . unpack <$> parseSymName)
+    where parseSymName = takeWhile1P
+            (Just "viable symbol character")
+            (not . isChezSchemeDelimiter)
 
 -- Parser for lambda declaration
 lambdaParser :: Parser Primitive

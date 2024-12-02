@@ -3,8 +3,8 @@
 import Test.Hspec.Megaparsec (shouldParse, succeedsLeaving, initialState, shouldFailOn)
 import Test.Hspec (hspec, describe, it)
 import Text.Megaparsec (parse, runParser')
-import Parser (booleanParser, pDelimiter, pWhiteSpace, integerParser)
-import Lib (Primitive(Boolean, Constant))
+import Parser (booleanParser, pDelimiter, pWhiteSpace, integerParser, symbolRefParser)
+import Lib (Primitive(Boolean, Constant, SymbolReference), Symbol (Symbol))
 
 main :: IO ()
 main = hspec $ do
@@ -46,3 +46,17 @@ main = hspec $ do
             parse integerParser "" "42 some other string content" `shouldParse` Constant 42
         it "parse number -175" $ do
             parse integerParser "" "-175" `shouldParse` Constant (-175)
+
+    describe "parseSymbolRef" $ do
+        it "parse a simple 'abc' symbol" $ do
+            parse symbolRefParser "" "abc" `shouldParse` SymbolReference (Symbol "abc")
+
+        it "parse '+' in an addition" $ do
+            let ret@(_, res) = runParser' symbolRefParser (initialState "+\t4 8)")
+            ret `succeedsLeaving` "4 8)"
+            res `shouldParse` SymbolReference (Symbol "+")
+
+        it "stop at opening parenthesis" $ do
+            let ret@(_, res) = runParser' symbolRefParser (initialState "my!super$@symb0ln4me()")
+            ret `succeedsLeaving` "()"
+            res `shouldParse` SymbolReference (Symbol "my!super$@symb0ln4me")
