@@ -1,8 +1,8 @@
-import Test.Hspec.Megaparsec (shouldParse, succeedsLeaving, initialState, failsLeaving, shouldFailOn)
+import Test.Hspec.Megaparsec (shouldParse, succeedsLeaving, initialState, shouldFailOn)
 import Test.Hspec (hspec, describe, it)
 import Text.Megaparsec (parse, runParser')
-import Parser (booleanParser, pDelimiter, pWhiteSpace)
-import Lib (Primitive(Boolean))
+import Parser (booleanParser, pDelimiter, pWhiteSpace, integerParser)
+import Lib (Primitive(Boolean, Constant))
 
 main :: IO ()
 main = hspec $ do
@@ -33,3 +33,9 @@ main = hspec $ do
             runParser' booleanParser (initialState "#f\"hi\"") `succeedsLeaving` "\"hi\""
         it "stops at following boolean literal" $
             runParser' booleanParser (initialState "#f#t") `succeedsLeaving` "#t"
+
+    describe "parseInteger" $ do
+        it "parse number 42" $ do
+            parse integerParser "" "42 some other string content" `shouldParse` Constant 42
+        it "parse number -175" $ do
+            parse integerParser "" "-175" `shouldParse` Constant (-175)

@@ -1,6 +1,6 @@
 module Parser where
 
-import Text.Megaparsec (Parsec, MonadParsec (lookAhead, hidden, eof, try), choice, skipSome)
+import Text.Megaparsec (Parsec, MonadParsec (lookAhead, hidden, eof), choice, skipSome)
 import Data.Void (Void)
 import Lib (Primitive (Boolean))
 import Text.Megaparsec.Char (space1, char)
@@ -48,3 +48,19 @@ pSymbol = L.symbol pDelimiter
 -- Parser for chez-scheme boolean literals #f and #t
 booleanParser :: Parser Primitive
 booleanParser = (pSymbol "#t" $> Boolean True) <|> (pSymbol "#f" $> Boolean False)
+
+-- Parser for chez-scheme string literals
+stringParser :: Parser Primitive
+stringParser = undefined
+
+-- Parser for chez-scheme integer literals
+integerParser :: Parser Primitive
+integerParser = undefined
+
+-- Parser for symbol references
+symbolRefParser :: Parser Primitive
+symbolRefParser = undefined
+
+-- Parser for lambda declaration
+lambdaParser :: Parser Primitive
+lambdaParser = undefined
