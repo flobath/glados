@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 import Test.Hspec.Megaparsec (shouldParse, succeedsLeaving, initialState, shouldFailOn)
 import Test.Hspec (hspec, describe, it)
 import Text.Megaparsec (parse, runParser')

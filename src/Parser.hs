@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Parser where
 
 import Text.Megaparsec (Parsec, MonadParsec (lookAhead, hidden, eof), choice, skipSome)
@@ -8,8 +10,9 @@ import Data.Functor (($>), void)
 import Control.Applicative ((<|>))
 import qualified Text.Megaparsec.Char.Lexer as L
 import Text.Megaparsec.Char.Lexer (signed)
+import Data.Text (Text, unpack)
 
-type Parser = Parsec Void String
+type Parser = Parsec Void Text
 
 -- Patched version of Text.MegaParsec.Char.Lexer.space
 -- to only succeed if some space is encountered, or at eof
@@ -43,7 +46,7 @@ pLexeme :: Parser a -> Parser a
 pLexeme = L.lexeme pDelimiter
 
 -- Similar to pLexeme but intended for parsing know strings
-pSymbol :: String -> Parser String
+pSymbol :: Text -> Parser Text
 pSymbol = L.symbol pDelimiter
 
 -- Parser for chez-scheme boolean literals #f and #t
