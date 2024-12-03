@@ -40,7 +40,7 @@ jobs:
           
       - name: Check coverage threshold
         run: |
-          COVERAGE=$(hpc report --exclude=Main dist-newstyle/build/x86_64-linux/ghc-*/your-package-*/hpc/vanilla/tix/your-package-tests.tix | grep 'Total coverage:' | awk '{print $3}' | tr -d '%')
+          COVERAGE=$(gcovr -r . --json | jq '.lines.covered_percent')
           if (( $(echo "$COVERAGE < 60" | bc -l) )); then
             echo "Coverage is below threshold: ${COVERAGE}%"
             exit 1
