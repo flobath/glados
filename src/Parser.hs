@@ -19,6 +19,15 @@ import Lib
     , Arguments (Triple, Single, Pair)
     , Operator
     , defineOperator
+    , divideOperator
+    , multiplyOperator
+    , subtractOperator
+    , addOperator
+    , oppositeOperator
+    , notOperator
+    , moduloOperator
+    , eqOperator
+    , inferiorOperator
     )
 import Text.Megaparsec.Char (space1, char)
 import Data.Functor (($>), void)
@@ -205,7 +214,26 @@ defineParser = pBetweenParenthesis $ do
         (Primitive (SymbolList [Symbol (unpack symName)]))
         <$> expressionParser
 
-ifParser :: Parser Expression
+oppositeParser,
+    addParser,
+    subtractParser,
+    multiplyParser,
+    divideParser,
+    moduloParser,
+    notParser,
+    eqParser,
+    inferiorParser,
+    ifParser
+    :: Parser Expression
+oppositeParser = pOperation "-" oppositeOperator pSingleExpression
+addParser = pOperation "+" addOperator pExpressionPair
+subtractParser = pOperation "-" subtractOperator pExpressionPair
+multiplyParser = pOperation "*" multiplyOperator pExpressionPair
+divideParser = pOperation "div" divideOperator pExpressionPair
+moduloParser = pOperation "mod" moduloOperator pExpressionPair
+notParser = pOperation "not" notOperator pSingleExpression
+eqParser = pOperation "eq?" eqOperator pExpressionPair
+inferiorParser = pOperation "<" inferiorOperator pExpressionPair
 ifParser = pOperation "if" ifOperator pExpressionTriple
 
 expressionParser :: Parser Expression
