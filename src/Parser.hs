@@ -14,7 +14,10 @@ import Data.Void (Void)
 import Lib
     ( Primitive (Boolean, Constant, SymbolReference, Function)
     , Symbol (Symbol)
-    , Expression (Operation), ifOperator, Arguments (Triple, Single, Pair)
+    , Expression (Operation)
+    , ifOperator
+    , Arguments (Triple, Single, Pair)
+    , Operator
     )
 import Text.Megaparsec.Char (space1, char)
 import Data.Functor (($>), void)
@@ -194,9 +197,7 @@ lambdaParser = pBetweenParenthesis $ do
     Function (map (Symbol . unpack) params) <$> expressionParser
 
 ifParser :: Parser Expression
-ifParser = pBetweenParenthesis $ do
-    void (pSymbol "if")
-    Operation ifOperator <$> pExpressionTriple
+ifParser = pOperation "if" ifOperator pExpressionTriple
 
 expressionParser :: Parser Expression
 expressionParser = undefined
@@ -212,3 +213,8 @@ pExpressionTriple = Triple
     <$> expressionParser
     <*> expressionParser
     <*> expressionParser
+
+pOperation :: Text -> Operator -> Parser Arguments -> Parser Expression
+pOperation name op pArg = pBetweenParenthesis $ do
+    void (pSymbol name)
+    Operation op <$> pArg
