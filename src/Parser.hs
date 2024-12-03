@@ -8,15 +8,17 @@ import Text.Megaparsec
     , MonadParsec (lookAhead, hidden, eof, takeWhile1P)
     , choice
     , skipSome
+    , between
     )
 import Data.Void (Void)
 import Lib
-    ( Primitive (Boolean, Constant, SymbolReference)
+    ( Primitive (Boolean, Constant, SymbolReference, Function)
     , Symbol (Symbol)
+    , Expression ()
     )
 import Text.Megaparsec.Char (space1, char)
 import Data.Functor (($>), void)
-import Control.Applicative ((<|>))
+import Control.Applicative ((<|>), Alternative (many))
 import qualified Text.Megaparsec.Char.Lexer as L
 import Text.Megaparsec.Char.Lexer (signed)
 import Data.Text (Text, unpack, uncons, all, splitAt)
@@ -50,6 +52,9 @@ type Parser = Parsec Void Text
 -- Helper function to combine predicates
 (.||) :: (a -> Bool) -> (a -> Bool) -> a -> Bool
 (.||) f1 f2 x = f1 x || f2 x
+
+(<<|>>) :: Alternative f => (t -> f a) -> (t -> f a) -> t -> f a
+(<<|>>) p1 p2 p = p1 p <|> p2 p
 
 chezSchemeNonSpaceDelimiter :: String
 chezSchemeNonSpaceDelimiter = "()[]#\";"
@@ -160,6 +165,11 @@ parseSymName = do
             && Data.Text.all isChezSchemeSymbolSubsequent subsequents
         checkSymName _ = False
 
+pBetweenParenthesis :: Parser a -> Parser a
+pBetweenParenthesis
+    = between (pSymbol "(") (pSymbol ")")
+    <<|>> between (pSymbol "[") (pSymbol "]")
+
 -- Parser for chez-scheme boolean literals #f and #t
 booleanParser :: Parser Primitive
 booleanParser = (pSymbol' "#t" $> Boolean True) <|> (pSymbol' "#f" $> Boolean False)
@@ -178,4 +188,10 @@ symbolRefParser = pLexeme (SymbolReference . Symbol . unpack <$> parseSymName)
 
 -- Parser for lambda declaration
 lambdaParser :: Parser Primitive
-lambdaParser = undefined
+lambdaParser = pBetweenParenthesis $ do
+    void (pSymbol "lambda")
+    params <- pBetweenParenthesis (many (pLexeme parseSymName))
+    Function (map (Symbol . unpack) params) <$> expressionParser
+
+expressionParser :: Parser Expression
+expressionParser = undefined
