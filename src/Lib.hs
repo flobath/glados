@@ -8,7 +8,7 @@ module Lib (
     evaluate,
     symbolRef, symbolList, constant, boolean, text, --void,
     defaultEnvironment,
-    oppositeOperator, addOperator, subtractOperator, multiplyOperator, divideOperator,
+    oppositeOperator, addOperator, subtractOperator, multiplyOperator, divideOperator, moduloOperator,
     notOperator, eqOperator, neqOperator, inferiorOperator,
     ifOperator, callOperator, defineOperator, lambdaOperator) where
 
@@ -102,6 +102,11 @@ divide env (Pair _ (evaluate env -> Left (_, Primitive (Constant 0)))) = Right e
 divide env (Pair (evaluate env -> Left (_, Primitive (Constant a))) (evaluate env -> Left (_, Primitive (Constant b)))) = Left (env, constant $ a `div` b)
 divide env _ = Right env
 
+moduloOperator = Binary "%"
+modulo env (Pair _ (evaluate env -> Left (_, Primitive (Constant 0)))) = Right env
+modulo env (Pair (evaluate env -> Left (_, Primitive (Constant a))) (evaluate env -> Left (_, Primitive (Constant b)))) = Left (env, constant $ a `mod` b)
+modulo env _ = Right env
+
 notOperator = Unary "!"
 notOperation env (Single (evaluate env -> Left (_, Primitive (Boolean b)))) = Left (env, boolean $ not b)
 notOperation env _ = Right env
@@ -149,6 +154,7 @@ defaultOperators = [
     (subtractOperator, Lib.subtract),
     (multiplyOperator, multiply),
     (divideOperator, divide),
+    (moduloOperator, modulo),
     (notOperator, notOperation),
     (eqOperator, eq),
     (neqOperator, neq),
