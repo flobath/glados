@@ -5,7 +5,7 @@ module Parser where
 
 import Text.Megaparsec
     ( Parsec
-    , MonadParsec (lookAhead, hidden, eof, takeWhile1P)
+    , MonadParsec (lookAhead, hidden, eof, takeWhile1P, try)
     , choice
     , skipSome
     , between
@@ -119,8 +119,15 @@ someSpace sp line block = skipSome (choice
     ) <|> eof
 
 -- Parse any amount of whitespace or chez-scheme comments
-pWhiteSpace :: Parser ()
-pWhiteSpace = someSpace
+pSomeWhiteSpace :: Parser ()
+pSomeWhiteSpace = someSpace
+    space1
+    (L.skipLineComment ";")
+    (L.skipBlockComment "#|" "|#")
+
+-- Parse any amount of whitespace or chez-scheme comments
+pManyWhiteSpace :: Parser ()
+pManyWhiteSpace = L.space
     space1
     (L.skipLineComment ";")
     (L.skipBlockComment "#|" "|#")
@@ -134,21 +141,30 @@ pDelimiterCharacter = choice . map (void . lookAhead . char)
 -- - either some whitespace/comment (which will be consumed)
 -- - or the next character is a delimiter which will not be consumed
 pDelimiter :: Parser ()
-pDelimiter = pWhiteSpace <|> pDelimiterCharacter chezSchemeNonSpaceDelimiter
+pDelimiter = pSomeWhiteSpace <|> pDelimiterCharacter chezSchemeNonSpaceDelimiter
 
 -- Parse a chez-scheme lexeme: apply the parser
 -- passed as parameter and then check make sure we
 -- reached a delimiter, and consume it appropriately
+pLexemeStrict :: Parser a -> Parser a
+pLexemeStrict = L.lexeme pDelimiter
+
+-- Apply a given parser and consume any following
+-- chez-scheme whitespace or comments, if some is found
 pLexeme :: Parser a -> Parser a
-pLexeme = L.lexeme pDelimiter
+pLexeme = L.lexeme pManyWhiteSpace
+
+-- Similar to pLexemeStrict but intended for parsing know strings
+pSymbolStrict :: Text -> Parser Text
+pSymbolStrict = L.symbol pDelimiter
+
+-- pSymbolStrict, case insensitive
+pSymbolStrict' :: Text -> Parser Text
+pSymbolStrict' = L.symbol' pDelimiter
 
 -- Similar to pLexeme but intended for parsing know strings
 pSymbol :: Text -> Parser Text
-pSymbol = L.symbol pDelimiter
-
--- pSymbol, case insensitive
-pSymbol' :: Text -> Parser Text
-pSymbol' = L.symbol' pDelimiter
+pSymbol = L.symbol pManyWhiteSpace
 
 parseUntilDelimiter :: Parser Text
 parseUntilDelimiter = takeWhile1P
@@ -185,7 +201,7 @@ pBetweenParenthesis
 
 -- Parser for chez-scheme boolean literals #f and #t
 booleanParser :: Parser Primitive
-booleanParser = (pSymbol' "#t" $> Boolean True) <|> (pSymbol' "#f" $> Boolean False)
+booleanParser = (pSymbolStrict' "#t" $> Boolean True) <|> (pSymbolStrict' "#f" $> Boolean False)
 
 -- Parser for chez-scheme string literals
 stringParser :: Parser Primitive
@@ -193,22 +209,22 @@ stringParser = undefined
 
 -- Parser for chez-scheme integer literals
 integerParser :: Parser Primitive
-integerParser = Constant <$> pLexeme (signed (return ()) L.decimal)
+integerParser = Constant <$> pLexemeStrict (signed (return ()) L.decimal)
 
 -- Parser for symbol references
 symbolRefParser :: Parser Primitive
-symbolRefParser = pLexeme (SymbolReference . Symbol . unpack <$> parseSymName)
+symbolRefParser = pLexemeStrict (SymbolReference . Symbol . unpack <$> parseSymName)
 
 -- Parser for lambda declaration
 lambdaParser :: Parser Primitive
 lambdaParser = pBetweenParenthesis $ do
-    void (pSymbol "lambda")
-    params <- pBetweenParenthesis (many (pLexeme parseSymName))
+    void (pSymbolStrict "lambda")
+    params <- pBetweenParenthesis (many (pLexemeStrict parseSymName))
     Function (map (Symbol . unpack) params) <$> expressionParser
 
 defineParser :: Parser Expression
 defineParser = pBetweenParenthesis $ do
-    void (pSymbol "define")
+    void (pSymbolStrict "define")
     symName <- parseSymName
     Operation defineOperator . Pair
         (Primitive (SymbolList [Symbol (unpack symName)]))
@@ -237,9 +253,9 @@ inferiorParser = pOperation "<" inferiorOperator pExpressionPair
 ifParser = pOperation "if" ifOperator pExpressionTriple
 
 expressionParser :: Parser Expression
-expressionParser = pLexeme $ choice
+expressionParser = choice
     [ booleanParser <&> Primitive
-    , stringParser <&> Primitive
+    -- , stringParser <&> Primitive
     , integerParser <&> Primitive
     , symbolRefParser <&> Primitive
     , lambdaParser <&> Primitive
@@ -270,5 +286,5 @@ pExpressionTriple = Triple
 
 pOperation :: Text -> Operator -> Parser Arguments -> Parser Expression
 pOperation name op pArg = pBetweenParenthesis $ do
-    void (pSymbol name)
+    void (pSymbolStrict name)
     Operation op <$> pArg
