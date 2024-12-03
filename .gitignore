@@ -1,3 +1,6 @@
 .stack-work/
 dist-*/
 *~
+.vscode/
+result
+glados
