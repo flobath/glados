@@ -30,7 +30,7 @@ import Lib
     , inferiorOperator
     )
 import Text.Megaparsec.Char (space1, char)
-import Data.Functor (($>), void)
+import Data.Functor (($>), void, (<&>))
 import Control.Applicative ((<|>), Alternative (many))
 import qualified Text.Megaparsec.Char.Lexer as L
 import Text.Megaparsec.Char.Lexer (signed)
@@ -237,7 +237,24 @@ inferiorParser = pOperation "<" inferiorOperator pExpressionPair
 ifParser = pOperation "if" ifOperator pExpressionTriple
 
 expressionParser :: Parser Expression
-expressionParser = undefined
+expressionParser = pLexeme $ choice
+    [ booleanParser <&> Primitive
+    , stringParser <&> Primitive
+    , integerParser <&> Primitive
+    , symbolRefParser <&> Primitive
+    , lambdaParser <&> Primitive
+    , defineParser
+    , oppositeParser
+    , addParser
+    , subtractParser
+    , multiplyParser
+    , divideParser
+    , moduloParser
+    , notParser
+    , eqParser
+    , inferiorParser
+    , ifParser
+    ]
 
 pSingleExpression :: Parser Arguments
 pSingleExpression = Single <$> expressionParser
