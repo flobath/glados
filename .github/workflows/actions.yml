@@ -33,23 +33,30 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcovr jq
 
       - name : run_tests
         run: |
-          make tests_run      
-          
-      - name: Check coverage threshold
-        run: |
-          COVERAGE=$(gcovr -r . --json | jq '.lines.covered_percent')
-          if (( $(echo "$COVERAGE < 60" | bc -l) )); then
-            echo "Coverage is below threshold: ${COVERAGE}%"
-            exit 1
-          fi
+          make tests_run
+        
+          # 'compiler-tools', 'stack-yaml'
+                    
+      - name: hpc-codecov-action     
+        uses: freckle/stack-action@v5
+        with:
+          working-directory: test
+          test: "--coverage" # Quoted to ensure it is treated as a string
+          stack-arguments: "--coverage" # Quoted
+          stack-query-arguments: "--coverage" # Quoted
+          stack-path-arguments: "--coverage" # Quoted
+          stack-setup-arguments: "--coverage" # Quoted
+          stack-build-arguments: "--coverage" # Quoted
+          cache-prefix: "${{ runner.os }}-stack"
+          cache-save-always: true
+          on-dirty-files: fail
+          install-stack: true
+          upgrade-stack: true
+          compiler-tools: true
+            
 
       
   push:
