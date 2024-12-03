@@ -38,17 +38,24 @@ jobs:
         run: |
           make tests_run
         
+          # 'compiler-tools', 'stack-yaml'
                     
       - name: hpc-codecov-action     
         uses: freckle/stack-action@v5
         with:
-          command: "make tests_trun"
-          hpc: true
-          hpc-options: "--exclude=Main"
-          hpc-reporter: "codecov"
-          hpc-threshold: "90"
-          hpc-flags: "-fhpc"
-          hpc-root: "."
+          working-directory: test
+          test: --coverage
+          stack-arguments: --coverage
+          stack-query-arguments: --coverage
+          stack-path-arguments: --coverage
+          stack-setup-arguments: --coverage
+          stack-build-arguments: --coverage
+          cache-prefix: ${{ runner.os }}-stack
+          cache-save-always: true
+          on-dirty-files: fail
+          install-stack: true
+          upgrade-stack: true
+          compiler-tools: true
 
       
   push:
