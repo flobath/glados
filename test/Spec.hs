@@ -12,6 +12,7 @@ import Parser
     , addParser
     , expressionParser
     , defineParser
+    , callParser
     )
 import Lib
     ( Primitive(Boolean, Constant, SymbolReference, SymbolList)
@@ -20,6 +21,7 @@ import Lib
     , addOperator
     , Arguments (Pair, List)
     , defineOperator
+    , callOperator
     )
 
 main :: IO ()
@@ -98,6 +100,15 @@ main = hspec $ do
     describe "parse (define..." $ do
         it "define a variable to a number" $ do
             parse defineParser "" "(define abc 8)" `shouldParse` Operation defineOperator (Pair (Primitive $ SymbolList [Symbol "abc"]) (Primitive (Constant 8)))
+    describe "parse function call" $ do
+        it "simple call (myFunc 1 3)" $ do
+            parse callParser "" "(myFunc 1 3)"
+            `shouldParse` Operation callOperator (List
+                [ Primitive $ SymbolReference $ Symbol "myFunc"
+                , Primitive (Constant 1)
+                , Primitive (Constant 3)
+                ])
+
     describe "functional tests" $ do
         it "parse a factorial function" $ do
             parse expressionParser ""

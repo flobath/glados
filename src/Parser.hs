@@ -28,6 +28,7 @@ import Lib
     , moduloOperator
     , eqOperator
     , inferiorOperator
+    , callOperator
     )
 import Text.Megaparsec.Char (space1, char)
 import Data.Functor (($>), void, (<&>))
@@ -239,7 +240,8 @@ oppositeParser,
     notParser,
     eqParser,
     inferiorParser,
-    ifParser
+    ifParser,
+    callParser
     :: Parser Expression
 oppositeParser = pOperation "-" oppositeOperator
 addParser = pOperation "+" addOperator
@@ -251,9 +253,10 @@ notParser = pOperation "not" notOperator
 eqParser = pOperation "eq?" eqOperator
 inferiorParser = pOperation "<" inferiorOperator
 ifParser = pOperation "if" ifOperator
+callParser = pOperation "" callOperator
 
 expressionParser :: Parser Expression
-expressionParser = choice
+expressionParser = choice $ map try
     [ booleanParser <&> Primitive
     -- , stringParser <&> Primitive
     , integerParser <&> Primitive
@@ -270,6 +273,7 @@ expressionParser = choice
     , eqParser
     , inferiorParser
     , ifParser
+    , callParser
     ]
 
 pSingleExpression :: Parser Arguments
@@ -284,7 +288,16 @@ pExpressionTriple = Triple
     <*> expressionParser
     <*> expressionParser
 
+parseCall :: Parser Expression
+parseCall = pBetweenParenthesis $ do
+    symName <- pLexemeStrict parseSymName
+    let symRef = Primitive $ SymbolReference $ Symbol $ unpack symName
+    args <- many (try expressionParser)
+
+    return (Operation callOperator $ List (symRef:args))
+
 pOperation :: Text -> Operator -> Parser Expression
+pOperation _ (Nary _) = parseCall
 pOperation name op = pBetweenParenthesis $ do
     void (pSymbolStrict name)
     Operation op <$> pArg
