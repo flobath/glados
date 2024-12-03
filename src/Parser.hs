@@ -3,16 +3,47 @@
 
 module Parser where
 
-import Text.Megaparsec (Parsec, MonadParsec (lookAhead, hidden, eof, takeWhile1P), choice, skipSome)
+import Text.Megaparsec
+    ( Parsec
+    , MonadParsec (lookAhead, hidden, eof, takeWhile1P)
+    , choice
+    , skipSome
+    )
 import Data.Void (Void)
-import Lib (Primitive (Boolean, Constant, SymbolReference), Symbol (Symbol))
+import Lib
+    ( Primitive (Boolean, Constant, SymbolReference)
+    , Symbol (Symbol)
+    )
 import Text.Megaparsec.Char (space1, char)
 import Data.Functor (($>), void)
 import Control.Applicative ((<|>))
 import qualified Text.Megaparsec.Char.Lexer as L
 import Text.Megaparsec.Char.Lexer (signed)
 import Data.Text (Text, unpack, uncons, all, splitAt)
-import Data.Char (isSpace, generalCategory, GeneralCategory (UppercaseLetter, LowercaseLetter, TitlecaseLetter, ModifierLetter, OtherLetter, NonSpacingMark, LetterNumber, OtherNumber, DashPunctuation, OtherPunctuation, CurrencySymbol, MathSymbol, ModifierSymbol, OtherSymbol, PrivateUse, DecimalNumber, SpacingCombiningMark, EnclosingMark))
+import Data.Char
+    ( isSpace
+    , generalCategory
+    , GeneralCategory
+        ( UppercaseLetter
+        , LowercaseLetter
+        , TitlecaseLetter
+        , ModifierLetter
+        , OtherLetter
+        , NonSpacingMark
+        , LetterNumber
+        , OtherNumber
+        , DashPunctuation
+        , OtherPunctuation
+        , CurrencySymbol
+        , MathSymbol
+        , ModifierSymbol
+        , OtherSymbol
+        , PrivateUse
+        , DecimalNumber
+        , SpacingCombiningMark
+        , EnclosingMark
+        )
+    )
 
 type Parser = Parsec Void Text
 
@@ -101,18 +132,6 @@ pSymbol = L.symbol pDelimiter
 pSymbol' :: Text -> Parser Text
 pSymbol' = L.symbol' pDelimiter
 
--- Parser for chez-scheme boolean literals #f and #t
-booleanParser :: Parser Primitive
-booleanParser = (pSymbol' "#t" $> Boolean True) <|> (pSymbol' "#f" $> Boolean False)
-
--- Parser for chez-scheme string literals
-stringParser :: Parser Primitive
-stringParser = undefined
-
--- Parser for chez-scheme integer literals
-integerParser :: Parser Primitive
-integerParser = Constant <$> pLexeme (signed (return ()) L.decimal)
-
 parseUntilDelimiter :: Parser Text
 parseUntilDelimiter = takeWhile1P
     (Just "any non-delimiter character")
@@ -140,6 +159,18 @@ parseSymName = do
             = isChezSchemeSymbolInitial initial
             && Data.Text.all isChezSchemeSymbolSubsequent subsequents
         checkSymName _ = False
+
+-- Parser for chez-scheme boolean literals #f and #t
+booleanParser :: Parser Primitive
+booleanParser = (pSymbol' "#t" $> Boolean True) <|> (pSymbol' "#f" $> Boolean False)
+
+-- Parser for chez-scheme string literals
+stringParser :: Parser Primitive
+stringParser = undefined
+
+-- Parser for chez-scheme integer literals
+integerParser :: Parser Primitive
+integerParser = Constant <$> pLexeme (signed (return ()) L.decimal)
 
 -- Parser for symbol references
 symbolRefParser :: Parser Primitive
