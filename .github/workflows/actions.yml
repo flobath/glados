@@ -42,7 +42,7 @@ jobs:
       - name: hpc-codecov-action     
         uses: freckle/stack-action@v5
         with:
-          command: "make testrun"
+          command: "make test_trun"
           hpc: true
           hpc-options: "--exclude=Main"
           hpc-reporter: "codecov"
