@@ -23,6 +23,6 @@ fclean:
 re: fclean all
 
 tests_run:
-	stack test
+	stack test --coverage
 
 .PHONY: $(TARGET) clean fclean re tests_run

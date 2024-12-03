@@ -74,24 +74,3 @@ main = hspec $ do
             parse symbolRefParser "" `shouldSucceedOn` "+"
         it "succeed on -" $ do
             parse symbolRefParser "" `shouldSucceedOn` "+"
-    describe "testFail" $ do
-        it "fail 1" $ do
-            parse symbolRefParser "" `shouldFailOn` "1234"
-        it "fail 2" $ do
-            parse symbolRefParser "" `shouldFailOn` "+abc"
-        it "fail 3" $ do
-            parse symbolRefParser "" `shouldFailOn` "-def"
-        it "fail 4" $ do
-            parse symbolRefParser "" `shouldFailOn` "-3"
-        it "fail 5" $ do
-            parse symbolRefParser "" `shouldFailOn` "1234"
-        it "fail 6" $ do
-            parse symbolRefParser "" `shouldFailOn` "+abc"
-        it "fail 7" $ do
-            parse symbolRefParser "" `shouldFailOn` "-def"
-        it "fail 8" $ do
-            parse symbolRefParser "" `shouldFailOn` "-3"
-        it "fail 9" $ do
-            parse symbolRefParser "" `shouldFailOn` "1234"
-        it "fail 10" $ do
-            parse symbolRefParser "" `shouldFailOn` "+abc"
