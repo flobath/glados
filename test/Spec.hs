@@ -3,14 +3,14 @@
 import Test.Hspec.Megaparsec (shouldParse, succeedsLeaving, initialState, shouldFailOn, shouldSucceedOn)
 import Test.Hspec (hspec, describe, it)
 import Text.Megaparsec (parse, runParser')
-import Parser (booleanParser, pDelimiter, pWhiteSpace, integerParser, symbolRefParser)
-import Lib (Primitive(Boolean, Constant, SymbolReference), Symbol (Symbol))
+import Parser (booleanParser, pDelimiter, pSomeWhiteSpace, integerParser, symbolRefParser, addParser)
+import Lib (Primitive(Boolean, Constant, SymbolReference), Symbol (Symbol), Expression (Primitive, Operation), addOperator, Arguments (Pair))
 
 main :: IO ()
 main = hspec $ do
-    describe "pWhitespace" $ do
+    describe "pSomeWhitespace" $ do
         it "fail with no whitespace" $
-            parse pWhiteSpace "" `shouldFailOn` "not a space"
+            parse pSomeWhiteSpace "" `shouldFailOn` "not a space"
     describe "pDelimiter" $ do
         it "parse any whitespace" $
             runParser' pDelimiter (initialState "   \n\n\t  \t") `succeedsLeaving` ""
@@ -74,3 +74,7 @@ main = hspec $ do
             parse symbolRefParser "" `shouldSucceedOn` "+"
         it "succeed on -" $ do
             parse symbolRefParser "" `shouldSucceedOn` "+"
+
+    describe "addition" $ do
+        it "parse a simple addition" $ do
+            parse addParser "" "(+ 4 8)" `shouldParse` Operation addOperator (Pair (Primitive $ Constant 4) (Primitive $ Constant 8))
