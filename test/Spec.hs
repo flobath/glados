@@ -3,8 +3,24 @@
 import Test.Hspec.Megaparsec (shouldParse, succeedsLeaving, initialState, shouldFailOn, shouldSucceedOn)
 import Test.Hspec (hspec, describe, it)
 import Text.Megaparsec (parse, runParser')
-import Parser (booleanParser, pDelimiter, pSomeWhiteSpace, integerParser, symbolRefParser, addParser, expressionParser)
-import Lib (Primitive(Boolean, Constant, SymbolReference), Symbol (Symbol), Expression (Primitive, Operation), addOperator, Arguments (Pair))
+import Parser
+    ( booleanParser
+    , pDelimiter
+    , pSomeWhiteSpace
+    , integerParser
+    , symbolRefParser
+    , addParser
+    , expressionParser
+    , defineParser
+    )
+import Lib
+    ( Primitive(Boolean, Constant, SymbolReference, SymbolList)
+    , Symbol (Symbol)
+    , Expression (Primitive, Operation)
+    , addOperator
+    , Arguments (Pair, List)
+    , defineOperator
+    )
 
 main :: IO ()
 main = hspec $ do

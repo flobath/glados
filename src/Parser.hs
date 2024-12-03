@@ -16,8 +16,8 @@ import Lib
     , Symbol (Symbol)
     , Expression (Operation, Primitive)
     , ifOperator
-    , Arguments (Triple, Single, Pair)
-    , Operator
+    , Arguments (Triple, Single, Pair, List)
+    , Operator (Unary, Binary, Ternary, Nary)
     , defineOperator
     , divideOperator
     , multiplyOperator
@@ -241,16 +241,16 @@ oppositeParser,
     inferiorParser,
     ifParser
     :: Parser Expression
-oppositeParser = pOperation "-" oppositeOperator pSingleExpression
-addParser = pOperation "+" addOperator pExpressionPair
-subtractParser = pOperation "-" subtractOperator pExpressionPair
-multiplyParser = pOperation "*" multiplyOperator pExpressionPair
-divideParser = pOperation "div" divideOperator pExpressionPair
-moduloParser = pOperation "mod" moduloOperator pExpressionPair
-notParser = pOperation "not" notOperator pSingleExpression
-eqParser = pOperation "eq?" eqOperator pExpressionPair
-inferiorParser = pOperation "<" inferiorOperator pExpressionPair
-ifParser = pOperation "if" ifOperator pExpressionTriple
+oppositeParser = pOperation "-" oppositeOperator
+addParser = pOperation "+" addOperator
+subtractParser = pOperation "-" subtractOperator
+multiplyParser = pOperation "*" multiplyOperator
+divideParser = pOperation "div" divideOperator
+moduloParser = pOperation "mod" moduloOperator
+notParser = pOperation "not" notOperator
+eqParser = pOperation "eq?" eqOperator
+inferiorParser = pOperation "<" inferiorOperator
+ifParser = pOperation "if" ifOperator
 
 expressionParser :: Parser Expression
 expressionParser = choice
@@ -284,7 +284,11 @@ pExpressionTriple = Triple
     <*> expressionParser
     <*> expressionParser
 
-pOperation :: Text -> Operator -> Parser Arguments -> Parser Expression
-pOperation name op pArg = pBetweenParenthesis $ do
+pOperation :: Text -> Operator -> Parser Expression
+pOperation name op = pBetweenParenthesis $ do
     void (pSymbolStrict name)
     Operation op <$> pArg
+    where pArg = case op of
+            (Unary _) -> pSingleExpression
+            (Binary _) -> pExpressionPair
+            (Ternary _) -> pExpressionTriple
