@@ -134,7 +134,7 @@ call env (List ((evaluate env -> Left (env', Primitive (Function params body))) 
 call env _ = Right env
 
 defineOperator = Binary "define"
-define env (Pair (Primitive (SymbolList [name])) value) = Left (addSymbol env (name, value), value)
+define env (Pair (Primitive (SymbolList [name])) value) = evaluate (addSymbol env (name, value)) value
 define env (Pair (Primitive (SymbolList (name:params))) value) = let function = Primitive $ Function params value in
     Left (addSymbol env (name, function), function)
 define env _ = Right env
