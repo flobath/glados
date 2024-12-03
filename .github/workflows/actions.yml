@@ -36,7 +36,7 @@ jobs:
 
       - name : run_tests
         run: |
-          make testrun
+          make test_run
         
                     
       - name: hpc-codecov-action     
