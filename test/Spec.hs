@@ -95,6 +95,9 @@ main = hspec $ do
         it "parse a simple addition" $ do
             parse addParser "" "(+ 4 8)" `shouldParse` Operation addOperator (Pair (Primitive $ Constant 4) (Primitive $ Constant 8))
 
+    describe "parse (define..." $ do
+        it "define a variable to a number" $ do
+            parse defineParser "" "(define abc 8)" `shouldParse` Operation defineOperator (Pair (Primitive $ SymbolList [Symbol "abc"]) (Primitive (Constant 8)))
     describe "functional tests" $ do
         it "parse a factorial function" $ do
             parse expressionParser ""

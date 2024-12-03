@@ -225,7 +225,7 @@ lambdaParser = pBetweenParenthesis $ do
 defineParser :: Parser Expression
 defineParser = pBetweenParenthesis $ do
     void (pSymbolStrict "define")
-    symName <- parseSymName
+    symName <- pLexemeStrict parseSymName
     Operation defineOperator . Pair
         (Primitive (SymbolList [Symbol (unpack symName)]))
         <$> expressionParser
