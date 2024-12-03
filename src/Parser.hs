@@ -12,12 +12,13 @@ import Text.Megaparsec
     )
 import Data.Void (Void)
 import Lib
-    ( Primitive (Boolean, Constant, SymbolReference, Function)
+    ( Primitive (Boolean, Constant, SymbolReference, Function, SymbolList)
     , Symbol (Symbol)
-    , Expression (Operation)
+    , Expression (Operation, Primitive)
     , ifOperator
     , Arguments (Triple, Single, Pair)
     , Operator
+    , defineOperator
     )
 import Text.Megaparsec.Char (space1, char)
 import Data.Functor (($>), void)
@@ -195,6 +196,14 @@ lambdaParser = pBetweenParenthesis $ do
     void (pSymbol "lambda")
     params <- pBetweenParenthesis (many (pLexeme parseSymName))
     Function (map (Symbol . unpack) params) <$> expressionParser
+
+defineParser :: Parser Expression
+defineParser = pBetweenParenthesis $ do
+    void (pSymbol "define")
+    symName <- parseSymName
+    Operation defineOperator . Pair
+        (Primitive (SymbolList [Symbol (unpack symName)]))
+        <$> expressionParser
 
 ifParser :: Parser Expression
 ifParser = pOperation "if" ifOperator pExpressionTriple
