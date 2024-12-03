@@ -3,7 +3,7 @@
 import Test.Hspec.Megaparsec (shouldParse, succeedsLeaving, initialState, shouldFailOn, shouldSucceedOn)
 import Test.Hspec (hspec, describe, it)
 import Text.Megaparsec (parse, runParser')
-import Parser (booleanParser, pDelimiter, pSomeWhiteSpace, integerParser, symbolRefParser, addParser)
+import Parser (booleanParser, pDelimiter, pSomeWhiteSpace, integerParser, symbolRefParser, addParser, expressionParser)
 import Lib (Primitive(Boolean, Constant, SymbolReference), Symbol (Symbol), Expression (Primitive, Operation), addOperator, Arguments (Pair))
 
 main :: IO ()
@@ -78,3 +78,8 @@ main = hspec $ do
     describe "addition" $ do
         it "parse a simple addition" $ do
             parse addParser "" "(+ 4 8)" `shouldParse` Operation addOperator (Pair (Primitive $ Constant 4) (Primitive $ Constant 8))
+
+    describe "functional tests" $ do
+        it "parse a factorial function" $ do
+            parse expressionParser ""
+            `shouldSucceedOn` "(define fact (lambda (x) (if (eq? x 1) 1 (* x (fact (- x 1))))))"
