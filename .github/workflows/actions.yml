@@ -36,13 +36,13 @@ jobs:
 
       - name : run_tests
         run: |
-          make test_run
+          make tests_run
         
                     
       - name: hpc-codecov-action     
         uses: freckle/stack-action@v5
         with:
-          command: "make test_trun"
+          command: "make tests_trun"
           hpc: true
           hpc-options: "--exclude=Main"
           hpc-reporter: "codecov"
