@@ -44,18 +44,6 @@ jobs:
         uses: freckle/stack-action@v5
         with:
           working-directory: test
-          test: "--coverage" # Quoted to ensure it is treated as a string
-          stack-arguments: "--coverage" # Quoted
-          stack-query-arguments: "--coverage" # Quoted
-          stack-path-arguments: "--coverage" # Quoted
-          stack-setup-arguments: "--coverage" # Quoted
-          stack-build-arguments: "--coverage" # Quoted
-          cache-prefix: "${{ runner.os }}-stack"
-          cache-save-always: true
-          on-dirty-files: fail
-          install-stack: true
-          upgrade-stack: true
-          compiler-tools: true
             
 
       
