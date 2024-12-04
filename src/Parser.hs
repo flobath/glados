@@ -12,7 +12,7 @@ import Text.Megaparsec
     )
 import Data.Void (Void)
 import Lib
-    ( Primitive (Boolean, Constant, SymbolReference, Function, SymbolList)
+    ( Primitive (Boolean, Constant, SymbolReference, SymbolList)
     , Symbol (Symbol)
     , Expression (Operation, Primitive)
     , ifOperator
@@ -29,6 +29,7 @@ import Lib
     , eqOperator
     , inferiorOperator
     , callOperator
+    , lambdaOperator
     )
 import Text.Megaparsec.Char (space1, char)
 import Data.Functor (($>), void, (<&>))
@@ -217,11 +218,12 @@ symbolRefParser :: Parser Primitive
 symbolRefParser = pLexemeStrict (SymbolReference . Symbol . unpack <$> parseSymName)
 
 -- Parser for lambda declaration
-lambdaParser :: Parser Primitive
+lambdaParser :: Parser Expression
 lambdaParser = pBetweenParenthesis $ do
     void (pSymbolStrict "lambda")
-    params <- pBetweenParenthesis (many (pLexemeStrict parseSymName))
-    Function (map (Symbol . unpack) params) <$> expressionParser
+    paramsLexemes <- pBetweenParenthesis (many (pLexemeStrict parseSymName))
+    let params = Primitive $ SymbolList $ map (Symbol . unpack) paramsLexemes
+    Operation lambdaOperator . Pair params <$> expressionParser
 
 defineParser :: Parser Expression
 defineParser = pBetweenParenthesis $ do
@@ -261,7 +263,7 @@ expressionParser = choice $ map try
     -- , stringParser <&> Primitive
     , integerParser <&> Primitive
     , symbolRefParser <&> Primitive
-    , lambdaParser <&> Primitive
+    , lambdaParser
     , defineParser
     , oppositeParser
     , addParser

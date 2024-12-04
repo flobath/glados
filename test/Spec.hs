@@ -19,9 +19,14 @@ import Lib
     , Symbol (Symbol)
     , Expression (Primitive, Operation)
     , addOperator
-    , Arguments (Pair, List)
+    , Arguments (Pair, List, Triple)
     , defineOperator
     , callOperator
+    , ifOperator
+    , eqOperator
+    , multiplyOperator
+    , lambdaOperator
+    , subtractOperator
     )
 
 main :: IO ()
@@ -110,6 +115,33 @@ main = hspec $ do
                 ])
 
     describe "functional tests" $ do
-        it "parse a factorial function" $ do
+        it "parse a factorial function (check for success)" $ do
             parse expressionParser ""
             `shouldSucceedOn` "(define fact (lambda (x) (if (eq? x 1) 1 (* x (fact (- x 1))))))"
+
+        it "parse a factorial" $ do
+            parse expressionParser ""
+                "(define fact (lambda (x) (if (eq? x 1) 1 (* x (fact (- x 1))))))"
+                `shouldParse` Operation defineOperator (Pair
+                    (Primitive $ SymbolList [Symbol "fact"])
+                    (Operation lambdaOperator (Pair
+                        (Primitive $ SymbolList [Symbol "x"])
+                        (Operation ifOperator (Triple
+                            (Operation eqOperator (Pair
+                                (Primitive $ SymbolReference $ Symbol "x")
+                                (Primitive $ Constant 1)
+                            ))
+                            (Primitive $ Constant 1)
+                            (Operation multiplyOperator (Pair
+                                (Primitive $ SymbolReference $ Symbol "x")
+                                (Operation callOperator (List
+                                    [ Primitive $ SymbolReference $ Symbol "fact"
+                                    , Operation subtractOperator (Pair
+                                        (Primitive $ SymbolReference $ Symbol "x")
+                                        (Primitive $ Constant 1)
+                                    )
+                                ]))
+                            ))
+                        ))
+                    ))
+                )
