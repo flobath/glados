@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Test.Hspec.Megaparsec (shouldParse, succeedsLeaving, initialState, shouldFailOn, shouldSucceedOn)
+import Test.Hspec.Megaparsec (shouldParse, succeedsLeaving, initialState, shouldFailOn, shouldSucceedOn, shouldFailWith, err, etok, ueof, elabel)
 import Test.Hspec (hspec, describe, it)
 import Text.Megaparsec (parse, runParser')
 import Parser
@@ -28,6 +28,11 @@ import Lib
     , lambdaOperator
     , subtractOperator
     )
+import qualified Data.Text
+import Data.Text (Text)
+
+testText :: Text -> (Text, Int)
+testText t = (t, Data.Text.length t)
 
 main :: IO ()
 main = hspec $ do
@@ -105,6 +110,14 @@ main = hspec $ do
     describe "parse (define..." $ do
         it "define a variable to a number" $ do
             parse defineParser "" "(define abc 8)" `shouldParse` Operation defineOperator (Pair (Primitive $ SymbolList [Symbol "abc"]) (Primitive (Constant 8)))
+        it "fail on missing closing parenthesis" $ do
+            let (t, my_text_length) = testText "(define abc 3"
+            parse defineParser "" t
+                `shouldFailWith` err my_text_length (ueof <> etok ')' <> elabel "digit")
+        it "fail on missing expression" $ do
+            let (t, my_text_length) = testText "(define abc (if"
+            parse defineParser "" t
+                `shouldFailWith` err my_text_length (ueof <> elabel "an expression")
     describe "parse function call" $ do
         it "simple call (myFunc 1 3)" $ do
             parse callParser "" "(myFunc 1 3)"

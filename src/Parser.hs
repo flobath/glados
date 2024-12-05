@@ -9,6 +9,7 @@ import Text.Megaparsec
     , choice
     , skipSome
     , between
+    , (<?>)
     )
 import Data.Void (Void)
 import Lib
@@ -258,7 +259,7 @@ ifParser = pOperation "if" ifOperator
 callParser = pOperation "" callOperator
 
 expressionParser :: Parser Expression
-expressionParser = choice $ map try
+expressionParser = choice (map try
     [ booleanParser <&> Primitive
     -- , stringParser <&> Primitive
     , integerParser <&> Primitive
@@ -276,7 +277,7 @@ expressionParser = choice $ map try
     , inferiorParser
     , ifParser
     , callParser
-    ]
+    ]) <?> "an expression"
 
 pSingleExpression :: Parser Arguments
 pSingleExpression = Single <$> expressionParser
