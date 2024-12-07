@@ -21,8 +21,16 @@ jobs:
     steps:
       - name: Print Branch Names
         run: |
-          echo "Source branch (head): ${{ github.event.pull_request.head.ref }}"
-          echo "Target branch (base): ${{ github.event.pull_request.base.ref }}"
+          source=${{ github.event.pull_request.head.ref }}"
+          target=${{ github.event.pull_request.base.ref }}"
+          if [ $source == $target ]; then
+            echo "Branches are the same"
+            exit 1
+          fi
+          if [ \($target == "main"\) && \($source != "Release-"*)]; then
+            echo "You can't merge into main from a branch that is not a release branch"
+            exit 1
+          fi
 
   build:
     runs-on: ubuntu-latest
@@ -49,24 +57,24 @@ jobs:
             
 
       
-  push:
-    needs: tests
-    runs-on: ubuntu-latest
+  # push:
+  #   needs: tests
+  #   runs-on: ubuntu-latest
 
 
-    if: ${{ github.event_name == 'push' }}
+  #   if: ${{ github.event_name == 'push' }}
 
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          target_repo_url: ${{ env.REPOSITORY_MIRROR }}
-          ssh_private_key: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
+  #   steps:
+  #     - name: checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #         target_repo_url: ${{ env.REPOSITORY_MIRROR }}
+  #         ssh_private_key: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
       
-      - name: Push changes
-        uses: pixta-dev/repository-mirroring-action@v1
-        with: 
-            fetch-depth: 0
-            target_repo_url: ${{ env.REPOSITORY_MIRROR }}
-            ssh_private_key: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
+  #     - name: Push changes
+  #       uses: pixta-dev/repository-mirroring-action@v1
+  #       with: 
+  #           fetch-depth: 0
+  #           target_repo_url: ${{ env.REPOSITORY_MIRROR }}
+  #           ssh_private_key: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
