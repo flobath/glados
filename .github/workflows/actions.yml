@@ -15,6 +15,14 @@ env:
     REPOSITORY_MIRROR: "git@github.com:EpitechPromo2027/B-FUN-500-NAN-5-2-glados-florent.charpentier.git"
 
 jobs:
+  print-branch-names:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print Branch Names
+        run: |
+          echo "Source branch (head): ${{ github.event.pull_request.head.ref }}"
+          echo "Target branch (base): ${{ github.event.pull_request.base.ref }}"
   build:
     runs-on: ubuntu-latest
 
@@ -37,15 +45,6 @@ jobs:
       - name : run_tests
         run: |
           make tests_run
-        
-          # 'compiler-tools', 'stack-yaml'
-                    
-      - name: hpc-codecov-action     
-        uses: freckle/stack-action@v5
-        with:
-          working-directory: test
-            
-
       
   push:
     needs: tests
