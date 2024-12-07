@@ -13,7 +13,6 @@ fi
 
 for test_dir in "$TEST_CASES_DIRECTORY"/*; do
     expected_exit_status=0
-    failed=0
     test_name=$(basename "$test_dir: ")
 
     echo -n "$test_name"
@@ -29,21 +28,29 @@ for test_dir in "$TEST_CASES_DIRECTORY"/*; do
     result=${result%.}
 
     if [ "$exit_status" -ne "$expected_exit_status" ]; then
-        echo 1>&2 "  Failed: invalid exit status $exit_status; expecting $expected_exit_status"
-        failed=1
-    fi
-
-    if ! diff <(echo -n "$result") "$test_dir/out"; then
-        echo 1>&2 '  Failed: unexpected result'
-        failed=1
-    fi
-
-    if [ "$failed" -ne 0 ]; then
+        echo -e ' \e[1;31m✘\e[0m'
+        echo -e 1>&2 "  Failed: invalid exit status \e[1;31m$exit_status\e[0m; expecting \e[1;37m$expected_exit_status\e[0m"
         ((++failed_tests))
-    else
-        echo -ne '\e[1;32m✔\e[0m\n'
+        continue
     fi
+
+    if ! diff <(echo -n "$result") "$test_dir/out" > /dev/null; then
+        echo -e ' \e[1;31m✘\e[0m'
+        echo 1>&2 '  Failed: expecting standard output'
+        echo 1>&2 '=================='
+        cat 1>&2 "$test_dir/out"
+        echo 1>&2 '=================='
+        echo 1>&2 '  But got:'
+        echo 1>&2 '=================='
+        echo 1>&2 "$result"
+        echo 1>&2 '=================='
+        ((++failed_tests))
+        continue
+    fi
+
+    echo -e '\e[1;32m✔\e[0m'
 done
 
+echo
 echo "$failed_tests failed."
-exit "$failed_tests"
+exit $((failed_tests>255 ? 255 : failed_tests))
