@@ -42,7 +42,7 @@ for test_dir in "$TEST_CASES_DIRECTORY"/*; do
         echo 1>&2 '=================='
         echo 1>&2 '  But got:'
         echo 1>&2 '=================='
-        echo 1>&2 "$result"
+        echo -n 1>&2 "$result"
         echo 1>&2 '=================='
         ((++failed_tests))
         continue
