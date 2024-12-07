@@ -15,19 +15,19 @@ env:
     REPOSITORY_MIRROR: "git@github.com:EpitechPromo2027/B-FUN-500-NAN-5-2-glados-florent.charpentier.git"
 
 jobs:
-  print-branch-names:
+  can-merge-pr:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Print Branch Names
+      - name: Check branchs names
         run: |
-          source=${{ github.event.pull_request.head.ref }}"
-          target=${{ github.event.pull_request.base.ref }}"
+          source=${{ github.event.pull_request.head.ref }}
+          target=${{ github.event.pull_request.base.ref }}
           if [ $source == $target ]; then
             echo "Branches are the same"
             exit 1
           fi
-          if [ \($target == "main"\) && \($source != "Release-"*)]; then
+          if [ "$target" == "main" ] && [[ "$source" != "Release"* ]]; then
             echo "You can't merge into main from a branch that is not a release branch"
             exit 1
           fi
