@@ -38,15 +38,16 @@ isUtokEof =  bundleErrors -. any _isUtokEof
         _isUtokEof _ = False
 
 showExpr :: Expression -> String
-showExpr (Operation _ _) = "#<procedure>"
+showExpr (Operation _ _) = "#<procedure>\n"
 showExpr (Primitive p) = showPrimitive p
 
 showPrimitive :: Primitive -> String
-showPrimitive (Constant i) = show i
-showPrimitive (Boolean False) = "#f"
-showPrimitive (Boolean True) = "#t"
-showPrimitive (Text t) = show t
-showPrimitive _ = "#<procedure>"
+showPrimitive (Constant i) = show i ++ "\n"
+showPrimitive (Boolean False) = "#f\n"
+showPrimitive (Boolean True) = "#t\n"
+showPrimitive (Text t) = show t ++ "\n"
+showPrimitive Void = ""
+showPrimitive _ = "#<procedure>\n"
 
 exitWithErrorMessage :: String -> IO a
 exitWithErrorMessage mes = do
@@ -100,7 +101,7 @@ replEval expr = do
         Right _ -> lift $ exitWithErrorMessage "Evaluation error"
 
 replPrint :: Expression -> State ()
-replPrint = lift . putStrLn . showExpr
+replPrint = lift . putStr . showExpr
 
 replLoop :: State ()
 replLoop = do
