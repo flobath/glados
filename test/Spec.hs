@@ -1,32 +1,33 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Test.Hspec.Megaparsec (shouldParse, succeedsLeaving, initialState, shouldFailOn, shouldSucceedOn, shouldFailWith, err, etok, ueof, elabel)
+import Test.Hspec.Megaparsec (shouldParse,
+    succeedsLeaving,
+    initialState,
+    shouldFailOn,
+    shouldSucceedOn,
+    shouldFailWith,
+    err,
+    etok,
+    ueof,
+    elabel,
+    )
 import Test.Hspec (hspec, describe, it)
 import Text.Megaparsec (parse, runParser')
+import Parser.Internal
 import Parser
-    ( booleanParser
-    , pDelimiter
-    , pSomeWhiteSpace
-    , integerParser
-    , symbolRefParser
-    , addParser
-    , expressionParser
-    , defineParser
-    , callParser
-    )
-import Lib
-    ( Primitive(Boolean, Constant, SymbolReference, SymbolList)
-    , Symbol (Symbol)
-    , Expression (Primitive, Operation)
-    , addOperator
-    , Arguments (Pair, List, Triple)
-    , defineOperator
-    , callOperator
-    , ifOperator
-    , eqOperator
-    , multiplyOperator
-    , lambdaOperator
-    , subtractOperator
+import Lib (
+    Primitive(Boolean, Constant, SymbolReference, SymbolList),
+    Symbol (Symbol),
+    Expression (Primitive, Operation),
+    addOperator,
+    Arguments (Pair, List, Triple),
+    defineOperator,
+    callOperator,
+    ifOperator,
+    eqOperator,
+    multiplyOperator,
+    lambdaOperator,
+    subtractOperator,
     )
 import qualified Data.Text
 import Data.Text (Text)

@@ -3,14 +3,34 @@
 
 module Lib (
     Environment(..),
-    Expression(..), Primitive(..), Symbol(..),
-    Operator(..), Arguments(..),
+    Expression(..),
+    Primitive(..),
+    Symbol(..),
+    Operator(..),
+    Arguments(..),
     evaluate,
-    symbolRef, symbolList, constant, boolean, text, --void,
+    symbolRef,
+    symbolList,
+    constant,
+    boolean,
+    text,
+    --void,
     defaultEnvironment,
-    oppositeOperator, addOperator, subtractOperator, multiplyOperator, divideOperator, moduloOperator,
-    notOperator, eqOperator, neqOperator, inferiorOperator,
-    ifOperator, callOperator, defineOperator, lambdaOperator) where
+    oppositeOperator,
+    addOperator,
+    subtractOperator,
+    multiplyOperator,
+    divideOperator,
+    moduloOperator,
+    notOperator,
+    eqOperator,
+    neqOperator,
+    inferiorOperator,
+    ifOperator,
+    callOperator,
+    defineOperator,
+    lambdaOperator,
+) where
 
 import Data.Functor ((<&>))
 
