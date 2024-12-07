@@ -1,0 +1,2 @@
+(define (my_half x) (div x 2))
+(my_half 84)
