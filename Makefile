@@ -5,7 +5,24 @@
 ## Makefile
 ##
 
-TARGET	=	glados
+TARGET		= glados
+STACK_TARGET	= GLaDOS
 
-testrun: 
-	@echo "Running tests..."
+all: $(TARGET)
+
+$(TARGET):
+	@stack build
+	@ln -sf $$(stack path --local-install-root)/bin/$(STACK_TARGET)-exe $(TARGET)
+
+clean:
+	@stack clean
+
+fclean:
+	@stack purge
+
+re: fclean all
+
+tests_run:
+	@stack test
+
+.PHONY: $(TARGET) all clean fclean re tests_run
