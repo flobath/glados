@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 failed_tests=0
+passed_tests=0
 
 if [ ! -x "$GLaDOS_EXEC_PATH" ]; then
     echo 1>&2 "$GLaDOS_EXEC_PATH: invalid executable"
@@ -49,8 +50,15 @@ for test_dir in "$TEST_CASES_DIRECTORY"/*; do
     fi
 
     echo -e '\e[1;32m✔\e[0m'
+    ((++passed_tests))
 done
 
+
 echo
-echo "$failed_tests failed."
+if [[ $failed_tests > 0 ]]; then
+    echo -e "\e[1;31m$failed_tests\e[0;31m failed\e[0m; $passed_tests passed."
+else
+    echo -e "$failed_tests failed; \e[1;32m$passed_tests\e[0m passed."
+fi
+
 exit $((failed_tests>255 ? 255 : failed_tests))
