@@ -33,6 +33,7 @@ module Lib (
 ) where
 
 import Data.Functor ((<&>))
+import Data.Int (Int64)
 
 newtype Symbol = Symbol String
     deriving Eq
@@ -40,7 +41,7 @@ newtype Symbol = Symbol String
 instance Show Symbol where
     show (Symbol name) = name
 
-data Primitive = Constant Int
+data Primitive = Constant Int64
     | Boolean Bool
     | Text String
     | Void
