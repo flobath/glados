@@ -22,17 +22,19 @@ fclean:
 
 re: fclean all
 
-tests_run: tests_run_unit tests_run_functional
+tests_run: tests_unit_run tests_functional_run
 
-tests_run_unit:
+tests_unit_run:
 	@echo 'Running unit tests'
 	@stack test
 
-tests_run_functional: $(TARGET)
+tests_functional_run: $(TARGET)
 	@echo
 	@echo 'Running functional tests'
+	@echo
 	@GLaDOS_EXEC_PATH="$$(realpath '$(TARGET)')" \
 	 TEST_CASES_DIRECTORY=./test/functional_tests/cases \
 	 ./test/functional_tests/tester.sh
 
-.PHONY: $(STACK_EXECUTABLE) $(TARGET) all clean fclean re tests_run
+.PHONY: $(TARGET) all clean fclean re
+.PHONY: tests_run tests_unit_run tests_functional_run
