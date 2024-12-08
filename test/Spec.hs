@@ -115,7 +115,7 @@ main = hspec $ do
 
     describe "parse (define..." $ do
         it "define a variable to a number" $ do
-            parse defineParser "" "(define abc 8)" `shouldParse` Operation defineOperator (Pair (Primitive $ SymbolList [Symbol "abc"]) (Primitive (Constant 8)))
+            parse defineParser "" "(define abc 8)" `shouldParse` Operation defineOperator (Pair (Primitive $ SymbolReference $ Symbol "abc") (Primitive (Constant 8)))
         it "fail on missing closing parenthesis" $ do
             let (t, my_text_length) = testText "(define abc 3"
             parse defineParser "" t
@@ -142,7 +142,7 @@ main = hspec $ do
             parse expressionParser ""
                 "(define fact (lambda (x) (if (eq? x 1) 1 (* x (fact (- x 1))))))"
                 `shouldParse` Operation defineOperator (Pair
-                    (Primitive $ SymbolList [Symbol "fact"])
+                    (Primitive $ SymbolReference $ Symbol "fact")
                     (Operation lambdaOperator (Pair
                         (Primitive $ SymbolList [Symbol "x"])
                         (Operation ifOperator (Triple

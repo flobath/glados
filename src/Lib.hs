@@ -166,12 +166,10 @@ call env _ = Right env
 
 defineOperator = Binary "define"
 define :: Environment -> Arguments -> Either (Environment, Expression) Environment
-define env (Pair (Primitive (SymbolList [name])) def)
+define env (Pair (Primitive (SymbolReference name)) def)
     = case evaluate env def of
         v@(Right _) -> v
         (Left (_, value)) -> Left (addSymbol env (name, value), void)
-define env (Pair (Primitive (SymbolList (name:params))) value) = let function = Primitive $ Function params value in
-    Left (addSymbol env (name, function), void)
 define env _ = Right env
 
 lambdaOperator = Binary "lambda"

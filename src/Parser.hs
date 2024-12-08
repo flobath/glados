@@ -84,7 +84,7 @@ pSimpleDefine :: Parser Expression
 pSimpleDefine = do
     symName <- pLexemeStrict parseSymName
     Operation defineOperator . Pair
-        (Primitive (SymbolList [Symbol symName]))
+        (Primitive (SymbolReference $ Symbol symName))
         <$> expressionParser
 
 pLambdaDefine :: Parser Expression
@@ -94,7 +94,7 @@ pLambdaDefine = do
     let func = Symbol funcName
     let params = Primitive $ SymbolList $ map Symbol paramNames
     return $ Operation defineOperator (Pair
-        (Primitive $ SymbolList [func])
+        (Primitive $ SymbolReference func)
         (Operation lambdaOperator (Pair params body)))
 
 defineParser :: Parser Expression
