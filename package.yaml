@@ -6,7 +6,7 @@ author:              "Thibaut Hebert--Henriette"
 maintainer:          "thibaut.hebert-henriette@epitech.eu"
 copyright:           "(c) Thibaut Hebert--Henriette 2024"
 
-extra-source-files:
+extra-doc-files:
   - README.md
   - CHANGELOG.md
 

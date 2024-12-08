@@ -1,16 +1,45 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Test.Hspec.Megaparsec (shouldParse, succeedsLeaving, initialState, shouldFailOn, shouldSucceedOn)
+import Test.Hspec.Megaparsec (shouldParse,
+    succeedsLeaving,
+    initialState,
+    shouldFailOn,
+    shouldSucceedOn,
+    shouldFailWith,
+    err,
+    etok,
+    ueof,
+    elabel,
+    )
 import Test.Hspec (hspec, describe, it)
 import Text.Megaparsec (parse, runParser')
-import Parser (booleanParser, pDelimiter, pWhiteSpace, integerParser, symbolRefParser)
-import Lib (Primitive(Boolean, Constant, SymbolReference), Symbol (Symbol))
+import Parser.Internal
+import Parser
+import Lib (
+    Primitive(Boolean, Constant, SymbolReference, SymbolList),
+    Symbol (Symbol),
+    Expression (Primitive, Operation),
+    addOperator,
+    Arguments (Pair, List, Triple),
+    defineOperator,
+    callOperator,
+    ifOperator,
+    eqOperator,
+    multiplyOperator,
+    lambdaOperator,
+    subtractOperator,
+    )
+import qualified Data.Text
+import Data.Text (Text)
+
+testText :: Text -> (Text, Int)
+testText t = (t, Data.Text.length t)
 
 main :: IO ()
 main = hspec $ do
-    describe "pWhitespace" $ do
+    describe "pSomeWhitespace" $ do
         it "fail with no whitespace" $
-            parse pWhiteSpace "" `shouldFailOn` "not a space"
+            parse pSomeWhiteSpace "" `shouldFailOn` "not a space"
     describe "pDelimiter" $ do
         it "parse any whitespace" $
             runParser' pDelimiter (initialState "   \n\n\t  \t") `succeedsLeaving` ""
@@ -74,3 +103,59 @@ main = hspec $ do
             parse symbolRefParser "" `shouldSucceedOn` "+"
         it "succeed on -" $ do
             parse symbolRefParser "" `shouldSucceedOn` "+"
+
+    describe "addition" $ do
+        it "parse a simple addition" $ do
+            parse addParser "" "(+ 4 8)" `shouldParse` Operation addOperator (Pair (Primitive $ Constant 4) (Primitive $ Constant 8))
+
+    describe "parse (define..." $ do
+        it "define a variable to a number" $ do
+            parse defineParser "" "(define abc 8)" `shouldParse` Operation defineOperator (Pair (Primitive $ SymbolList [Symbol "abc"]) (Primitive (Constant 8)))
+        it "fail on missing closing parenthesis" $ do
+            let (t, my_text_length) = testText "(define abc 3"
+            parse defineParser "" t
+                `shouldFailWith` err my_text_length (ueof <> etok ')' <> elabel "digit")
+        it "fail on missing expression" $ do
+            let (t, my_text_length) = testText "(define abc (if"
+            parse defineParser "" t
+                `shouldFailWith` err my_text_length (ueof <> elabel "an expression")
+    describe "parse function call" $ do
+        it "simple call (myFunc 1 3)" $ do
+            parse callParser "" "(myFunc 1 3)"
+            `shouldParse` Operation callOperator (List
+                [ Primitive $ SymbolReference $ Symbol "myFunc"
+                , Primitive (Constant 1)
+                , Primitive (Constant 3)
+                ])
+
+    describe "functional tests" $ do
+        it "parse a factorial function (check for success)" $ do
+            parse expressionParser ""
+            `shouldSucceedOn` "(define fact (lambda (x) (if (eq? x 1) 1 (* x (fact (- x 1))))))"
+
+        it "parse a factorial" $ do
+            parse expressionParser ""
+                "(define fact (lambda (x) (if (eq? x 1) 1 (* x (fact (- x 1))))))"
+                `shouldParse` Operation defineOperator (Pair
+                    (Primitive $ SymbolList [Symbol "fact"])
+                    (Operation lambdaOperator (Pair
+                        (Primitive $ SymbolList [Symbol "x"])
+                        (Operation ifOperator (Triple
+                            (Operation eqOperator (Pair
+                                (Primitive $ SymbolReference $ Symbol "x")
+                                (Primitive $ Constant 1)
+                            ))
+                            (Primitive $ Constant 1)
+                            (Operation multiplyOperator (Pair
+                                (Primitive $ SymbolReference $ Symbol "x")
+                                (Operation callOperator (List
+                                    [ Primitive $ SymbolReference $ Symbol "fact"
+                                    , Operation subtractOperator (Pair
+                                        (Primitive $ SymbolReference $ Symbol "x")
+                                        (Primitive $ Constant 1)
+                                    )
+                                ]))
+                            ))
+                        ))
+                    ))
+                )

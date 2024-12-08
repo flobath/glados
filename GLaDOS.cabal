@@ -15,7 +15,7 @@ copyright:      (c) Thibaut Hebert--Henriette 2024
 license:        BSD-3-Clause
 license-file:   LICENSE
 build-type:     Simple
-extra-source-files:
+extra-doc-files:
     README.md
     CHANGELOG.md
 
@@ -27,6 +27,7 @@ library
   exposed-modules:
       Lib
       Parser
+      Parser.Internal
   other-modules:
       Paths_GLaDOS
   autogen-modules:
