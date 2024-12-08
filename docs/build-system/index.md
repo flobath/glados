@@ -4,7 +4,8 @@ This section provides information about the chosen build system for the GLaDOS p
 
 ## Introduction
 
-The GLaDOS project uses [Stack](https://docs.haskellstack.org/en/stable/README/) as its build system. Stack is a powerful tool for managing Haskell projects, offering several advantages that make it an excellent choice for this project.
+The GLaDOS project uses [Stack](https://docs.haskellstack.org/en/stable/README/) as its day-to-day build system. Stack is a powerful tool for managing Haskell projects, offering several advantages that make it an excellent choice for this project.
+Alternatively, the project can also be built using [nix](https://nixos.org/) and nix flakes, allowing any nix user to run our any version project from anywhere, without installing it. More info in [the usage page](../usage/index.md#running-with-nix).
 
 ## Why Use Stack for the GLaDOS Project
 

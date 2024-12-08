@@ -4,7 +4,7 @@ This document provides instructions on how to install and run the GLaDOS project
 
 ## Install the Project
 
-There are two ways to install the project: you can either download the released binary or build it manually from the source code.
+There are many ways to install the project: you can download the released binary or build it manually from the source code. Alternatively you can get a working copy of program with [nix](https://nixos.org/) as described in the [Nix Build](#nix-build) section.
 A guide explaining how to build the binary manually is available [below](#manual-build).
 
 ### Manual Build
@@ -29,6 +29,11 @@ make
 
 It must produce a binary file named `glados` at the root of the project folder.
 
+### Nix Build
+
+If you like to work with nix, you can get a build of our program by running `nix build` in a clone of the repository, or by running `nix build github:flobath/glados` anywhere. You can even build any branch you like with `nix build github:flobath/glados/<branchname>`, replacing `<branchname>` with the actual name of the branch. This allows you to access any release at any time.
+If you just want to run the project to test it out, you don't need to bother using `nix build` to get an executable that you can run. You can just use `nix run`, as described in [Running with Nix](running-with-nix).
+
 ## Run the Project
 
 To run the project, follow these steps:
@@ -45,6 +50,10 @@ To run the project, follow these steps:
     ./glados
     ```
     This will start an interactive session where you can input your LISP code.
+
+### Running with nix
+
+If you're working with [nix](https://nixos.org/) and nix flakes, you can run our program from anywhere, by simply running `nix run github:flobath/glados` in your shell. You can even run any specific version by specifying a branch name, for example `nix run github:flobath/glados/Release-1.0`.
 
 ## Examples
 
