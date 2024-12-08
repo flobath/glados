@@ -14,7 +14,7 @@ module Lib (
     constant,
     boolean,
     text,
-    --void,
+    void,
     defaultEnvironment,
     oppositeOperator,
     addOperator,
@@ -33,6 +33,7 @@ module Lib (
 ) where
 
 import Data.Functor ((<&>))
+import Data.Int (Int64)
 
 newtype Symbol = Symbol String
     deriving Eq
@@ -40,10 +41,10 @@ newtype Symbol = Symbol String
 instance Show Symbol where
     show (Symbol name) = name
 
-data Primitive = Constant Int
+data Primitive = Constant Int64
     | Boolean Bool
     | Text String
-    -- | Void
+    | Void
     | SymbolReference Symbol
     | SymbolList [Symbol]
     | Data [(Symbol, Primitive)]
@@ -54,7 +55,7 @@ instance Show Primitive where
     show (Constant value) = show value
     show (Boolean value) = show value
     show (Text value) = '"' : value ++ "\""
-    --show Void = "Void"
+    show Void = "Void"
     show (SymbolReference symbol) = '[' : show symbol ++ "]"
     show (SymbolList syms) = '(' : unwords (map show syms) ++ ")"
     show (Data pairs) = '{' : unwords (map (\(key, value) -> show key ++ ": " ++ show value) pairs) ++ "}"
@@ -103,7 +104,7 @@ symbolList = Primitive . SymbolList
 constant = Primitive . Constant
 boolean = Primitive . Boolean
 text = Primitive . Text
---void = Primitive Void
+void = Primitive Void
 
 oppositeOperator = Unary "-"
 opposite env (Single (evaluate env -> Left (env', Primitive (Constant x)))) = Left (env', constant (-x))
@@ -163,9 +164,13 @@ call env (List ((evaluate env -> Left (env', Primitive (Function params body))) 
 call env _ = Right env
 
 defineOperator = Binary "define"
-define env (Pair (Primitive (SymbolList [name])) value) = evaluate (addSymbol env (name, value)) value
+define :: Environment -> Arguments -> Either (Environment, Expression) Environment
+define env (Pair (Primitive (SymbolList [name])) def)
+    = case evaluate env def of
+        v@(Right _) -> v
+        (Left (_, value)) -> Left (addSymbol env (name, value), void)
 define env (Pair (Primitive (SymbolList (name:params))) value) = let function = Primitive $ Function params value in
-    Left (addSymbol env (name, function), function)
+    Left (addSymbol env (name, function), void)
 define env _ = Right env
 
 lambdaOperator = Binary "lambda"

@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Lib
+      Megaparsec96
       Parser
       Parser.Internal
   other-modules:
@@ -37,13 +38,17 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
+    , composition-prelude
     , megaparsec
+    , monad-loops
     , text
+    , transformers
   default-language: Haskell2010
 
 executable GLaDOS-exe
   main-is: Main.hs
   other-modules:
+      Repl
       Paths_GLaDOS
   autogen-modules:
       Paths_GLaDOS
@@ -53,8 +58,11 @@ executable GLaDOS-exe
   build-depends:
       GLaDOS
     , base >=4.7 && <5
+    , composition-prelude
     , megaparsec
+    , monad-loops
     , text
+    , transformers
   default-language: Haskell2010
 
 test-suite GLaDOS-test
@@ -70,8 +78,11 @@ test-suite GLaDOS-test
   build-depends:
       GLaDOS
     , base >=4.7 && <5
+    , composition-prelude
     , hspec
     , hspec-megaparsec
     , megaparsec
+    , monad-loops
     , text
+    , transformers
   default-language: Haskell2010
