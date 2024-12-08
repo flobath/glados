@@ -1,6 +1,6 @@
-# Glados Documentation
+# GLaDOS Documentation
 
-This document provides the table of contents of the Glados project.
+This document provides the table of contents of the GLaDOS project.
 
 ## Table of Contents
 
