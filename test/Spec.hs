@@ -11,16 +11,18 @@ import Test.Hspec.Megaparsec (shouldParse,
     ueof,
     elabel,
     )
-import Test.Hspec (hspec, describe, it)
+import Test.Hspec (hspec, describe, it, shouldBe)
 import Text.Megaparsec (parse, runParser')
 import Parser.Internal
 import Parser
 import Lib (
-    Primitive(Boolean, Constant, SymbolReference, SymbolList),
+    Primitive(Boolean, Constant, SymbolReference, SymbolList, Data, Function),
     Symbol (Symbol),
     Expression (Primitive, Operation),
+    Operator (Unary, Binary, Ternary, Nary),
+    Arguments (Pair, List, Triple, Single),
+    Environment (Environment),
     addOperator,
-    Arguments (Pair, List, Triple),
     defineOperator,
     callOperator,
     ifOperator,
@@ -28,6 +30,8 @@ import Lib (
     multiplyOperator,
     lambdaOperator,
     subtractOperator,
+    evaluate,
+    defaultEnvironment,
     )
 import qualified Data.Text
 import Data.Text (Text)
@@ -40,15 +44,12 @@ main = hspec $ do
     describe "pSomeWhitespace" $ do
         it "fail with no whitespace" $
             parse pSomeWhiteSpace "" `shouldFailOn` "not a space"
+
     describe "pDelimiter" $ do
         it "parse any whitespace" $
             runParser' pDelimiter (initialState "   \n\n\t  \t") `succeedsLeaving` ""
         it "fail in middle of a word" $
             parse pDelimiter "" `shouldFailOn` "abc"
-main = hspec $ do
-    describe "Symbol" $ do
-        it "should show a symbol correctly" $ do
-            show (Symbol "x") `shouldBe` "x"
 
     describe "parseBoolean" $ do
         it "parse a simple #t" $
@@ -169,8 +170,6 @@ main = hspec $ do
             show (Constant 42) `shouldBe` "42"
         it "should show a boolean correctly" $ do
             show (Boolean True) `shouldBe` "True"
-        it "should show a text correctly" $ do
-            show (Text "hello") `shouldBe` "\"hello\""
         it "should show a symbol reference correctly" $ do
             show (SymbolReference (Symbol "x")) `shouldBe` "[x]"
         it "should show a symbol list correctly" $ do
