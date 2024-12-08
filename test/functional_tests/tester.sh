@@ -14,14 +14,17 @@ fi
 
 for test_dir in "$TEST_CASES_DIRECTORY"/*; do
     expected_exit_status=0
-    test_name=$(basename "$test_dir: ")
+    test_name=$(basename "$test_dir")
 
-    echo -n "$test_name"
-    ([ -r "$test_dir/in" ] || echo 1>&2 "  $test_name: Missing stdin file") &&
-    ([ -r "$test_dir/out" ] || echo 1>&2 "  $test_name: Missing stdout file") || continue
+    if [ ! -r "$test_dir/in" ] && (echo -e 1>&2 "\e[1;33m  $test_name: Missing stdin file\e[0m"; true) \
+    || ([ ! -r "$test_dir/out" ] && (echo -e 1>&2 "\e[1;33m  $test_name: Missing stdout file\e[0m"; true))
+    then continue; fi
+
     if [ -r "$test_dir/exit" ]; then
         expected_exit_status="$(cat $test_dir/exit)"
     fi
+
+    echo -n "$test_name: "
 
     # weird trick described in https://unix.stackexchange.com/questions/383217/shell-keep-trailing-newlines-n-in-command-substitution
     result="$("$GLaDOS_EXEC_PATH" < "$test_dir/in" 2> /dev/null; ret=$?; echo .; exit $ret)"
