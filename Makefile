@@ -26,7 +26,7 @@ tests_run: tests_unit_run tests_functional_run
 
 tests_unit_run:
 	@echo 'Running unit tests'
-	@stack test
+	@stack test --coverage
 
 tests_functional_run: $(TARGET)
 	@echo
