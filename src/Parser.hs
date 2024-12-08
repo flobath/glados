@@ -54,7 +54,7 @@ import Data.Functor (($>), void, (<&>))
 import Control.Applicative ((<|>), Alternative (many, some))
 import qualified Text.Megaparsec.Char.Lexer as L
 import Text.Megaparsec.Char.Lexer (signed)
-import Data.Text (Text, unpack)
+import Data.Text (Text)
 
 -- Parser for chez-scheme boolean literals #f and #t
 booleanParser :: Parser Primitive
@@ -70,29 +70,29 @@ integerParser = Constant <$> pLexemeStrict (signed (return ()) L.decimal)
 
 -- Parser for symbol references
 symbolRefParser :: Parser Primitive
-symbolRefParser = pLexemeStrict (SymbolReference . Symbol . unpack <$> parseSymName)
+symbolRefParser = pLexemeStrict (SymbolReference . Symbol <$> parseSymName)
 
 -- Parser for lambda declaration
 lambdaParser :: Parser Expression
 lambdaParser = pBetweenParenthesis $ do
     void (pSymbolStrict "lambda")
     paramsLexemes <- pBetweenParenthesis (many (pLexemeStrict parseSymName))
-    let params = Primitive $ SymbolList $ map (Symbol . unpack) paramsLexemes
+    let params = Primitive $ SymbolList $ map Symbol paramsLexemes
     Operation lambdaOperator . Pair params <$> expressionParser
 
 pSimpleDefine :: Parser Expression
 pSimpleDefine = do
     symName <- pLexemeStrict parseSymName
     Operation defineOperator . Pair
-        (Primitive (SymbolList [Symbol (unpack symName)]))
+        (Primitive (SymbolList [Symbol symName]))
         <$> expressionParser
 
 pLambdaDefine :: Parser Expression
 pLambdaDefine = do
     (funcName:paramNames) <- pBetweenParenthesis $ some $ pLexemeStrict parseSymName
     body <- expressionParser
-    let func = Symbol $ unpack funcName
-    let params = Primitive $ SymbolList $ map (Symbol . unpack) paramNames
+    let func = Symbol funcName
+    let params = Primitive $ SymbolList $ map Symbol paramNames
     return $ Operation defineOperator (Pair
         (Primitive $ SymbolList [func])
         (Operation lambdaOperator (Pair params body)))

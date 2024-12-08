@@ -34,16 +34,17 @@ module Lib (
 
 import Data.Functor ((<&>))
 import Data.Int (Int64)
+import Data.Text (Text, unpack)
 
-newtype Symbol = Symbol String
+newtype Symbol = Symbol Text
     deriving Eq
 
 instance Show Symbol where
-    show (Symbol name) = name
+    show (Symbol name) = unpack name
 
 data Primitive = Constant Int64
     | Boolean Bool
-    | Text String
+    | Text Text
     | Void
     | SymbolReference Symbol
     | SymbolList [Symbol]
@@ -54,7 +55,7 @@ data Primitive = Constant Int64
 instance Show Primitive where
     show (Constant value) = show value
     show (Boolean value) = show value
-    show (Text value) = '"' : value ++ "\""
+    show (Text value) = '"' : show value ++ "\""
     show Void = "Void"
     show (SymbolReference symbol) = '[' : show symbol ++ "]"
     show (SymbolList syms) = '(' : unwords (map show syms) ++ ")"
