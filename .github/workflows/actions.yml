@@ -10,10 +10,10 @@ on:
   pull_request:
     branches-ignore:
       - 'skip-ci-*'
-    
+
 permissions:
   contents: write
-    
+
 env:
     REPOSITORY_MIRROR: "git@github.com:EpitechPromo2027/B-FUN-500-NAN-5-2-glados-florent.charpentier.git"
     ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -49,7 +49,7 @@ jobs:
       - name : run_tests
         run: |
           make tests_run
-              
+
   push:
     needs: tests
     runs-on: ubuntu-latest
@@ -64,10 +64,10 @@ jobs:
           fetch-depth: 0
           target_repo_url: ${{ env.REPOSITORY_MIRROR }}
           ssh_private_key: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
-      
+
       - name: Push changes
         uses: pixta-dev/repository-mirroring-action@v1
-        with: 
+        with:
             fetch-depth: 0
             target_repo_url: ${{ env.REPOSITORY_MIRROR }}
             ssh_private_key: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
@@ -93,7 +93,7 @@ jobs:
 
   create_release:
     if: ${{ github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'Release') == true }}
-    needs: can-merge-pr 
+    needs: can-merge-pr
     runs-on: ubuntu-latest
     env:
       GLADOS_TARGET: ""
@@ -109,7 +109,7 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.event.pull_request.head.ref }} \
             | jq -r '.id')
-          
+
           if [ "$release_id" != "null" ]; then
             curl -X DELETE \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
