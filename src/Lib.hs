@@ -94,6 +94,10 @@ data Environment = Environment {
 instance Show Environment where
     show (Environment ops syms) = "Environment with " ++ show (length ops) ++ " operators defined and the following " ++ show (length syms) ++ " symbols " ++ show syms
 
+instance Eq Environment where
+    (==) (Environment _ syms1) (Environment _ syms2) = syms1 == syms2
+
+
 symbolRef = Primitive . SymbolReference
 symbolList = Primitive . SymbolList
 constant = Primitive . Constant
