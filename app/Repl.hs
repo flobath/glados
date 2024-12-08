@@ -19,7 +19,13 @@ import qualified Data.Text.IO as T
 import GHC.IO.Handle (isEOF, hIsTerminalDevice, hFlush)
 import System.Exit (exitSuccess, exitWith, ExitCode (ExitFailure))
 import System.IO (hPutStrLn, stderr, stdin, stdout)
-import Text.Megaparsec (runParser', stateInput, ParseErrorBundle (bundleErrors), ParseError (TrivialError), ErrorItem (EndOfInput))
+import Text.Megaparsec (
+    runParser',
+    stateInput,
+    ParseErrorBundle (bundleErrors),
+    ParseError (TrivialError),
+    ErrorItem (EndOfInput),
+    )
 import Parser (parseExpression)
 import Megaparsec96 (initialState)
 import Control.Composition ((-.))
