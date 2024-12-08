@@ -116,11 +116,8 @@ pExpressionTriple = Triple
 
 parseCall :: Parser Expression
 parseCall = pBetweenParenthesis $ do
-    symName <- pLexemeStrict parseSymName
-    let symRef = Primitive $ SymbolReference $ Symbol $ unpack symName
-    args <- many (try expressionParser)
-
-    return (Operation callOperator $ List (symRef:args))
+    exprList <- some parseExpression
+    return $ Operation callOperator $ List exprList
 
 pOperation :: Text -> Operator -> Parser Expression
 pOperation _ (Nary _) = parseCall
