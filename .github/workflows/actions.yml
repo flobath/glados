@@ -16,68 +16,9 @@ permissions:
     
 env:
     REPOSITORY_MIRROR: "git@github.com:EpitechPromo2027/B-FUN-500-NAN-5-2-glados-florent.charpentier.git"
+    ACTIONS_ALLOW_UNSECURE_COMMANDS: true
 
 jobs:
-  can-merge-pr:
-    if: ${{ github.event_name == 'pull_request' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check branchs names
-        run: |
-          source=${{ github.event.pull_request.head.ref }}
-          target=${{ github.event.pull_request.base.ref }}
-          if [ $source == $target ]; then
-            echo "Branches are the same"
-            exit 1
-          fi
-          if [ "$target" == "main" ] && [[ "$source" != "Release"* ]]; then
-            echo "You can't merge into main from a branch that is not a release branch"
-            exit 1
-          fi
-
-          if [[ "$source" != "Release"* ]]; then
-            echo "doesn't need release"
-            exit 0
-          fi
-
-  create_release:
-    if: ${{ github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'Release') == true }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Delete Existing Release (if any)
-        run: |
-          if [[ ${{ startsWith(github.event.pull_request.head.ref, 'Release') }} == true ]]; then
-            echo "Condition met. Proceeding."
-          else
-            echo "Condition not met. Skipping."
-          fi
-          release_id=$(curl -s \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.event.pull_request.head.ref }} \
-            | jq -r '.id')
-          
-          if [ "$release_id" != "null" ]; then
-            curl -X DELETE \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Accept: application/vnd.github.v3+json" \
-              https://api.github.com/repos/${{ github.repository }}/releases/$release_id
-          fi
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.event.pull_request.head.ref }}
-          release_name: ${{ github.event.pull_request.head.ref }}
-          body: |
-            ${{ github.event.pull_request.body}}
-          draft: false
-          prerelease: false
-
-
   build:
     runs-on: ubuntu-latest
 
@@ -108,7 +49,7 @@ jobs:
       - name : run_tests
         run: |
           make tests_run
-      
+              
   push:
     needs: tests
     runs-on: ubuntu-latest
@@ -130,3 +71,77 @@ jobs:
             fetch-depth: 0
             target_repo_url: ${{ env.REPOSITORY_MIRROR }}
             ssh_private_key: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
+
+
+  can-merge-pr:
+    if: ${{ github.event_name == 'pull_request' }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branchs names
+        run: |
+          source=${{ github.event.pull_request.head.ref }}
+          target=${{ github.event.pull_request.base.ref }}
+          if [ $source == $target ]; then
+            echo "Branches are the same"
+            exit 1
+          fi
+          if [ "$target" == "main" ] && [[ "$source" != "Release"* ]]; then
+            echo "You can't merge into main from a branch that is not a release branch"
+            exit 1
+          fi
+
+  create_release:
+    if: ${{ github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'Release') == true }}
+    needs: can-merge-pr 
+    runs-on: ubuntu-latest
+    env:
+      GLADOS_TARGET: ""
+    steps:
+      - name: Fetch repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Delete Existing Release (if any)
+        run: |
+          release_id=$(curl -s \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.event.pull_request.head.ref }} \
+            | jq -r '.id')
+          
+          if [ "$release_id" != "null" ]; then
+            curl -X DELETE \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/${{ github.repository }}/releases/$release_id
+          fi
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.pull_request.head.ref }}
+          release_name: ${{ github.event.pull_request.head.ref }}
+          body: |
+            ${{ github.event.pull_request.body}}
+          draft: false
+          prerelease: false
+
+      - name: Get link
+        id: get_glados_target
+        run: |
+          make
+          echo "::set-output name=GLADOS_TARGET::$(realpath glados)"
+
+      - name: Upload Binary to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_path: ${{ steps.get_glados_target.outputs.GLADOS_TARGET }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_name: glados
+          asset_content_type: application/octet-stream
