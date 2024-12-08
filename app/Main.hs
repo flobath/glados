@@ -1,8 +1,11 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
 
 import Lib
+import Repl (replLoop, ReplState (ReplState), ifTTY)
+import Control.Monad.Trans.State (StateT(runStateT))
 
 nSymbol = Symbol "n"
 factorialSymbol = Symbol "factorial"
@@ -16,6 +19,10 @@ functionDefinition = Operation defineOperator $ Pair (symbolList [factorialSymbo
             (symbolRef nSymbol))
 
 main :: IO ()
-main = case evaluate defaultEnvironment functionDefinition of
-    Left (env, expr) -> print $ evaluate env $ Operation callOperator $ List [expr, constant 6]
-    Right errEnv -> print errEnv
+main = do
+    ifTTY $ putStrLn "================="
+    ifTTY $ putStrLn "  Glados scheme"
+    ifTTY $ putStrLn "================="
+    ifTTY $ putStrLn ""
+    _ <- runStateT replLoop (ReplState "" defaultEnvironment)
+    return ()
