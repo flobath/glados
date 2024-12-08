@@ -20,7 +20,7 @@ import GHC.IO.Handle (isEOF, hIsTerminalDevice, hFlush)
 import System.Exit (exitSuccess, exitWith, ExitCode (ExitFailure))
 import System.IO (hPutStrLn, stderr, stdin, stdout)
 import Text.Megaparsec (runParser', stateInput, ParseErrorBundle (bundleErrors), ParseError (TrivialError), ErrorItem (EndOfInput))
-import Parser (expressionParser)
+import Parser (parseExpression)
 import Megaparsec96 (initialState)
 import Control.Composition ((-.))
 import Data.Functor ((<&>))
@@ -83,7 +83,7 @@ replReadConcat = do
 replParse :: State Expression
 replParse = do
     (ReplState buf env) <- get
-    let (pState, pRes) = runParser' expressionParser (initialState "" buf)
+    let (pState, pRes) = runParser' parseExpression (initialState "" buf)
     case pRes of
         Right expr -> do
             put (ReplState (stateInput pState) env)

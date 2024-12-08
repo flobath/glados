@@ -19,6 +19,7 @@ module Parser (
     inferiorParser,
     ifParser,
     callParser,
+    parseExpression,
 ) where
 
 import Parser.Internal
@@ -174,4 +175,7 @@ expressionParser = Text.Megaparsec.choice (map Text.Megaparsec.try
     , inferiorParser
     , ifParser
     , callParser
-    ]) Text.Megaparsec.<?> "an expression"
+    ]) <?> "an expression"
+
+parseExpression :: Parser Expression
+parseExpression = pManyWhiteSpace >> expressionParser
