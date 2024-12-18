@@ -78,10 +78,21 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Fetch latest pull request details
+        id: fetch_pr
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const response = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            return { head: pr.data.head.ref, base: pr.data.base.ref };
       - name: Check branchs names
         run: |
-          source=${{ github.event.pull_request.head.ref }}
-          target=${{ github.event.pull_request.base.ref }}
+          source=${{ steps.fetch_pr.outputs.head }}
+          target=${{ steps.fetch_pr.outputs.base }}
           if [ $source == $target ]; then
             echo "Branches are the same"
             exit 1
@@ -92,7 +103,7 @@ jobs:
           fi
 
   create_release:
-    if: ${{ github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'Release') == true }}
+    if: ${{ github.event_name == 'approved' && startsWith(github.event.pull_request.head.ref, 'Release') == true }}
     needs: can-merge-pr
     runs-on: ubuntu-latest
     env:
