@@ -153,12 +153,12 @@ ifOperation env (Triple (evaluate env -> Left (env', Primitive (Boolean True))) 
 ifOperation env (Triple (evaluate env -> Left (env', Primitive (Boolean False))) _ (evaluate env' -> Left (_, result))) = Left (env, result)
 ifOperation env _ = Right env
 
-addAndEvalSymbol env@(Environment ops syms) (symbol, evaluate env -> Left (_, expr)) = Environment ops ((symbol, expr) : syms)
-addAndEvalSymbol env _ = env
+addAndEvalSymbol env (Environment ops syms) (symbol, evaluate env -> Left (_, expr)) = Environment ops ((symbol, expr) : syms)
+addAndEvalSymbol env _ _ = env
 
 callOperator = Nary ""
 call env (List ((evaluate env -> Left (env', Primitive (Function params body))) : (zipStrict params -> Just pairs))) =
-    case evaluate (foldl addAndEvalSymbol env' pairs) body of
+    case evaluate (foldl (addAndEvalSymbol env') env' pairs) body of
         Left (_, result) -> Left (env, result)
         Right _ -> Right env
 call env _ = Right env
