@@ -125,7 +125,7 @@ KeyW_fun    <- 'fun'    EndOfWord AnySpacing
 KeyW_if     <- 'if'     EndOfWord AnySpacing
 KeyW_unless <- 'unless' EndOfWord AnySpacing
 KeyW_else   <- 'else'   EndOfWord AnySpacing
-KeyW_return <- 'return' EndOfWord AnySpacing
+KeyW_return <- 'return' EndOfWord InlineSpacing # 'return' can be a statement on its own
 KeyW_main   <- 'main'   EndOfWord AnySpacing
 
 
