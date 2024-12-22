@@ -14,9 +14,9 @@ data Token
     | Identifier Text
     | Control ControlSequence
 
-data Literal
+-- we use 'newtype' instead of data because we only have one variant so far
+newtype Literal
     = IntLiteral Int64
-    | BoolLiteral Bool
 
 data Keyword
     = KeyWReturn
@@ -24,6 +24,8 @@ data Keyword
     | KeyWUnless
     | KeyWElse
     | KeyWFun
+    | KeyWTrue
+    | KeyWFalse
     | KeyWMain
 
 data ControlSequence
