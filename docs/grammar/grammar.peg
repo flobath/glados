@@ -102,7 +102,7 @@ IntegerType <- ( 'i' / 'u' ) ( '8' / '16' / '32' / '64' ) InlineSpacing
 
 ### Literals ###
 
-BooleanLiteral <- ('true' / 'false') InlineSpacing
+BooleanLiteral <- KeyW_true / KeyW_false
 NumericLiteral <- [0-9]+ InlineSpacing
 
 
@@ -119,6 +119,8 @@ Keyword
     /  keyW_unless
     /  KeyW_else
     /  KeyW_return
+    /  KeyW_true
+    /  KeyW_false
     /  KeyW_main
 
 KeyW_fun    <- 'fun'    EndOfWord AnySpacing
@@ -126,6 +128,8 @@ KeyW_if     <- 'if'     EndOfWord AnySpacing
 KeyW_unless <- 'unless' EndOfWord AnySpacing
 KeyW_else   <- 'else'   EndOfWord AnySpacing
 KeyW_return <- 'return' EndOfWord InlineSpacing # 'return' can be a statement on its own
+KeyW_true   <- 'true'   EndOfWord InlineSpacing
+KeyW_false  <- 'false'  EndOfWord InlineSpacing
 KeyW_main   <- 'main'   EndOfWord AnySpacing
 
 
