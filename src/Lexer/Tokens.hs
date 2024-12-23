@@ -1,4 +1,4 @@
-module Tokens (
+module Lexer.Tokens (
     Token(..),
     Literal(..),
     Keyword (..),
