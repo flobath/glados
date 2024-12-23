@@ -25,6 +25,7 @@ source-repository head
 
 library
   exposed-modules:
+      Lexer
       Lexer.Tokens
       Lib
       Megaparsec96
@@ -37,8 +38,11 @@ library
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  build-tools:
+      alex
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
     , composition-prelude
     , megaparsec
     , monad-loops
@@ -56,8 +60,11 @@ executable GLaDOS-exe
   hs-source-dirs:
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-tools:
+      alex
   build-depends:
       GLaDOS
+    , array
     , base >=4.7 && <5
     , composition-prelude
     , megaparsec
@@ -76,8 +83,11 @@ test-suite GLaDOS-test
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-tools:
+      alex
   build-depends:
       GLaDOS
+    , array
     , base >=4.7 && <5
     , composition-prelude
     , hspec
