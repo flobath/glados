@@ -7,6 +7,20 @@ module Lexer.Tokens (
 
 import Data.Int (Int64)
 import Data.Text (Text)
+import Text.Megaparsec (SourcePos)
+
+data WithPos a = WithPos
+    { startPos :: SourcePos
+    , endPos :: SourcePos
+    , tokenLength :: Int
+    , tokenVal :: a
+    } deriving (Eq, Ord, Show)
+
+data TokenStream = TokenStream
+    { myStreamInput :: String
+    , unMyStream :: [WithPos Token]
+    }
+
 
 data Token
     = Keyword Keyword
@@ -30,7 +44,7 @@ data Keyword
 
 data ControlSequence
     = LineBreak
-    | SemiColon
+    | Semicolon
     | Colon
     | Comma
     | OpenParen

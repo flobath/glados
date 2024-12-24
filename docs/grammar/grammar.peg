@@ -219,5 +219,5 @@ InlineSpacing <- (InlineSpace / LineComment / BlockComment)*
 LineComment <- '//' (!LineBreak .)*
 BlockComment <- '/*' ( !'*/' .)* '*/'
 InlineSpace <- ' ' / '\t' / ('\\' LineBreak) # End of lines can be escaped
-LineBreak <- !'\\' ('\r\n' / '\n' / '\r')
+LineBreak <- !'\\' ('\n' / '\r\n')
 EndOfFile <- !.
