@@ -40,12 +40,15 @@ import Data.Char (isSpace, generalCategory, GeneralCategory (..))
 
 type Parser = Parsec Void Text
 
+comb :: (b -> b -> b) -> (a -> b) -> (a -> b) -> (a -> b)
+comb combinator f1 f2 input = f1 input `combinator` f2 input
+
 -- Helper function to combine predicates
-(.||) :: (a -> Bool) -> (a -> Bool) -> a -> Bool
-(.||) f1 f2 x = f1 x || f2 x
+(<||>) :: (a -> Bool) -> (a -> Bool) -> a -> Bool
+(<||>) = comb (||)
 
 (<<|>>) :: Alternative f => (t -> f a) -> (t -> f a) -> t -> f a
-(<<|>>) p1 p2 p = p1 p <|> p2 p
+(<<|>>) = comb (<|>)
 
 chezSchemeNonSpaceDelimiter :: String
 chezSchemeNonSpaceDelimiter = "()[]#\";"
@@ -87,7 +90,7 @@ isChezSchemeSymbolSubsequent c
     ]
 
 isChezSchemeDelimiter :: Char -> Bool
-isChezSchemeDelimiter = isSpace .|| (`elem` chezSchemeNonSpaceDelimiter)
+isChezSchemeDelimiter = isSpace <||> (`elem` chezSchemeNonSpaceDelimiter)
 
 -- Patched version of Text.MegaParsec.Char.Lexer.space
 -- to only succeed if some space is encountered, or at eof
