@@ -2,6 +2,7 @@ module Helpers (
     comb,
     (<||>),
     (<<|>>),
+    (?:),
 ) where
 
 import Control.Applicative ( Alternative((<|>)) )
@@ -21,4 +22,12 @@ comb combinator f1 f2 input = f1 input `combinator` f2 input
 (<<|>>) :: Alternative f => (t -> f a) -> (t -> f a) -> (t -> f a)
 (<<|>>) = comb (<|>)
 
-
+-- Applies (:) to Functor-wrapped Lists
+--
+-- Examples:
+-- - 1 ?: 2 ?: Just [3] = Just [1, 2, 3]
+-- - 1 ?: Nothing = Nothing
+-- - 42 ?: 7 ?: Left "no list" = Left "no list"
+infixr 5 ?:
+(?:) :: Functor f => a -> f [a] -> f [a]
+(?:) x = fmap (x:)

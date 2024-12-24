@@ -1,10 +1,11 @@
 {
-module Lexer (Token(..), AlexPosn(..), alexScanTokens) where
+module Lexer (Token(..), AlexPosn(..), alexScanTokens, WithPos(..), myScanTokens) where
 
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Text.Megaparsec(SourcePos(..), mkPos)
 import Lexer.Tokens (Token(..), Literal(..), Keyword(..), ControlSequence(..))
+import Helpers((?:))
 }
 
 %wrapper "posn-strict-text"
@@ -112,4 +113,17 @@ data WithPos a = WithPos
     , tokenLength :: Int
     , tokenVal :: a
     } deriving (Eq, Ord, Show)
+
+-- Patched version of the generated `alexScanTokens`
+-- which returns `Left` instead of `error`ing horrendously
+myScanTokens :: Text -> Either String [WithPos Token]
+myScanTokens str = go (alexStartPos,'\n',[],str)
+    where go inp__@(pos,_,_bs,s) =
+            case alexScan inp__ 0 of
+                AlexEOF -> Right []
+                AlexError ((AlexPn _ line column),_,_,_) -> Left $
+                    "lexical error at line " ++ (show line) ++ ", column " ++ (show column)
+                AlexSkip  inp__' _len  -> go inp__'
+                AlexToken inp__' len act -> act pos (Data.Text.take len s) ?: go inp__'
+
 }
