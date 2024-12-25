@@ -27,10 +27,12 @@ data Token
     | Literal Literal
     | Identifier Text
     | Control ControlSequence
+    deriving (Show, Eq)
 
 -- we use 'newtype' instead of data because we only have one variant so far
 newtype Literal
     = IntLiteral Int64
+    deriving (Show, Eq)
 
 data Keyword
     = KeyWReturn
@@ -41,6 +43,7 @@ data Keyword
     | KeyWTrue
     | KeyWFalse
     | KeyWMain
+    deriving (Show, Eq)
 
 data ControlSequence
     = LineBreak
@@ -66,3 +69,4 @@ data ControlSequence
     | OperLt
     | OperGe
     | OperLe
+    deriving (Show, Eq)
