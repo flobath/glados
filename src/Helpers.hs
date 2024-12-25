@@ -3,6 +3,7 @@ module Helpers (
     (<||>),
     (<<|>>),
     (?:),
+    ffmap
 ) where
 
 import Control.Applicative ( Alternative((<|>)) )
@@ -31,3 +32,6 @@ comb combinator f1 f2 input = f1 input `combinator` f2 input
 infixr 5 ?:
 (?:) :: Functor f => a -> f [a] -> f [a]
 (?:) x = fmap (x:)
+
+ffmap :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
+ffmap = fmap . fmap
