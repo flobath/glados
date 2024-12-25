@@ -1,11 +1,18 @@
 {
-module Lexer (Token(..), AlexPosn(..), alexScanTokens, WithPos(..), myScanTokens) where
+module Lexer (
+    Token(..),
+    AlexPosn(..),
+    alexScanTokens,
+    WithPos(..),
+    myScanTokens,
+    myScanTok,
+) where
 
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Text.Megaparsec(SourcePos(..), mkPos)
 import Lexer.Tokens (Token(..), Literal(..), Keyword(..), ControlSequence(..))
-import Helpers((?:))
+import Helpers((?:), ffmap)
 }
 
 %wrapper "posn-strict-text"
@@ -126,5 +133,10 @@ myScanTokens str = go (alexStartPos,'\n',[],str)
                     "lexical error at line " ++ (show line) ++ ", column " ++ (show column)
                 AlexSkip  inp__' _len  -> go inp__'
                 AlexToken inp__' len act -> act pos (Data.Text.take len s) ?: go inp__'
+
+-- More concise version of myScanTok which only outputs
+-- the tokens, without their position.
+myScanTok :: Text -> Either String [Token]
+myScanTok = ffmap tokenVal . myScanTokens
 
 }
