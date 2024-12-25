@@ -129,8 +129,8 @@ myScanTokens str = go (alexStartPos,'\n',[],str)
     where go inp__@(pos,_,_bs,s) =
             case alexScan inp__ 0 of
                 AlexEOF -> Right []
-                AlexError ((AlexPn _ line column),_,_,_) -> Left $
-                    "lexical error at line " ++ (show line) ++ ", column " ++ (show column)
+                AlexError ((AlexPn _ line column),c,pending,current) -> Left $
+                    "lexical error at line " ++ (show line) ++ ", column " ++ (show column) ++ ", previous character: " ++ show c ++ " pending: " ++ show pending ++ ", current: " ++ show current
                 AlexSkip  inp__' _len  -> go inp__'
                 AlexToken inp__' len act -> act pos (Data.Text.take len s) ?: go inp__'
 
