@@ -15,10 +15,10 @@ $digit = 0-9
 $alpha = [a-zA-Z]
 
 -- Whitespace-related tokens
-@LineBreak    = "\n" | "\r\n"
-@InlineSpace  = [\ \t] | ( \\ @LineBreak)
+@LineBreak    = \n | \r\n
+$InlineSpace  = [\ \t]
 @BlockComment = "/*" [.\n]* "*/"
-@LineComment  = "//" .* ( \\ @LineBreak .*)*
+@LineComment  = "//" .*
 
 -- Definition of 'Identifier'
 $IdentStart = [ $alpha _ ]
@@ -30,12 +30,13 @@ $IdentCont  = [ $alpha _ $digit ]
 tokens :-
 
     -- All kinds of blanks we ignore
-    @InlineSpace+   ;
+    $InlineSpace+   ;
     @LineComment    ;
     @BlockComment   ;
+    \\ @LineBreak ;
 
     -- All control tokens
-    ~[\\] ^ @LineBreak  { ctokCtrl LineBreak }
+    [. \n] # \\ ^ @LineBreak  { ctokCtrl LineBreak }
     ";"                 { ctokCtrl Semicolon }
     ":"                 { ctokCtrl Colon }
     ","                 { ctokCtrl Comma }
