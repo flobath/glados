@@ -78,6 +78,7 @@ test-suite GLaDOS-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      LexerSpec
       Paths_GLaDOS
   autogen-modules:
       Paths_GLaDOS
