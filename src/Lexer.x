@@ -1,6 +1,5 @@
 {
 module Lexer (
-    Token(..),
     AlexPosn(..),
     alexScanTokens,
     WithPos(..),
@@ -11,7 +10,12 @@ module Lexer (
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Text.Megaparsec(SourcePos(..), mkPos)
-import Lexer.Tokens (Token(..), Literal(..), Keyword(..), ControlSequence(..))
+import Lexer.Tokens (
+    Token(..),
+    Literal(..),
+    Keyword(..),
+    ControlSequence(..),
+    )
 import Helpers((?:), ffmap)
 }
 
