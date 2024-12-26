@@ -63,3 +63,42 @@ spec = do
         expectSingleToken "true keyword" "true" $ Keyword KeyWTrue
         expectSingleToken "false keyword" "false" $ Keyword KeyWFalse
         expectSingleToken "main keyword" "main" $ Keyword KeyWMain
+
+    describe "Lex a full function definition" $ do
+        it "sum function" $ do
+            myScanTok
+                "fun my_add(i32 a, i32 b): i32\n\
+                \{\n\
+                \    i32 result = a + b\n\
+                \\n\
+                \    return result\n\
+                \}\n"
+            `shouldBe` Right
+                [ Keyword KeyWFun
+                , Identifier "my_add"
+                , Control OpenParen
+                , Identifier "i32"
+                , Identifier "a"
+                , Control Comma
+                , Identifier "i32"
+                , Identifier "b"
+                , Control CloseParen
+                , Control Colon
+                , Identifier "i32"
+                , Control LineBreak
+                , Control OpenBrace
+                , Control LineBreak
+                , Identifier "i32"
+                , Identifier "result"
+                , Control OperAssign
+                , Identifier "a"
+                , Control OperAdd
+                , Identifier "b"
+                , Control LineBreak
+                , Control LineBreak
+                , Keyword KeyWReturn
+                , Identifier "result"
+                , Control LineBreak
+                , Control CloseBrace
+                , Control LineBreak
+                ]
