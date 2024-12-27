@@ -31,6 +31,7 @@ library
       Lib
       Megaparsec96
       Parser
+      Parser.AST
       Parser.Internal
   other-modules:
       Paths_GLaDOS
