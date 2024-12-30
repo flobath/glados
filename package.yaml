@@ -27,6 +27,7 @@ dependencies:
   - monad-loops
   - text
   - array
+  - containers
 
 ghc-options:
   - -Wall

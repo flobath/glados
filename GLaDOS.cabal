@@ -25,6 +25,7 @@ source-repository head
 
 library
   exposed-modules:
+      AlexToParsec
       Helpers
       Lexer
       Lexer.Tokens
@@ -33,6 +34,8 @@ library
       Parser
       Parser.AST
       Parser.Internal
+      Parser.Internal2
+      Parser2
   other-modules:
       Paths_GLaDOS
   autogen-modules:
@@ -46,6 +49,7 @@ library
       array
     , base >=4.7 && <5
     , composition-prelude
+    , containers
     , megaparsec
     , monad-loops
     , text
@@ -69,6 +73,7 @@ executable GLaDOS-exe
     , array
     , base >=4.7 && <5
     , composition-prelude
+    , containers
     , megaparsec
     , monad-loops
     , text
@@ -93,6 +98,7 @@ test-suite GLaDOS-test
     , array
     , base >=4.7 && <5
     , composition-prelude
+    , containers
     , hspec
     , hspec-megaparsec
     , megaparsec
