@@ -8,7 +8,7 @@ module Parser.AST (
     Operation(..),
     PrefixOperation(..),
     InfixOperation(..),
-    PrimitiveExpression(..),
+    AtomicExpression(..),
     VarIdentifier(..),
     TypeIdentifier(..),
     VariableDeclaration(..),
@@ -34,7 +34,7 @@ data Expression
     | ExprFunctionCall Expression [Expression]
     | ExprOperation Operation
     | ExprBlock BlockExpression
-    | ExprPrimitive PrimitiveExpression
+    | ExprAtomic AtomicExpression
 
 data Operation
     = OpPrefix PrefixOperation
@@ -60,10 +60,10 @@ data InfixOperation
     | InfixAnd  Expression Expression
     | InfixOr   Expression Expression
 
-data PrimitiveExpression
-    = PrimIntLiteral Int64
-    | PrimBooleanLiteral Bool
-    | PrimIdentifier VarIdentifier
+data AtomicExpression
+    = AtomIntLiteral Int64
+    | AtomBooleanLiteral Bool
+    | AtomIdentifier VarIdentifier
 
 newtype VarIdentifier = VarIdentifier Text
 newtype TypeIdentifier = TypeIdentifier Text

@@ -16,7 +16,11 @@ import Lexer.Tokens (Literal(..), Token(..), Keyword (..))
 import Lexer (WithPos(WithPos))
 import Data.Int (Int64)
 import Data.Text (Text)
-import Parser.AST (VarIdentifier (VarIdentifier), TypeIdentifier (TypeIdentifier), PrimitiveExpression (PrimIntLiteral, PrimIdentifier, PrimBooleanLiteral))
+import Parser.AST (
+    VarIdentifier (VarIdentifier),
+    TypeIdentifier (TypeIdentifier),
+    AtomicExpression (..),
+    )
 
 pIntLiteral :: Parser Int64
 pIntLiteral = token test Set.empty <?> "integer literal"
@@ -41,9 +45,9 @@ pBoolean = (pKeyword KeyWTrue $> True
         <|> pKeyword KeyWFalse $> False)
         <?> "boolean literal"
 
-pPrimitive :: Parser PrimitiveExpression
-pPrimitive = choice
-    [ pIntLiteral       <&> PrimIntLiteral
-    , pVarIdentifier    <&> PrimIdentifier
-    , pBoolean          <&> PrimBooleanLiteral
+pAtom :: Parser AtomicExpression
+pAtom = choice
+    [ pIntLiteral       <&> AtomIntLiteral
+    , pVarIdentifier    <&> AtomIdentifier
+    , pBoolean          <&> AtomBooleanLiteral
     ]
