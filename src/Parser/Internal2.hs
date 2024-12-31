@@ -6,14 +6,18 @@ module Parser.Internal2 (
     pSuccess,
     tryConsume,
     tryParse,
+    eol,
     pSepBy,
     pCommaSep,
+    pBetweenParenthesis,
+    pBetweenBrace,
+    manyEol,
 ) where
 
 import Data.Void (Void)
-import Lexer.Tokens (Token (Keyword, Control), Keyword, ControlSequence (Comma))
+import Lexer.Tokens (Token (..), Keyword, ControlSequence (..))
 import Lexer (WithPos(WithPos))
-import Text.Megaparsec (Parsec, initialPos, MonadParsec (token), ErrorItem (Tokens), many, parseMaybe)
+import Text.Megaparsec (Parsec, initialPos, MonadParsec (token), ErrorItem (Tokens), many, parseMaybe, between)
 import AlexToParsec (TokenStream)
 import Data.List.NonEmpty(NonEmpty(..))
 import qualified Data.Set as Set
@@ -52,6 +56,15 @@ pKeyword = pToken . Keyword
 pControl :: ControlSequence -> Parser Token
 pControl = pToken . Control
 
+eol :: Parser Token
+eol = pControl LineBreak
+
+manyEol :: Parser [Token]
+manyEol = many eol
+
+eos :: Parser Token
+eos = pControl LineBreak <|> pControl Semicolon
+
 -- Powerful combinator which parses separators and elements,
 -- returning the list of elements.
 --
@@ -66,4 +79,15 @@ pSepBy sep p = do
     return (maybeToList x ++ xs)
 
 pCommaSep :: Parser a -> Parser [a]
-pCommaSep = pSepBy (pControl Comma)
+pCommaSep = pSepBy (pControl Comma *> manyEol)
+
+pBetweenParenthesis :: Parser a -> Parser a
+pBetweenParenthesis = between
+    (pControl OpenParen >> many eol)
+    (pControl CloseParen)
+
+pBetweenBrace :: Parser a -> Parser a
+pBetweenBrace = between
+    (pControl OpenBrace >> many eol)
+    (pControl CloseBrace)
+
