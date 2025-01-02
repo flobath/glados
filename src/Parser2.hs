@@ -41,10 +41,8 @@ module Parser2 (
     pProgram,
 ) where
 
-import qualified Data.Set as Set
 import Text.Megaparsec (
     (<?>),
-    token,
     choice,
     )
 
@@ -54,14 +52,10 @@ import Control.Applicative((<|>), Alternative (many))
 import Parser.Internal2
 
 import Lexer.Tokens (
-    Literal(..),
     Token(..),
     Keyword (..),
     ControlSequence (..),
     )
-import Lexer (WithPos(WithPos))
-import Data.Int (Int64)
-import Data.Text (Text)
 import Parser.AST (
     VarIdentifier (VarIdentifier),
     TypeIdentifier (TypeIdentifier),
@@ -79,18 +73,6 @@ import Parser.AST (
     MainFunction (MainFunction),
     Program (Program),
     )
-
-pIntLiteral :: Parser Int64
-pIntLiteral = token test Set.empty <?> "integer literal"
-    where
-        test (WithPos _ _ _ (Literal (IntLiteral n))) = Just n
-        test _ = Nothing
-
-pIdentifier :: Parser Text
-pIdentifier = token test Set.empty <?> "identifier"
-    where
-        test (WithPos _ _ _ (Identifier i)) = Just i
-        test _ = Nothing
 
 pVarIdentifier :: Parser VarIdentifier
 pVarIdentifier = pIdentifier <&> VarIdentifier <?> "variable identifier"

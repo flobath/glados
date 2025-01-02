@@ -12,18 +12,22 @@ module Parser.Internal2 (
     pBetweenParenthesis,
     pBetweenBrace,
     manyEol,
+    pIntLiteral,
+    pIdentifier,
 ) where
 
 import Data.Void (Void)
-import Lexer.Tokens (Token (..), Keyword, ControlSequence (..))
+import Lexer.Tokens (Token (..), Keyword, ControlSequence (..), Literal (IntLiteral))
 import Lexer (WithPos(WithPos))
-import Text.Megaparsec (Parsec, initialPos, MonadParsec (token), ErrorItem (Tokens), many, parseMaybe, between)
+import Text.Megaparsec (Parsec, initialPos, MonadParsec (token), ErrorItem (Tokens), many, between, (<?>), ParseErrorBundle)
 import AlexToParsec (TokenStream)
 import Data.List.NonEmpty(NonEmpty(..))
 import qualified Data.Set as Set
 import Control.Applicative((<|>))
 import Data.Functor((<&>), void)
 import Data.Maybe (maybeToList)
+import Data.Int (Int64)
+import Data.Text (Text)
 
 type Parser = Parsec Void TokenStream
 
@@ -91,3 +95,14 @@ pBetweenBrace = between
     (pControl OpenBrace >> many eol)
     (pControl CloseBrace)
 
+pIntLiteral :: Parser Int64
+pIntLiteral = token test Set.empty <?> "integer literal"
+    where
+        test (WithPos _ _ _ (Literal (IntLiteral n))) = Just n
+        test _ = Nothing
+
+pIdentifier :: Parser Text
+pIdentifier = token test Set.empty <?> "identifier"
+    where
+        test (WithPos _ _ _ (Identifier i)) = Just i
+        test _ = Nothing
