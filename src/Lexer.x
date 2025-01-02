@@ -6,6 +6,8 @@ module Lexer (
     WithPos(..),
     myScanTokens,
     myScanTok,
+    LexerError,
+    showLexError,
 ) where
 
 import           Data.Text (Text)
@@ -86,6 +88,7 @@ tokens :-
 
 -- Each right-hand side has type :: AlexPosn -> Text -> WithPos Token
 type Lexer = (AlexPosn -> Text -> WithPos Token)
+type LexerError = String
 
 -- Some action helpers:
 tok :: (Text -> Token) -> Lexer
@@ -124,7 +127,7 @@ data WithPos a = WithPos
 
 -- Patched version of the generated `alexScanTokens`
 -- which returns `Left` instead of `error`ing horrendously
-myScanTokens :: Text -> Either String [WithPos Token]
+myScanTokens :: Text -> Either LexerError [WithPos Token]
 myScanTokens str = go (alexStartPos,'\n',[],str)
     where go inp__@(pos,_,_bs,s) =
             case alexScan inp__ 0 of
@@ -138,5 +141,8 @@ myScanTokens str = go (alexStartPos,'\n',[],str)
 -- the tokens, without their position.
 myScanTok :: Text -> Either String [Token]
 myScanTok = ffmap tokenVal . myScanTokens
+
+showLexError :: LexerError -> String
+showLexError = show
 
 }

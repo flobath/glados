@@ -14,6 +14,7 @@ module Parser.Internal2 (
     manyEol,
     pIntLiteral,
     pIdentifier,
+    ParserError,
 ) where
 
 import Data.Void (Void)
@@ -30,6 +31,7 @@ import Data.Int (Int64)
 import Data.Text (Text)
 
 type Parser = Parsec Void TokenStream
+type ParserError = ParseErrorBundle TokenStream Void
 
 pSuccess :: Parser ()
 pSuccess = return ()
