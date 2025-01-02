@@ -87,6 +87,7 @@ test-suite GLaDOS-test
   main-is: Spec.hs
   other-modules:
       LexerSpec
+      ParserSpec
       Paths_GLaDOS
   autogen-modules:
       Paths_GLaDOS
