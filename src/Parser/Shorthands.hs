@@ -4,6 +4,9 @@ module Parser.Shorthands where
 
 import Parser.AST
 
+tId = TypeIdentifier
+vId = VarIdentifier
+vdecl = VariableDeclaration
 eIf = ExprIfConditional
 eCall = ExprFunctionCall
 eOp = ExprOperation
