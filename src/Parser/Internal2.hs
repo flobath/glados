@@ -20,7 +20,7 @@ module Parser.Internal2 (
 import Data.Void (Void)
 import Lexer.Tokens (Token (..), Keyword, ControlSequence (..), Literal (IntLiteral))
 import Lexer (WithPos(WithPos))
-import Text.Megaparsec (Parsec, initialPos, MonadParsec (token), ErrorItem (Tokens), many, between, (<?>), ParseErrorBundle)
+import Text.Megaparsec (Parsec, initialPos, MonadParsec (token), ErrorItem (Tokens), many, between, (<?>), ParseErrorBundle, try)
 import AlexToParsec (TokenStream)
 import Data.List.NonEmpty(NonEmpty(..))
 import qualified Data.Set as Set
@@ -78,9 +78,9 @@ eos = pControl LineBreak <|> pControl Semicolon
 -- The return value of the separator parser is discarded.
 pSepBy :: Parser a -> Parser b -> Parser [b]
 pSepBy sep p = do
-    x <- tryParse p        -- Attempt to parse a leading expr
-    xs <- many (sep >> p)  -- Parse all <sep expr>
-    tryConsume sep         -- Ignore potential trailing separator
+    x <- tryParse p             -- Attempt to parse a leading expr
+    xs <- many (try $ sep >> p) -- Parse all <sep expr>
+    tryConsume sep              -- Ignore potential trailing separator
 
     return (maybeToList x ++ xs)
 

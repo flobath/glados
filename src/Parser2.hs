@@ -216,7 +216,11 @@ pUnlessConditional = do
     return $ ExprIfConditional condition' firstArm secondArm
 
 pExpression :: Parser Expression
-pExpression = pOpExpr <|> pIfConditional <|> pUnlessConditional
+pExpression = choice
+    [ pOpExpr
+    , pIfConditional
+    , pUnlessConditional
+    ] <?> "expression"
 
 pGroupedExpression :: Parser Expression
 pGroupedExpression = pBetweenParenthesis pExpression
