@@ -1,14 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module ParserSpec (spec) where
-import Test.Hspec (Spec, describe, it, expectationFailure, shouldBe, Expectation)
+import Test.Hspec (Spec, describe, it, expectationFailure, shouldBe, Expectation, HasCallStack)
 import Text.Megaparsec (ShowErrorComponent, VisualStream, TraversableStream, ParseErrorBundle, errorBundlePretty)
 import Parser2 (pExpression)
 import Lexer (showLexError)
 import Parser.ParseAndLex (ParseLexError(..), parseAndLex)
 import Parser.Shorthands
 
-shouldLexParse :: (Show a, Eq a) => Either ParseLexError a -> a -> Expectation
+shouldLexParse :: (HasCallStack, Show a, Eq a) => Either ParseLexError a -> a -> Expectation
 r `shouldLexParse` v = case r of
     Left e -> case e of
         LexingError le -> expectationFailure $
