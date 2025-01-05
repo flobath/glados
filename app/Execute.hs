@@ -1,25 +1,11 @@
 module Execute (execute) where
 import StackMachine (Value(..), Operator(..), Instruction(..), Stack, Program)
 
-add :: Stack -> Stack
-add (IntValue x:IntValue y:xs) = IntValue (y + x) : xs
-add _ = error "Invalid arguments for add"
-
-sub :: Stack -> Stack
-sub (IntValue x:IntValue y:xs) = IntValue (y - x) : xs
-sub _ = error "Invalid arguments for sub"
-
-mul :: Stack -> Stack
-mul (IntValue x:IntValue y:xs) = IntValue (y * x) : xs
-mul _ = error "Invalid arguments for mul"
-
-division :: Stack -> Stack
-division (IntValue x:IntValue y:xs) = IntValue (y `div` x) : xs
-division _ = error "Invalid arguments for division"
-
-modulo :: Stack -> Stack
-modulo (IntValue x:IntValue y:xs) = IntValue (y `mod` x) : xs
-modulo _ = error "Invalid arguments for mod"
+add = infixIntOperation "add" (+)
+sub = infixIntOperation "sub" (-)
+mul = infixIntOperation "mul" (*)
+division = infixIntOperation "div" div
+modulo = infixIntOperation "mod" mod
 
 eq :: Stack -> Bool
 eq [BoolValue x] = x
@@ -67,18 +53,22 @@ push xs x = x:xs
 -- pushEnv :: Stack -> Stack -> Stack
 -- pushEnv xs ys = ys ++ xs
 
+infixIntOperation :: String -> (Int -> Int -> Int) -> (Stack -> Stack)
+infixIntOperation _ op (IntValue x1 : IntValue x2 : xs) = (x1 `op` x2):xs
+infixIntOperation name _ _ = error "Invalid arguments for " ++ name
+
 applyOperator :: Operator -> Stack -> Stack
-applyOperator Add list = add list
-applyOperator Sub list = sub list
-applyOperator Mul list = mul list
-applyOperator Div list = division list
-applyOperator Mod list = modulo list
+applyOperator Add list = infixIntOperation "add" (+) list
+applyOperator Sub list = infixIntOperation "sub" (-) list
+applyOperator Mul list = infixIntOperation "mul" (*) list
+applyOperator Div list = infixIntOperation "div" div list
+applyOperator Mod list = infixIntOperation "mod" mod list
 applyOperator _ _ = error "Unsupported operator"
+
 
 call :: Stack -> Stack
 call (OpValue op:xs) = applyOperator op xs
 call _ = error "Cannot call"
-
 
 jumpIfTrue :: Stack -> Bool
 jumpIfTrue (OpValue Eq:xs) = eq xs
