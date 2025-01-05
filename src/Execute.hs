@@ -54,8 +54,8 @@ push xs x = x:xs
 -- pushEnv xs ys = ys ++ xs
 
 infixIntOperation :: String -> (Int -> Int -> Int) -> (Stack -> Stack)
-infixIntOperation _ op (IntValue x1 : IntValue x2 : xs) = (x1 `op` x2):xs
-infixIntOperation name _ _ = error "Invalid arguments for " ++ name
+infixIntOperation _ op (IntValue x1 : IntValue x2 : xs) = (IntValue $ x1 `op` x2):xs
+infixIntOperation name _ _ = error $ "Invalid arguments for " ++ name
 
 applyOperator :: Operator -> Stack -> Stack
 applyOperator Add list = infixIntOperation "add" (+) list
@@ -98,27 +98,27 @@ jump condition offset instructions currentIndex
 
 
 execute :: Program -> Stack -> Int -> Int
-execute instructions Stack currentIndex
+execute instructions stack currentIndex
   | currentIndex >= length instructions = error "Program terminated unexpectedly"
   | currentIndex < 0 = error "Invalid program counter"
   | otherwise =
       case instructions !! currentIndex of
         Return ->
-          case Stack of
+          case stack of
             (IntValue x:_) -> x
             _ -> error "Invalid return value"
         Push x ->
-          execute instructions (push Stack x) (currentIndex + 1)
+          execute instructions (push stack x) (currentIndex + 1)
         -- PushArgs n ->
-        --   execute instructions (pushArgs Stack n) (currentIndex + 1)
+        --   execute instructions (pushArgs stack n) (currentIndex + 1)
         -- PushEnv x ->
-        --   execute instructions (pushEnv Stack x) (currentIndex + 1)
+        --   execute instructions (pushEnv stack x) (currentIndex + 1)
         Call ->
-          execute instructions (call Stack) (currentIndex + 1)
+          execute instructions (call stack) (currentIndex + 1)
         JumpIfTrue offset ->
-          let condition = jumpIfTrue Stack
-          in execute instructions Stack (jump condition offset instructions currentIndex)
+          let condition = jumpIfTrue stack
+          in execute instructions stack (jump condition offset instructions currentIndex)
         JumpIfFalse offset ->
-          let condition = jumpIfFalse Stack
-          in execute instructions Stack (jump condition offset instructions currentIndex)
+          let condition = jumpIfFalse stack
+          in execute instructions stack (jump condition offset instructions currentIndex)
         _ -> error "Unsupported instruction"
