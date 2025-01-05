@@ -44,6 +44,7 @@ module Parser2 (
 import Text.Megaparsec (
     (<?>),
     choice,
+    MonadParsec (hidden, try),
     )
 
 import Data.Functor((<&>), ($>), void)
@@ -143,7 +144,7 @@ pLogicalOrOp = pControl OperOr $> InfixOr
 pSuffixOpExpr :: Parser Expression
 pSuffixOpExpr = do
     base <- pPrimaryExpression
-    fCalls <- many pExprList
+    fCalls <- hidden $ many pExprList
 
     return $ foldl ExprFunctionCall base fCalls
 
@@ -157,7 +158,7 @@ pPrefixOpExpr = do
 pInfixlOpExpr :: Parser Expression -> Parser InfixOperator -> Parser Expression
 pInfixlOpExpr pPrev pInfix = do
     base <- pPrev
-    operations <- many (liftA2 (,) pInfix pPrev)
+    operations <- hidden $ many (liftA2 (,) pInfix pPrev)
 
     return $ foldl
         (\acc (oper, expr) -> ExprOperation $ OpInfix $ oper acc expr)
@@ -232,14 +233,14 @@ pReturnStatement :: Parser Statement
 pReturnStatement = StReturn <$> (pKeyword KeyWReturn *> pExpression)
 
 pVariableDecl :: Parser VariableDeclaration
-pVariableDecl = VariableDeclaration
+pVariableDecl = try $ VariableDeclaration
     <$> pTypeIdentifier
     <*> pVarIdentifier
 
 pVariableDeclStatement :: Parser Statement
 pVariableDeclStatement = do
     decl <- pVariableDecl
-    value <- tryParse (pControl OperEquals *> pExpression)
+    value <- tryParse (pControl OperAssign *> pExpression)
     return $ StVariableDecl decl value
 
 pStatement :: Parser Statement
@@ -252,7 +253,7 @@ pStatement = choice
 pEndOfStatement :: Parser [Token]
 pEndOfStatement = do
     x <- pControl Semicolon <|> eol
-    xs <- many eol
+    xs <- manyEol
     return $ x:xs
 
 pBlockExpression :: Parser BlockExpression
@@ -268,10 +269,10 @@ pReturnType = pControl Colon *> manyEol *> pTypeIdentifier
 pFunction :: Parser Function
 pFunction = do
     void (pKeyword KeyWFun) <* manyEol
-    name <- pIdentifier <* manyEol
-    paramList <- pFunParamList <* manyEol
-    retType <- tryParse pReturnType <* manyEol
-    body <- pBlockExpression <* manyEol
+    name <- pIdentifier <* manyEol <?> "function name"
+    paramList <- pFunParamList <* manyEol <?> "parameter list"
+    retType <- tryParse pReturnType <* manyEol <?> "return type"
+    body <- pBlockExpression <* manyEol <?> "function body"
 
     return $ Function name paramList retType body
 

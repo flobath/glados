@@ -10,13 +10,16 @@ vdecl = VariableDeclaration
 eIf = ExprIfConditional
 eCall = ExprFunctionCall
 eOp = ExprOperation
-eBlk = ExprBlock
+eBlk = ExprBlock . BlockExpression
 eAtom = ExprAtomic
 
 eaInt = ExprAtomic . AtomIntLiteral
 eaBool = ExprAtomic . AtomBooleanLiteral
 eaId = ExprAtomic . AtomIdentifier . VarIdentifier
 
+eoNeg = ExprOperation . OpPrefix . PreNeg
+eoPlus = ExprOperation . OpPrefix . PrePlus
+eoNot = ExprOperation . OpPrefix . PreNot
 eoAdd a b = ExprOperation $ OpInfix $ InfixAdd a b
 eoSub a b = ExprOperation $ OpInfix $ InfixSub a b
 eoMul a b = ExprOperation $ OpInfix $ InfixMul a b
@@ -28,3 +31,12 @@ eoGt a b = ExprOperation $ OpInfix $ InfixGt a b
 eoLt a b = ExprOperation $ OpInfix $ InfixLt a b
 eoGe a b = ExprOperation $ OpInfix $ InfixGe a b
 eoLe a b = ExprOperation $ OpInfix $ InfixLe a b
+eoOr a b = ExprOperation $ OpInfix $ InfixOr a b
+eoAnd a b = ExprOperation $ OpInfix $ InfixAnd a b
+
+sRet = StReturn
+sDecl t n = StVariableDecl (VariableDeclaration t n)
+sExpr = StExpression
+
+fn text params retType sts = Function text params retType (BlockExpression sts)
+fnMain params sts = MainFunction params (BlockExpression sts)

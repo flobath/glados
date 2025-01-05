@@ -3,7 +3,6 @@ module Parser.Internal2 (
     pToken,
     pKeyword,
     pControl,
-    pSuccess,
     tryConsume,
     tryParse,
     eol,
@@ -15,12 +14,13 @@ module Parser.Internal2 (
     pIntLiteral,
     pIdentifier,
     ParserError,
+    liftMyToken,
 ) where
 
 import Data.Void (Void)
 import Lexer.Tokens (Token (..), Keyword, ControlSequence (..), Literal (IntLiteral))
 import Lexer (WithPos(WithPos))
-import Text.Megaparsec (Parsec, initialPos, MonadParsec (token), ErrorItem (Tokens), many, between, (<?>), ParseErrorBundle, try)
+import Text.Megaparsec (Parsec, initialPos, MonadParsec (token, hidden), ErrorItem (Tokens), many, between, (<?>), ParseErrorBundle, try)
 import AlexToParsec (TokenStream)
 import Data.List.NonEmpty(NonEmpty(..))
 import qualified Data.Set as Set
@@ -32,9 +32,6 @@ import Data.Text (Text)
 
 type Parser = Parsec Void TokenStream
 type ParserError = ParseErrorBundle TokenStream Void
-
-pSuccess :: Parser ()
-pSuccess = return ()
 
 tryConsume :: Parser a -> Parser ()
 tryConsume p = void p <|> return ()
@@ -66,10 +63,7 @@ eol :: Parser Token
 eol = pControl LineBreak
 
 manyEol :: Parser [Token]
-manyEol = many eol
-
-eos :: Parser Token
-eos = pControl LineBreak <|> pControl Semicolon
+manyEol = hidden $ many eol
 
 -- Powerful combinator which parses separators and elements,
 -- returning the list of elements.

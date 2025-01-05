@@ -5,8 +5,8 @@ module AlexToParsec (
     TokenStream(..),
 ) where
 
-import Lexer (WithPos (tokenVal, tokenLength, endPos, startPos))
-import Lexer.Tokens (Token)
+import Lexer (WithPos (tokenVal, tokenLength, endPos, startPos), Token (Control))
+import Lexer.Tokens (Token, ControlSequence (LineBreak, Semicolon))
 import Data.Text (Text)
 import Text.Megaparsec (PosState(..))
 import Data.Proxy (Proxy(..))
@@ -101,4 +101,6 @@ pxy :: Proxy TokenStream
 pxy = Proxy
 
 showMyToken :: Token -> String
-showMyToken = show -- TODO: replace this by some pretty-print of tokens
+showMyToken (Control LineBreak) = "linebreak"
+showMyToken (Control Semicolon) = "';'"
+showMyToken t = show t-- TODO: replace this by some pretty-print of tokens
