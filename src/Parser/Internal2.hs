@@ -19,7 +19,7 @@ module Parser.Internal2 (
 
 import Data.Void (Void)
 import Lexer.Tokens (Token (..), Keyword, ControlSequence (..), Literal (IntLiteral))
-import Lexer (WithPos(WithPos))
+import Parser.WithPos (WithPos(..))
 import Text.Megaparsec (Parsec, initialPos, MonadParsec (token, hidden), ErrorItem (Tokens), many, between, (<?>), ParseErrorBundle, try)
 import AlexToParsec (TokenStream)
 import Data.List.NonEmpty(NonEmpty(..))

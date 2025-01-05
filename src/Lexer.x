@@ -3,7 +3,6 @@ module Lexer (
     Token(..),
     AlexPosn(..),
     alexScanTokens,
-    WithPos(..),
     myScanTokens,
     myScanTok,
     LexerError,
@@ -13,6 +12,7 @@ module Lexer (
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Text.Megaparsec(SourcePos(..), mkPos)
+import           Parser.WithPos(WithPos(..))
 import Lexer.Tokens (Token(..), Literal(..), Keyword(..), ControlSequence(..))
 import Helpers((?:), ffmap)
 }
@@ -117,13 +117,6 @@ mkSourcePos (AlexPn _ l c) = SourcePos
   , sourceLine = mkPos l
   , sourceColumn = mkPos c
   }
-
-data WithPos a = WithPos
-    { startPos :: SourcePos
-    , endPos :: SourcePos
-    , tokenLength :: Int
-    , tokenVal :: a
-    } deriving (Eq, Ord, Show)
 
 -- Patched version of the generated `alexScanTokens`
 -- which returns `Left` instead of `error`ing horrendously

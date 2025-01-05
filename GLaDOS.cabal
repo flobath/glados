@@ -37,6 +37,7 @@ library
       Parser.Internal2
       Parser.ParseAndLex
       Parser.Shorthands
+      Parser.WithPos
       Parser2
   other-modules:
       Paths_GLaDOS

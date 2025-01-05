@@ -14,14 +14,15 @@ import Test.Hspec (
     it,
     shouldBe
     )
-import Text.Megaparsec (ShowErrorComponent, VisualStream, TraversableStream, ParseErrorBundle, errorBundlePretty, parse, SourcePos (..), mkPos)
+import Text.Megaparsec (ShowErrorComponent, VisualStream, TraversableStream, ParseErrorBundle, errorBundlePretty, parse, Parsec)
 import Parser2 (
     pExpression,
     pExpression,
     pTypeIdentifier,
     pVariableDecl, pReturnStatement, pVariableDeclStatement, pBlockExpression, pFunction, pMainFunction, pProgram
     )
-import Lexer (showLexError, Token (Control), alexScanTokens, WithPos (..))
+import Parser.WithPos(withPos)
+import Lexer (showLexError, Token (Control), alexScanTokens)
 import Parser.ParseAndLex (
     ParseLexError(..),
     parseAndLex,
@@ -33,7 +34,10 @@ import Test.Hspec.Megaparsec (etok, err, utok, shouldFailWith)
 import Lexer.Tokens (ControlSequence(..))
 import Parser.Internal2 (liftMyToken)
 import AlexToParsec (TokenStream(..))
+import Data.Text (Text)
 
+-- Helper function to combine the alex lexer with a parser
+lexParse :: Parsec e TokenStream a -> Text -> Either (ParseErrorBundle TokenStream e) a
 lexParse p input = parse p "" TokenStream
     { myStreamInput = input
     , unTokenStream = alexScanTokens input
@@ -270,22 +274,3 @@ spec = do
                 , fn "otherfunc" [vdecl (tId "bool") (vId "a")] Nothing []
                 , fn "lastfunc" [] Nothing []
                 ]
-
-withPos :: Int -> Int -> Int -> Int -> Int -> a -> WithPos a
-withPos = withPosSourced ""
-
-withPosSourced :: String -> Int -> Int -> Int -> Int -> Int -> a -> WithPos a
-withPosSourced filename startLine startCol endLine endCol len val = WithPos
-    { startPos = SourcePos
-        { sourceName = filename
-        , sourceLine = mkPos startLine
-        , sourceColumn = mkPos startCol
-        }
-    , endPos = SourcePos
-        { sourceName = filename
-        , sourceLine = mkPos endLine
-        , sourceColumn = mkPos endCol
-        }
-    , tokenLength = len
-    , tokenVal = val
-    }

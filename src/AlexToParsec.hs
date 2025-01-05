@@ -5,8 +5,9 @@ module AlexToParsec (
     TokenStream(..),
 ) where
 
-import Lexer (WithPos (tokenVal, tokenLength, endPos, startPos), Token (Control))
-import Lexer.Tokens (Token, ControlSequence (LineBreak, Semicolon))
+import Parser.WithPos(WithPos (tokenVal, tokenLength, endPos, startPos))
+import Lexer (Token (Control))
+import Lexer.Tokens (ControlSequence (LineBreak, Semicolon))
 import Data.Text (Text)
 import Text.Megaparsec (PosState(..))
 import Data.Proxy (Proxy(..))
