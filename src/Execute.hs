@@ -54,7 +54,7 @@ push xs x = x:xs
 -- pushEnv xs ys = ys ++ xs
 
 infixIntOperation :: String -> (Int -> Int -> Int) -> (Stack -> Stack)
-infixIntOperation _ op (IntValue x1 : IntValue x2 : xs) = (IntValue $ x1 `op` x2):xs
+infixIntOperation _ op (IntValue x1 : IntValue x2 : xs) = (IntValue $ x2 `op` x1):xs
 infixIntOperation name _ _ = error $ "Invalid arguments for " ++ name
 
 applyOperator :: Operator -> Stack -> Stack
