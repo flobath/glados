@@ -33,19 +33,13 @@ import Text.Megaparsec (
 import Data.Void (Void)
 import Text.Megaparsec.Char (space1, char)
 import Data.Functor (void)
-import Control.Applicative ((<|>), Alternative)
+import Control.Applicative ((<|>))
 import qualified Text.Megaparsec.Char.Lexer as L
 import Data.Text (Text, uncons, all, splitAt)
 import Data.Char (isSpace, generalCategory, GeneralCategory (..))
+import Helpers ((<||>), (<<|>>))
 
 type Parser = Parsec Void Text
-
--- Helper function to combine predicates
-(.||) :: (a -> Bool) -> (a -> Bool) -> a -> Bool
-(.||) f1 f2 x = f1 x || f2 x
-
-(<<|>>) :: Alternative f => (t -> f a) -> (t -> f a) -> t -> f a
-(<<|>>) p1 p2 p = p1 p <|> p2 p
 
 chezSchemeNonSpaceDelimiter :: String
 chezSchemeNonSpaceDelimiter = "()[]#\";"
@@ -87,7 +81,7 @@ isChezSchemeSymbolSubsequent c
     ]
 
 isChezSchemeDelimiter :: Char -> Bool
-isChezSchemeDelimiter = isSpace .|| (`elem` chezSchemeNonSpaceDelimiter)
+isChezSchemeDelimiter = isSpace <||> (`elem` chezSchemeNonSpaceDelimiter)
 
 -- Patched version of Text.MegaParsec.Char.Lexer.space
 -- to only succeed if some space is encountered, or at eof

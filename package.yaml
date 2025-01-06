@@ -26,6 +26,7 @@ dependencies:
   - transformers
   - monad-loops
   - text
+  - array
 
 ghc-options:
   - -Wall
@@ -37,6 +38,9 @@ ghc-options:
   - -Wmissing-home-modules
   - -Wpartial-fields
   - -Wredundant-constraints
+
+build-tools:
+  - alex
 
 library:
   source-dirs: src
