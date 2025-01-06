@@ -86,7 +86,7 @@ applyOperator Or = orOperator
 
 addition :: Stack -> Either String Stack
 addition (IntValue x : IntValue y : xs) = Right (IntValue (x + y) : xs)
-addition _ = Left "Addition failed"
+addition _ = Left "Cannot apply addition"
 
 subtraction :: Stack -> Either String Stack
 subtraction (IntValue x : IntValue y : xs) = Right (IntValue (x - y) : xs)
@@ -154,14 +154,10 @@ jumpIfFalse _ _ program = program
 
 -- Execution
 
-getValueFromPop :: Either String (Value, Stack) -> Either String Value
-getValueFromPop (Right (value, _)) = Right value
-getValueFromPop (Left error) = Left error
-
 execute :: Environment -> Args -> Program -> Stack -> Either String Value
--- execute _ _ [] stack = let (result, _) = case pop stack of
---         Right (value, _) -> (Right value)
---         Left err -> Left err
+execute _ _ [] stack = case pop stack of
+        Right (value, _) -> Right value
+        Left err -> Left err
 execute env args (Return : _) stack = execute env args [] stack
 
 execute env args (Push x : prog') stack = execute env args prog' (push x stack)
