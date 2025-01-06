@@ -1,9 +1,24 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module LexerSpec (spec) where
-import Test.Hspec (describe, shouldBe, it, Spec, SpecWith, HasCallStack)
-import Lexer (myScanTok, Token (Control, Keyword, Identifier, Literal))
-import Lexer.Tokens (ControlSequence(..), Keyword (..), Literal (IntLiteral))
+import Test.Hspec (
+    describe,
+    shouldBe,
+    it,
+    Spec,
+    SpecWith,
+    HasCallStack,
+    )
+import Lexer (
+    myScanTok,
+    )
+import Lexer.Tokens (
+    Token(..),
+    Literal(..),
+    Keyword(..),
+    ControlSequence(..),
+    )
+
 import Data.Text (Text)
 
 expectSingleToken :: HasCallStack => String -> Text -> Token -> SpecWith ()

@@ -22,7 +22,8 @@ import Parser2 (
     pVariableDecl, pReturnStatement, pVariableDeclStatement, pBlockExpression, pFunction, pMainFunction, pProgram
     )
 import Parser.WithPos(withPos)
-import Lexer (showLexError, Token (Control), alexScanTokens)
+import Lexer (showLexError, alexScanTokens)
+import Lexer.Tokens(Token(Control))
 import Parser.ParseAndLex (
     ParseLexError(..),
     parseAndLex,

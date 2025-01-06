@@ -1,6 +1,5 @@
 {
 module Lexer (
-    Token(..),
     AlexPosn(..),
     alexScanTokens,
     myScanTokens,
