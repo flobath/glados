@@ -1,0 +1,223 @@
+Root <- TopLevelDeclNotMain* MainFunction TopLevelDeclNotMain* EndOfFile
+
+
+### Top level declarations ###
+
+# Top level declarations which are not the main function
+TopLevelDeclNotMain <- FunctionDeclaration
+
+FunctionDeclaration <- FunctionSignature FunctionBody
+MainFunction <- KeyW_main ParameterList? FunctionBody
+
+FunctionSignature <- KeyW_fun Identifier ParameterList? ReturnType?
+FunctionBody <- BlockExpression AnySpacing
+
+ReturnType <- Colon Type AnySpacing
+ParameterList <- OpenParen VariableDeclarationList CloseParen
+VariableDeclarationList <- VariableDeclaration? (Comma VariableDeclaration)* Comma?
+
+
+### Block level ###
+
+# Blocks can actually be evaluated as expressions
+BlockExpression <- OpenBrace Statement* CloseBrace
+
+Statement <-
+    ( Expression
+    / VariableDeclaration
+    / ReturnStatement
+    ) EndOfStatement
+
+VariableDeclaration <- TypeIdentifier Identifier (OperAssign Expression)?
+
+ReturnStatement <- KeyW_return Expression
+
+EndOfStatement <- (Semicolon / LineBreak) AnySpacing
+
+
+### Expression level ###
+# Expressions are listed in different categories to
+# express operator precedence.
+
+Expression <- IfExpr / UnlessExpr / OperationExpr
+
+IfExpr      <- KeyW_if      ConditionalBody
+UnlessExpr  <- KeyW_unless  ConditionalBody
+
+# if/unless         condition             first arm              optional second arm
+ConditionalBody <- GroupedExpr AnySpacing Expression (AnySpacing KeyW_else Expression)?
+
+# OR is the least precedent operator, so an "operation"
+# (combination of any number of operators) is a LogicalOrExpr
+OperationExpr <- LogicalOrExpr
+
+LogicalOrExpr <- LogicalAndExpr (LogicalOrOperator LogicalAndExpr)*
+
+LogicalAndExpr <- EqualityExpr (LogicalAndOperator EqualityExpr)*
+
+EqualityExpr <- ComparisonExpr (EqualityOperator ComparisonExpr)*
+
+ComparisonExpr <- AdditionExpr (ComparisonOperator AdditionExpr)*
+
+AdditionExpr <- MultiplicationExpr (AdditionOperator MultiplicationExpr)*
+
+MultiplicationExpr <- PrefixOpExpr (MultiplicationOperator PrefixOpExpr)*
+
+PrefixOpExpr <- PrefixOperator* SuffixOpExpr
+
+SuffixOpExpr <- PrimaryExpr SuffixOperator*
+
+# Basic expression with no operator applied -- highest precedence
+PrimaryExpr
+    <- AtomicExpr
+    /  GroupedExpr
+    /  BlockExpression
+
+GroupedExpr <- OpenParen Expression CloseParen
+
+# An expression which is not composed of subexpressions
+AtomicExpr
+    <- NumericLiteral
+    /  BooleanLiteral
+    /  Identifier
+
+
+### Identifiers ###
+
+# Alphanumeric constructs which are not keywords are identifiers
+
+TypeIdentifier <- Identifier # For now, type identifiers are the same as others
+Identifier <- !Keyword IdentStart IdentCont* InlineSpacing
+IdentStart <- [a-zA-Z_]
+IdentCont <- IdentStart / [0-9]
+
+
+### Type literals ###
+
+Type <- PrimaryType # / UserDefinedType
+                    # For when we will have user-defined types
+PrimaryType <- ('bool' / IntegerType) InlineSpacing
+IntegerType <- ( 'i' / 'u' ) ( '8' / '16' / '32' / '64' ) InlineSpacing
+
+
+### Literals ###
+
+BooleanLiteral <- KeyW_true / KeyW_false
+NumericLiteral <- [0-9]+ InlineSpacing
+
+
+### Keywords ###
+# We specify EndOfWord after each keyword so that
+# "funny" does not match the 'fun' keyword for example.
+#
+# Most keywords allow linebreaks to allow placing expressions on separate
+# lines without opening braces.
+
+Keyword
+    <- KeyW_fun
+    /  KeyW_if
+    /  keyW_unless
+    /  KeyW_else
+    /  KeyW_return
+    /  KeyW_true
+    /  KeyW_false
+    /  KeyW_main
+
+KeyW_fun    <- 'fun'    EndOfWord AnySpacing
+KeyW_if     <- 'if'     EndOfWord AnySpacing
+KeyW_unless <- 'unless' EndOfWord AnySpacing
+KeyW_else   <- 'else'   EndOfWord AnySpacing
+KeyW_return <- 'return' EndOfWord InlineSpacing # 'return' can be a statement on its own
+KeyW_true   <- 'true'   EndOfWord InlineSpacing
+KeyW_false  <- 'false'  EndOfWord InlineSpacing
+KeyW_main   <- 'main'   EndOfWord AnySpacing
+
+
+### Operators ###
+# All operators allow line breaks, hence the AnySpacing
+
+#// Assignments can't be made in expressions for now
+# AssignOperator <- OperAssign
+
+LogicalOrOperator <- OperOr
+
+LogicalAndOperator <- OperAnd
+
+EqualityOperator
+    <- OperEquals
+    /  OperDiffers
+
+ComparisonOperator
+    <- OperGt
+    /  OperLt
+    /  OperGe
+    /  OperLe
+
+AdditionOperator
+    <- OperAdd
+    /  OperSub
+
+MultiplicationOperator
+    <- OperMul
+    /  OperDiv
+    /  OperMod
+
+PrefixOperator
+    <- OperAdd
+    /  OperSub
+    /  OperNot
+
+SuffixOperator
+    <- OperFunctionCall
+    # / <other suffix operators>, such as [], potentially ++, --,
+
+# We define function calls as a suffix operator to allow first-class functions
+OperFunctionCall <- OpenParen ExpressionList CloseParen
+ExpressionList <- Expression? (Comma Expression)* Comma?
+
+OperAssign  <- '='  ![=]    AnySpacing
+OperAdd     <- '+'  ![=]    AnySpacing
+OperSub     <- '-'  ![=]    AnySpacing
+OperMul     <- '*'  ![=]    AnySpacing
+OperDiv     <- '/'  ![=]    AnySpacing
+OperMod     <- '%'  ![=]    AnySpacing
+OperEquals  <- '=='         AnySpacing
+OperDiffers <- '!='         AnySpacing
+OperNot     <- '!'  ![=]    AnySpacing
+OperAnd     <- '&&'         AnySpacing
+OperOr      <- '||'         AnySpacing
+OperGt      <- '>'  ![=]    AnySpacing
+OperLt      <- '<'  ![=]    AnySpacing
+OperGe      <- '<='         AnySpacing
+OperLe      <- '>='         AnySpacing
+
+
+### Primitive separators ###
+# We allow AnySpacing after any kind of opening bracket
+# so that they can introduce multiline expressions.
+# Commas too consume AnySpacing so that they can continue multiline
+# expressions. This neatly allows multiline lists without cluttering
+# the Expression grammar.
+
+OpenParen   <- '(' AnySpacing
+CloseParen  <- ')' InlineSpacing
+# OpenBrack   <- '[' AnySpacing    # Square brackets are unused for now
+# CloseBrack  <- ']' InlineSpacing # Square brackets are unused for now
+OpenBrace   <- '{' AnySpacing
+CloseBrace  <- '}' InlineSpacing
+Comma       <- ',' AnySpacing
+Semicolon   <- ';' AnySpacing
+Colon       <- ':' AnySpacing
+
+
+### Blanks: spaces and newlines ###
+
+EndOfWord <- ![a-zA-Z0-9] InlineSpacing
+
+AnySpacing <- (InlineSpacing / LineBreak)*
+InlineSpacing <- (InlineSpace / LineComment / BlockComment)*
+LineComment <- '//' (!LineBreak .)*
+BlockComment <- '/*' ( !'*/' .)* '*/'
+InlineSpace <- ' ' / '\t' / ('\\' LineBreak) # End of lines can be escaped
+LineBreak <- !'\\' ('\r\n' / '\n' / '\r')
+EndOfFile <- !.
