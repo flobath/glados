@@ -2,20 +2,17 @@
 module Lexer (
     AlexPosn(..),
     alexScanTokens,
-    WithPos(..),
     myScanTokens,
     myScanTok,
+    LexerError,
+    showLexError,
 ) where
 
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Text.Megaparsec(SourcePos(..), mkPos)
-import Lexer.Tokens (
-    Token(..),
-    Literal(..),
-    Keyword(..),
-    ControlSequence(..),
-    )
+import           Parser.WithPos(WithPos(..))
+import Lexer.Tokens (Token(..), Literal(..), Keyword(..), ControlSequence(..))
 import Helpers((?:), ffmap)
 }
 
@@ -90,6 +87,7 @@ tokens :-
 
 -- Each right-hand side has type :: AlexPosn -> Text -> WithPos Token
 type Lexer = (AlexPosn -> Text -> WithPos Token)
+type LexerError = String
 
 -- Some action helpers:
 tok :: (Text -> Token) -> Lexer
@@ -119,16 +117,9 @@ mkSourcePos (AlexPn _ l c) = SourcePos
   , sourceColumn = mkPos c
   }
 
-data WithPos a = WithPos
-    { startPos :: SourcePos
-    , endPos :: SourcePos
-    , tokenLength :: Int
-    , tokenVal :: a
-    } deriving (Eq, Ord, Show)
-
 -- Patched version of the generated `alexScanTokens`
 -- which returns `Left` instead of `error`ing horrendously
-myScanTokens :: Text -> Either String [WithPos Token]
+myScanTokens :: Text -> Either LexerError [WithPos Token]
 myScanTokens str = go (alexStartPos,'\n',[],str)
     where go inp__@(pos,_,_bs,s) =
             case alexScan inp__ 0 of
@@ -142,5 +133,8 @@ myScanTokens str = go (alexStartPos,'\n',[],str)
 -- the tokens, without their position.
 myScanTok :: Text -> Either String [Token]
 myScanTok = ffmap tokenVal . myScanTokens
+
+showLexError :: LexerError -> String
+showLexError = show
 
 }

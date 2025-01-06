@@ -29,6 +29,7 @@ dependencies:
   - binary
   - bytestring
   - array
+  - containers
 
 ghc-options:
   - -Wall

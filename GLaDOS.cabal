@@ -26,14 +26,21 @@ source-repository head
 library
   exposed-modules:
       GldsBytecode
+      AlexToParsec
       Helpers
       Lexer
       Lexer.Tokens
       Lib
       Megaparsec96
       Parser
+      Parser.AST
       Parser.Internal
       StackMachine
+      Parser.Internal2
+      Parser.ParseAndLex
+      Parser.Shorthands
+      Parser.WithPos
+      Parser2
   other-modules:
       Paths_GLaDOS
   autogen-modules:
@@ -50,6 +57,7 @@ library
     , array
     , base >=4.7 && <5
     , composition-prelude
+    , containers
     , megaparsec
     , monad-loops
     , text
@@ -75,6 +83,7 @@ executable GLaDOS-exe
     , binary
     , bytestring
     , composition-prelude
+    , containers
     , megaparsec
     , monad-loops
     , text
@@ -86,6 +95,7 @@ test-suite GLaDOS-test
   main-is: Spec.hs
   other-modules:
       LexerSpec
+      ParserSpec
       Paths_GLaDOS
   autogen-modules:
       Paths_GLaDOS
@@ -101,6 +111,7 @@ test-suite GLaDOS-test
     , binary
     , bytestring
     , composition-prelude
+    , containers
     , hspec
     , hspec-megaparsec
     , megaparsec
