@@ -24,11 +24,12 @@ BlockExpression <- OpenBrace Statement* CloseBrace
 
 Statement <-
     ( Expression
-    / VariableDeclaration
+    / VariableDeclarationStatement
     / ReturnStatement
     ) EndOfStatement
 
-VariableDeclaration <- TypeIdentifier Identifier (OperAssign Expression)?
+VariableDeclarationStatement <- VariableDeclaration (OperAssign Expression)?
+VariableDeclaration <- TypeIdentifier Identifier
 
 ReturnStatement <- KeyW_return Expression
 

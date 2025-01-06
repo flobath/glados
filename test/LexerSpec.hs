@@ -7,6 +7,7 @@ import Test.Hspec (
     it,
     Spec,
     SpecWith,
+    HasCallStack,
     )
 import Lexer (
     myScanTok,
@@ -20,7 +21,7 @@ import Lexer.Tokens (
 
 import Data.Text (Text)
 
-expectSingleToken :: String -> Text -> Token -> SpecWith ()
+expectSingleToken :: HasCallStack => String -> Text -> Token -> SpecWith ()
 expectSingleToken name input expected = it name $
     myScanTok input `shouldBe` Right [expected]
 

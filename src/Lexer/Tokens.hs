@@ -7,32 +7,18 @@ module Lexer.Tokens (
 
 import Data.Int (Int64)
 import Data.Text (Text)
-import Text.Megaparsec (SourcePos)
-
-data WithPos a = WithPos
-    { startPos :: SourcePos
-    , endPos :: SourcePos
-    , tokenLength :: Int
-    , tokenVal :: a
-    } deriving (Eq, Ord, Show)
-
-data TokenStream = TokenStream
-    { myStreamInput :: String
-    , unMyStream :: [WithPos Token]
-    }
-
 
 data Token
     = Keyword Keyword
     | Literal Literal
     | Identifier Text
     | Control ControlSequence
-    deriving (Show, Eq)
+    deriving (Show, Eq, Ord)
 
 -- we use 'newtype' instead of data because we only have one variant so far
 newtype Literal
     = IntLiteral Int64
-    deriving (Show, Eq)
+    deriving (Show, Eq, Ord)
 
 data Keyword
     = KeyWReturn
@@ -43,7 +29,7 @@ data Keyword
     | KeyWTrue
     | KeyWFalse
     | KeyWMain
-    deriving (Show, Eq)
+    deriving (Show, Eq, Ord)
 
 data ControlSequence
     = LineBreak
@@ -69,4 +55,4 @@ data ControlSequence
     | OperLt
     | OperGe
     | OperLe
-    deriving (Show, Eq)
+    deriving (Show, Eq, Ord)
