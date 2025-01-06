@@ -82,8 +82,8 @@ pTypeIdentifier :: Parser TypeIdentifier
 pTypeIdentifier = pIdentifier <&> TypeIdentifier <?> "type identifier"
 
 pBoolean :: Parser Bool
-pBoolean = (pKeyword KeyWTrue $> True
-        <|> pKeyword KeyWFalse $> False)
+pBoolean = pKeyword KeyWTrue $> True
+        <|> pKeyword KeyWFalse $> False
         <?> "boolean literal"
 
 pAtom :: Parser AtomicExpression
