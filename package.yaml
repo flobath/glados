@@ -28,6 +28,7 @@ dependencies:
   - text
   - binary
   - bytestring
+  - array
 
 ghc-options:
   - -Wall
@@ -39,6 +40,9 @@ ghc-options:
   - -Wmissing-home-modules
   - -Wpartial-fields
   - -Wredundant-constraints
+
+build-tools:
+  - alex
 
 library:
   source-dirs: src
