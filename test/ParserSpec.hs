@@ -191,7 +191,7 @@ spec = do
             `shouldLexParse` tId "i32"
         it "full variable declaration" $
             parseAndLex pVariableDecl "bool myvar"
-            `shouldLexParse` vdecl (tId "bool") (vId "myvar")
+            `shouldLexParse` vdecl "bool" "myvar"
 
     describe "basic statements" $ do
         it "return statement" $
@@ -245,7 +245,7 @@ spec = do
                 \}\n"
             `shouldLexParse` Function
                 "my_add"
-                [vdecl (tId "i32") (vId "a"), vdecl (tId "i32") (vId "b")]
+                [vdecl "i32" "a", vdecl "i32" "b"]
                 (Just (tId "i32"))
                 (BlockExpression
                     [ sDecl
@@ -272,6 +272,6 @@ spec = do
             `shouldLexParse` Program
                 (fnMain [] [])
                 [ fn "somefunc" [] Nothing []
-                , fn "otherfunc" [vdecl (tId "bool") (vId "a")] Nothing []
+                , fn "otherfunc" [vdecl "bool" "a"] Nothing []
                 , fn "lastfunc" [] Nothing []
                 ]
