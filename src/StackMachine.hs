@@ -6,17 +6,37 @@ module StackMachine (
     Stack,
     Program,
     Environment,
+    push,
+    pop,
+    pushArgs,
+    pushEnv,
+    applyOperator,
+    jumpIfTrue,
+    jumpIfFalse,
+    addition,
+    subtraction,
+    multiplication,
+    division,
+    modulus,
+    equal,
+    notEqual,
+    lessThan,
+    lessEqual,
+    greaterThan,
+    greaterEqual,
+    andOperator,
+    orOperator,
     execute
 ) where
 
 data Value = IntValue Int | BoolValue Bool | FuncValue [Instruction]
-    deriving (Show)
+    deriving (Show, Eq)
 
 data Operator = Add | Sub | Mul | Div | Mod | Eq | Ne | Lt | Le | Gt | Ge | And | Or
-    deriving (Show)
+    deriving (Show, Eq)
 
 data Instruction = Push Value | PushArgs Int | PushEnv String | Call | Return | JumpIfTrue Int | JumpIfFalse Int | OpValue Operator
-    deriving (Show)
+    deriving (Show, Eq)
 
 type Args = [Value]
 
