@@ -9,13 +9,13 @@ module StackMachine (
     execute
 ) where
 
-data Value = IntValue Int | BoolValue Bool | OpValue Operator | FuncValue [Instruction]
+data Value = IntValue Int | BoolValue Bool | FuncValue [Instruction]
     deriving (Show)
 
-data Operator = Add | Sub | Mul | Div | Mod | Eq | Ne | Lt | Le | Gt | Ge
+data Operator = Add | Sub | Mul | Div | Mod | Eq | Ne | Lt | Le | Gt | Ge | And | Or
     deriving (Show)
 
-data Instruction = Push Value | PushArgs Int | PushEnv String | Call | Return | JumpIfTrue Int | JumpIfFalse Int
+data Instruction = Push Value | PushArgs Int | PushEnv String | Call | Return | JumpIfTrue Int | JumpIfFalse Int | OpValue Operator
     deriving (Show)
 
 type Args = [Value]
@@ -61,6 +61,8 @@ applyOperator Lt = lessThan
 applyOperator Le = lessEqual
 applyOperator Gt = greaterThan
 applyOperator Ge = greaterEqual
+applyOperator And = andOperator
+applyOperator Or = orOperator
 
 addition :: Stack -> Stack
 addition (IntValue x : IntValue y : xs) = IntValue (x + y) : xs
@@ -112,6 +114,14 @@ greaterEqual :: Stack -> Stack
 greaterEqual (IntValue x : IntValue y : xs) = BoolValue (x >= y) : xs
 greaterEqual _ = error "Cannot apply greater equal"
 
+andOperator :: Stack -> Stack
+andOperator (BoolValue x : BoolValue y : xs) = BoolValue (x && y) : xs
+andOperator _ = error "Cannot apply and"
+
+orOperator :: Stack -> Stack
+orOperator (BoolValue x : BoolValue y : xs) = BoolValue (x || y) : xs
+orOperator _ = error "Cannot apply or"
+
 -- Control flow
 
 jumpIfTrue :: Int -> Stack -> Program -> Program
@@ -133,9 +143,9 @@ execute env args ((PushArgs n) : prog') stack = execute env args prog' (pushArgs
 execute env args ((PushEnv name) : prog') stack = execute env args prog' (pushEnv name env stack)
 
 execute env args (Call : prog') stack = case stack of
-    (OpValue op : stack') -> execute env args prog' (applyOperator op stack')
     (FuncValue func : stack') -> execute env args prog' (execute env stack' func [] : stack')
     _ -> error "Cannot call"
+execute env args ((OpValue op) : prog') stack = execute env args prog' (applyOperator op stack)
 
 execute env args ((JumpIfTrue n) : prog') stack = let (bool, stack') = pop stack in execute env args (jumpIfTrue n (bool:stack') prog') stack'
 execute env args ((JumpIfFalse n) : prog') stack = let (bool, stack') = pop stack in execute env args (jumpIfFalse n (bool:stack') prog') stack'

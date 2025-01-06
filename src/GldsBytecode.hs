@@ -19,11 +19,8 @@ serializeValue (IntValue i) = do
 serializeValue (BoolValue b) = do
     putWord8 1
     putWord8 (if b then 1 else 0)
-serializeValue (OpValue op) = do
-    putWord8 2
-    serializeOperator op
 serializeValue (FuncValue func) = do
-    putWord8 3
+    putWord8 2
     serializeProgram func
 
 serializeOperator :: Operator -> Put
@@ -38,6 +35,8 @@ serializeOperator Lt = putWord8 7
 serializeOperator Le = putWord8 8
 serializeOperator Gt = putWord8 9
 serializeOperator Ge = putWord8 10
+serializeOperator And = putWord8 11
+serializeOperator Or = putWord8 12
 
 serializeInstruction :: Instruction -> Put
 serializeInstruction (Push val) = do
@@ -58,6 +57,9 @@ serializeInstruction (JumpIfTrue n) = do
 serializeInstruction (JumpIfFalse n) = do
     putWord8 6
     putInt32le (fromIntegral n)
+serializeInstruction (OpValue op) = do
+    putWord8 7
+    serializeOperator op
 
 serializeProgram :: Program -> Put
 serializeProgram = mapM_ serializeInstruction
@@ -77,8 +79,7 @@ deserializeValue = do
     case tag of
         0 -> IntValue . fromIntegral <$> getInt32le
         1 -> BoolValue . (/= 0) <$> getWord8
-        2 -> OpValue <$> deserializeOperator
-        3 -> FuncValue <$> deserializeProgram
+        2 -> FuncValue <$> deserializeProgram
         _ -> fail "Unknown Value tag"
 
 deserializeOperator :: Get Operator
@@ -96,6 +97,8 @@ deserializeOperator = do
         8 -> return Le
         9 -> return Gt
         10 -> return Ge
+        11 -> return And
+        12 -> return Or
         _ -> fail "Unknown Operator tag"
 
 deserializeInstruction :: Get Instruction
@@ -109,6 +112,7 @@ deserializeInstruction = do
         4 -> return Return
         5 -> JumpIfTrue . fromIntegral <$> getInt32le
         6 -> JumpIfFalse . fromIntegral <$> getInt32le
+        7 -> OpValue <$> deserializeOperator
         _ -> fail "Unknown Instruction tag"
 
 deserializeProgram :: Get Program
