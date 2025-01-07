@@ -15,7 +15,7 @@ import Test.Hspec (
     shouldBe
     )
 import Text.Megaparsec (ShowErrorComponent, VisualStream, TraversableStream, ParseErrorBundle, errorBundlePretty, parse, Parsec)
-import Parser2 (
+import Parser (
     pExpression,
     pExpression,
     pTypeIdentifier,
@@ -33,7 +33,7 @@ import Parser.Shorthands
 import Parser.AST (BlockExpression(BlockExpression), Function (Function), MainFunction (MainFunction), Program (Program))
 import Test.Hspec.Megaparsec (etok, err, utok, shouldFailWith, elabel)
 import Lexer.Tokens (ControlSequence(..), Token (Identifier))
-import Parser.Internal2 (liftMyToken)
+import Parser.Internal (liftMyToken)
 import AlexToParsec (TokenStream(..))
 import Data.Text (Text)
 

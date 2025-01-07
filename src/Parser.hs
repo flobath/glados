@@ -1,4 +1,4 @@
-module Parser2 (
+module Parser (
     pIntLiteral,
     pVarIdentifier,
     pTypeIdentifier,
@@ -52,7 +52,7 @@ import Text.Megaparsec (
 import Data.Functor((<&>), ($>), void)
 import Control.Applicative((<|>), Alternative (many))
 
-import Parser.Internal2
+import Parser.Internal
 
 import Lexer.Tokens (
     Token(..),

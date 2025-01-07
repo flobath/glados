@@ -29,13 +29,12 @@ library
       Helpers
       Lexer
       Lexer.Tokens
-      Megaparsec96
+      Parser
       Parser.AST
-      Parser.Internal2
+      Parser.Internal
       Parser.ParseAndLex
       Parser.Shorthands
       Parser.WithPos
-      Parser2
   other-modules:
       Paths_GLaDOS
   autogen-modules:

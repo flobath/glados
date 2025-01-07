@@ -1,4 +1,4 @@
-module Parser.Internal2 (
+module Parser.Internal (
     Parser,
     pToken,
     pKeyword,
