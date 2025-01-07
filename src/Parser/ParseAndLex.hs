@@ -4,10 +4,10 @@ module Parser.ParseAndLex (
 ) where
 
 import Parser.Internal2 (ParserError, Parser)
-import Lexer (LexerError, myScanTokens)
+import Lexer (LexerError, myScanTokens, showLexError)
 import Data.Text (Text)
 import Data.Bifunctor (Bifunctor(first))
-import Text.Megaparsec (runParser)
+import Text.Megaparsec (runParser, errorBundlePretty)
 import AlexToParsec (TokenStream(TokenStream, myStreamInput, unTokenStream))
 
 -- Helper which maps over the error variant of an 'Either'
@@ -15,6 +15,10 @@ import AlexToParsec (TokenStream(TokenStream, myStreamInput, unTokenStream))
 (>&<) = flip first
 
 data ParseLexError = LexingError LexerError | ParsingError ParserError
+
+instance Show ParseLexError where
+    show (LexingError err) = showLexError err
+    show (ParsingError err) = errorBundlePretty err
 
 parseAndLex :: Parser a -> Text -> Either ParseLexError a
 parseAndLex parser input = do
