@@ -83,12 +83,12 @@ pCommaSep = pSepBy (pControl Comma *> manyEol)
 
 pBetweenParenthesis :: Parser a -> Parser a
 pBetweenParenthesis = between
-    (pControl OpenParen >> many eol)
+    (pControl OpenParen >> manyEol)
     (pControl CloseParen)
 
 pBetweenBrace :: Parser a -> Parser a
 pBetweenBrace = between
-    (pControl OpenBrace >> many eol)
+    (pControl OpenBrace >> manyEol)
     (pControl CloseBrace)
 
 pIntLiteral :: Parser Int64

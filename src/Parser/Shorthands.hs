@@ -6,7 +6,7 @@ import Parser.AST
 
 tId = TypeIdentifier
 vId = VarIdentifier
-vdecl = VariableDeclaration
+vdecl t1 t2 = VariableDeclaration (TypeIdentifier t1) (VarIdentifier t2)
 eIf = ExprIfConditional
 eCall = ExprFunctionCall
 eOp = ExprOperation

@@ -31,8 +31,8 @@ import Parser.ParseAndLex (
     )
 import Parser.Shorthands
 import Parser.AST (BlockExpression(BlockExpression), Function (Function), MainFunction (MainFunction), Program (Program))
-import Test.Hspec.Megaparsec (etok, err, utok, shouldFailWith)
-import Lexer.Tokens (ControlSequence(..))
+import Test.Hspec.Megaparsec (etok, err, utok, shouldFailWith, elabel)
+import Lexer.Tokens (ControlSequence(..), Token (Identifier))
 import Parser.Internal2 (liftMyToken)
 import AlexToParsec (TokenStream(..))
 import Data.Text (Text)
@@ -191,7 +191,7 @@ spec = do
             `shouldLexParse` tId "i32"
         it "full variable declaration" $
             parseAndLex pVariableDecl "bool myvar"
-            `shouldLexParse` vdecl (tId "bool") (vId "myvar")
+            `shouldLexParse` vdecl "bool" "myvar"
 
     describe "basic statements" $ do
         it "return statement" $
@@ -245,7 +245,7 @@ spec = do
                 \}\n"
             `shouldLexParse` Function
                 "my_add"
-                [vdecl (tId "i32") (vId "a"), vdecl (tId "i32") (vId "b")]
+                [vdecl "i32" "a", vdecl "i32" "b"]
                 (Just (tId "i32"))
                 (BlockExpression
                     [ sDecl
@@ -255,9 +255,42 @@ spec = do
                     , sRet (eaId "result")
                     ]
                 )
+        it "function with no parameter list" $
+            parseAndLex pFunction "fun f {}"
+            `shouldLexParse` fn "f" [] Nothing []
+        it "multiline function parameter list" $
+            parseAndLex pFunction
+                "fun f(\n\
+                \   i32 a,\n\
+                \   bool b,\n\
+                \)\n\
+                \{}\n"
+            `shouldLexParse` fn "f" [vdecl "i32" "a", vdecl "bool" "b"] Nothing []
+        it "function with wrong parameter list (fail)" $
+            lexParse pFunction "fun myfunc(i32 a, {}"
+            `shouldFailWith` err 6 (
+                utok (withPos 1 19 1 20 1 (Control OpenBrace))
+                <> etok (liftMyToken $ Control CloseParen)
+                <> elabel "variable declaration"
+            )
+        it "function with wrong parameter list2 (fail)" $
+            lexParse pFunction "fun myfunc(i32 , bool) {}"
+            `shouldFailWith` err 4 (
+                utok (withPos 1 16 1 17 1 (Control Comma))
+                <> elabel "variable identifier"
+            )
+        it "function with wrong parameter list2 (fail)" $
+            lexParse pFunction "fun myfunc(i32 a, bool) {}"
+            `shouldFailWith` err 7 (
+                utok (withPos 1 23 1 24 1 (Control CloseParen))
+                <> elabel "variable identifier"
+            )
 
         it "main function" $
             parseAndLex pMainFunction "main() {}"
+            `shouldLexParse` MainFunction [] (BlockExpression [])
+        it "main function with no param list" $
+            parseAndLex pMainFunction "main {}"
             `shouldLexParse` MainFunction [] (BlockExpression [])
 
         it "parse program" $
@@ -272,6 +305,6 @@ spec = do
             `shouldLexParse` Program
                 (fnMain [] [])
                 [ fn "somefunc" [] Nothing []
-                , fn "otherfunc" [vdecl (tId "bool") (vId "a")] Nothing []
+                , fn "otherfunc" [vdecl "bool" "a"] Nothing []
                 , fn "lastfunc" [] Nothing []
                 ]
