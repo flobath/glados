@@ -41,6 +41,8 @@ module Parser2 (
     pProgram,
 ) where
 
+import Helpers ((<:>))
+
 import Text.Megaparsec (
     (<?>),
     choice,
@@ -233,9 +235,11 @@ pReturnStatement :: Parser Statement
 pReturnStatement = StReturn <$> (pKeyword KeyWReturn *> pExpression)
 
 pVariableDecl :: Parser VariableDeclaration
-pVariableDecl = try $ VariableDeclaration
+pVariableDecl = try (VariableDeclaration
     <$> pTypeIdentifier
     <*> pVarIdentifier
+    <?> "variable declaration"
+    )
 
 pVariableDeclStatement :: Parser Statement
 pVariableDeclStatement = do
@@ -261,7 +265,18 @@ pBlockExpression = BlockExpression <$>
     pBetweenBrace (many (pStatement <* pEndOfStatement))
 
 pFunParamList :: Parser [VariableDeclaration]
-pFunParamList = pBetweenParenthesis $ pCommaSep pVariableDecl
+pFunParamList = (pControl OpenParen *> manyEol *> pFunParamList') <|> pure []
+    where
+        -- Helper which recursively parses vdecls until a closing paren
+        pFunParamList' :: Parser [VariableDeclaration]
+        pFunParamList' = choice
+            [ pControl CloseParen $> []
+            , pVariableDecl <:> choice
+                [ pControl CloseParen $> []
+                , pControl Comma *> manyEol *> pFunParamList'
+                ]
+            ]
+
 
 pReturnType :: Parser TypeIdentifier
 pReturnType = pControl Colon *> manyEol *> pTypeIdentifier
