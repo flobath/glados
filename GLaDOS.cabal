@@ -60,7 +60,7 @@ library
   default-language: Haskell2010
 
 executable GLaDOS-cmp
-  main-is: Main.hs
+  main-is: Main-cmp.hs
   other-modules:
       Repl
       Paths_GLaDOS
@@ -84,7 +84,7 @@ executable GLaDOS-cmp
   default-language: Haskell2010
 
 executable GLaDOS-exe
-  main-is: Main.hs
+  main-is: Main-exe.hs
   other-modules:
       Repl
       Paths_GLaDOS

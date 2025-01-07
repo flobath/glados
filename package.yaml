@@ -48,7 +48,7 @@ library:
 
 executables:
   GLaDOS-exe:
-    main:                Main.hs
+    main:                Main-exe.hs
     source-dirs:         app
     ghc-options:
       - -threaded
@@ -57,7 +57,7 @@ executables:
     dependencies:
       - GLaDOS
   GLaDOS-cmp:
-    main:                Main.hs
+    main:                Main-cmp.hs
     source-dirs:         app
     ghc-options:
       - -threaded
