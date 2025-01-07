@@ -20,5 +20,5 @@ main = do
             contents <- readFile file
             let contentsText = T.pack contents
             case parseAndLex pProgram contentsText of
-                Left LexingError err -> 
+                Left err -> print err 
                 Right ast -> print "Parsed successfully" 
