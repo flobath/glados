@@ -1,50 +1,35 @@
 module StackMachine (
     Value(..),
     Operator(..),
-    Instruction(..),
+    StackInstruction(..),
     Args,
     Stack,
-    Program,
+    StackProgram,
     Environment,
-    push,
-    pop,
-    pushArgs,
-    pushEnv,
-    applyOperator,
-    jumpIfTrue,
-    jumpIfFalse,
-    addition,
-    subtraction,
-    multiplication,
-    division,
-    modulus,
-    equal,
-    notEqual,
-    lessThan,
-    lessEqual,
-    greaterThan,
-    greaterEqual,
-    andOperator,
-    orOperator,
     execute
 ) where
 
-data Value = IntValue Int | BoolValue Bool | FuncValue [Instruction]
-    deriving (Show, Eq)
+import Data.Int (Int64)
+import Data.Text (Text)
 
-data Operator = Add | Sub | Mul | Div | Mod | Eq | Ne | Lt | Le | Gt | Ge | And | Or
-    deriving (Show, Eq)
+data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
 
-data Instruction = Push Value | PushArgs Int | PushEnv String | Call | Return | JumpIfTrue Int | JumpIfFalse Int | OpValue Operator
+data Operator = Add | Sub | Mul | Div | Mod | Eq | Ne | Lt | Le | Gt | Ge | And | Or deriving (Show, Eq)
+
+data StackInstruction = PushValue Value | PushEnv String | StoreEnv String | Call Int | CallFuncName Text | Return | Jump Int | JumpIfFalse Int | OpValue Operator
     deriving (Show, Eq)
 
 type Args = [Value]
 
 type Stack = [Value]
 
-type Program = [Instruction]
+type StackProgram = [StackInstruction]
 
 type Environment = [(String, Value)]
+
+type ProgramCounter = Int
+
+type ReturnStack = [Int]
 
 -- Stack operations
 
@@ -55,17 +40,18 @@ pop :: Stack -> Either String (Value, Stack)
 pop (x:xs) = Right (x, xs)
 pop [] = Left "Cannot pop empty stack"
 
-pushArgs :: Int -> Args -> Stack -> Either String Stack
-pushArgs n args stack = case (n, args) of
-    (0, (x:_)) -> Right (push x stack)
-    (a, (_:xs)) -> pushArgs (a-1) xs stack
-    (_, []) -> Left "Not enough arguments"
-
 pushEnv :: String -> Environment -> Stack -> Either String Stack
 pushEnv name env stack = case lookup name env of
-
     Just value -> Right (push value stack)
     Nothing -> Left "Cannot find value in environment"
+
+storeEnv :: String -> Environment -> Stack -> Either String Environment
+storeEnv name env (value : stack) =
+    let updatedEnv = case lookup name env of
+                        Just _  -> map (\(k, v) -> if k == name then (k, value) else (k, v)) env
+                        Nothing -> (name, value) : env
+    in Right updatedEnv
+storeEnv _ _ [] = Left "Stack is empty"
 
 -- Arithmetic operators
 
@@ -142,40 +128,37 @@ orOperator :: Stack -> Either String Stack
 orOperator (BoolValue x : BoolValue y : xs) = Right (BoolValue (x || y) : xs)
 orOperator _ = Left "Cannot apply or"
 
--- Control flow
-
-jumpIfTrue :: Int -> Stack -> Program -> Program
-jumpIfTrue n (BoolValue True : _) program = drop n program
-jumpIfTrue _ _ program = program
-
-jumpIfFalse :: Int -> Stack -> Program -> Program
-jumpIfFalse n (BoolValue False : _) program = drop n program
-jumpIfFalse _ _ program = program
-
 -- Execution
 
-execute :: Environment -> Args -> Program -> Stack -> Either String Value
-execute _ _ [] stack = case pop stack of
-        Right (value, _) -> Right value
-        Left err -> Left err
-execute env args (Return : _) stack = execute env args [] stack
+execute' :: StackProgram -> Either String Value
+execute' prog = execute [] [] prog 0 [] []
 
-execute env args (Push x : prog') stack = execute env args prog' (push x stack)
-execute env args ((PushArgs n) : prog') stack = case pushArgs n args stack of
-    Right stack' -> execute env args prog' stack'
+execute :: [Environment] -> Args -> StackProgram -> ProgramCounter -> ReturnStack -> Stack -> Either String Value
+execute _ _ [] _ _ stack = case pop stack of
+    Right (value, _) -> Right value
     Left err -> Left err
-execute env args ((PushEnv name) : prog') stack = case pushEnv name env stack of
-    Right stack' -> execute env args prog' stack'
-    Left err -> Left err
-
-execute env args (Call : prog') stack = case stack of
-    (FuncValue func : stack') -> case execute env stack' func [] of
-        Left err -> Left err
-        Right value -> execute env args prog' (value : stack')
-    _ -> Left "Cannot call"
-execute env args ((OpValue op) : prog') stack = case applyOperator op stack of
-    Left err -> Left err
-    Right stack' -> execute env args prog' stack'
-
-execute env args (JumpIfTrue n : prog') stack = execute env args (jumpIfTrue n stack prog') stack
-execute env args (JumpIfFalse n : prog') stack = execute env args (jumpIfFalse n stack prog') stack
+execute envStack args prog pc returnStack stack
+    | pc >= length prog = Left "Program counter out of bounds"
+    | otherwise = case prog !! pc of
+        Return -> case returnStack of
+            (retAddr:rest) -> execute (tail envStack) args prog retAddr rest stack
+            [] -> case pop stack of
+                Right (value, _) -> Right value
+                Left err -> Left err
+        PushValue x -> execute envStack args prog (pc + 1) returnStack (push x stack)
+        PushEnv name -> case pushEnv name (head envStack) stack of
+            Right stack' -> execute envStack args prog (pc + 1) returnStack stack'
+            Left err -> Left err
+        StoreEnv name -> case storeEnv name (head envStack) stack of
+            Right env' -> execute (env':tail envStack) args prog (pc + 1) returnStack stack
+            Left err -> Left err
+        Call n -> execute ([]:envStack) args prog n (pc + 1 : returnStack) stack
+        CallFuncName name -> Left "Should not happen"
+        OpValue op -> case applyOperator op stack of
+            Left err -> Left err
+            Right stack' -> execute envStack args prog (pc + 1) returnStack stack'
+        Jump n -> execute envStack args prog (pc + n) returnStack stack
+        JumpIfFalse n -> case stack of
+            (BoolValue False : _) -> execute envStack args prog (pc + n) returnStack stack
+            _ -> execute envStack args prog (pc + 1) returnStack stack
+        _ -> Left "Execution error"
