@@ -29,7 +29,6 @@ replaceCallFuncName instrs funcLengths mainLength = map replace instrs
       Nothing -> error $ "Function " ++ unpack name ++ " not found"
     replace instr = instr
 
--- Function to generate a map of function names and their lengths
 generateFunctionMap :: [Function] -> Map.Map String Int
 generateFunctionMap functions = Map.fromList $ map getFunctionLength functions
   where
@@ -129,10 +128,6 @@ functionCallStmt = StExpression (ExprFunctionCall (ExprAtomic (AtomIdentifier (V
 
 sumFunction :: Function
 sumFunction = Function (pack "sum") [] Nothing (BlockExpression [sumStmt, returnStmt])
-
--- Example usage of a functions map
-exampleFunctionMap :: Map.Map String Int
-exampleFunctionMap = generateFunctionMap [sumFunction]
 
 --
 -- Example usage of multiple functions calling each other
