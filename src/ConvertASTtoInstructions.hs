@@ -80,7 +80,6 @@ convertExpression (ExprIfConditional cond trueBranch falseBranch) =
         jumpEnd = Jump (length falseInstrs)
     in condInstrs ++ [jumpFalse] ++ trueInstrs ++ [jumpEnd] ++ falseInstrs
 
---TODO: handle function arguments
 convertExpression (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) args) = [NewEnv] ++ concatMap convertExpression args ++ [CallFuncName name]
 
 convertExpression _ = []
