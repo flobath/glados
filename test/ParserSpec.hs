@@ -20,8 +20,7 @@ import Parser2 (
     pExpression,
     pTypeIdentifier,
     pVariableDecl,
-    pReturnStatement,
-    pVariableDeclStatement,
+    pStatement,
     pBlockExpression,
     pFunction,
     pMainFunction,
@@ -30,6 +29,7 @@ import Parser2 (
 import Parser.WithPos(withPos)
 import Lexer (showLexError, alexScanTokens)
 import Lexer.Tokens (
+    Token(..),
     ControlSequence(..),
     )
 import Parser.ParseAndLex (
@@ -202,13 +202,13 @@ spec = do
 
     describe "basic statements" $ do
         it "return statement" $
-            parseAndLex pReturnStatement "return a"
+            parseAndLex pStatement "return a;"
             `shouldLexParse` sRet (eaId "a")
         it "var decl statement (no value)" $
-            parseAndLex pVariableDeclStatement "i32 myint"
+            parseAndLex pStatement "i32 myint;"
             `shouldLexParse` sDecl (tId "i32") (vId "myint") Nothing
         it "var decl statement with initialiser" $
-            parseAndLex pVariableDeclStatement "i32 myint = 42"
+            parseAndLex pStatement "i32 myint = 42\n"
             `shouldLexParse` sDecl
                 (tId "i32")
                 (vId "myint")

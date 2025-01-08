@@ -248,7 +248,7 @@ pVariableDeclStatement = do
     return $ StVariableDecl decl value
 
 pStatement :: Parser Statement
-pStatement = choice
+pStatement = choice $ map (<* pEndOfStatement)
     [ pReturnStatement
     , pVariableDeclStatement
     , pExpression <&> StExpression
@@ -262,7 +262,7 @@ pEndOfStatement = do
 
 pBlockExpression :: Parser BlockExpression
 pBlockExpression = BlockExpression <$>
-    pBetweenBrace (many (pStatement <* pEndOfStatement))
+    pBetweenBrace (many pStatement)
 
 pFunParamList :: Parser [VariableDeclaration]
 pFunParamList = (pControl OpenParen *> manyEol *> pFunParamList') <|> pure []
