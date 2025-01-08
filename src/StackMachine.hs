@@ -16,7 +16,7 @@ data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
 
 data Operator = Add | Sub | Mul | Div | Mod | Eq | Ne | Lt | Le | Gt | Ge | And | Or deriving (Show, Eq)
 
-data StackInstruction = PushValue Value | PushEnv String | StoreEnv String | Call Int | CallFuncName Text | Return | Jump Int | JumpIfFalse Int | OpValue Operator
+data StackInstruction = PushValue Value | PushEnv String | StoreEnv String | Call Int | NewEnv | CallFuncName Text | Return | Jump Int | JumpIfFalse Int | OpValue Operator
     deriving (Show, Eq)
 
 type Args = [Value]
@@ -152,7 +152,8 @@ execute envStack args prog pc returnStack stack
         StoreEnv name -> case storeEnv name (head envStack) stack of
             Right env' -> execute (env':tail envStack) args prog (pc + 1) returnStack stack
             Left err -> Left err
-        Call n -> execute ([]:envStack) args prog n (pc + 1 : returnStack) stack
+        NewEnv -> execute ([]:envStack) args prog (pc + 1) returnStack stack
+        Call n -> execute envStack args prog n (pc + 1 : returnStack) stack
         CallFuncName name -> Left "Should not happen"
         OpValue op -> case applyOperator op stack of
             Left err -> Left err

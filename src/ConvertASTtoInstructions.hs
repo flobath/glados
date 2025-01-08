@@ -34,7 +34,7 @@ generateFunctionMap functions = Map.fromList $ map getFunctionLength functions
   where
     getFunctionLength (Function name _ _ (BlockExpression stmts)) = (unpack name, length $ concatMap convertStatement stmts)
 
-convertFunction :: Function -> [StackInstruction] --TODO: take care of the arguments and return type+
+convertFunction :: Function -> [StackInstruction]
 convertFunction (Function _ _ _ (BlockExpression stmts)) = concatMap convertStatement stmts
 
 convertMainFunction :: MainFunction -> [StackInstruction] --TODO: take care of the arguments
@@ -81,7 +81,7 @@ convertExpression (ExprIfConditional cond trueBranch falseBranch) =
     in condInstrs ++ [jumpFalse] ++ trueInstrs ++ [jumpEnd] ++ falseInstrs
 
 --TODO: handle function arguments
-convertExpression (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) _) = [CallFuncName name]
+convertExpression (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) args) = [NewEnv] ++ concatMap convertExpression args ++ [CallFuncName name]
 
 convertExpression _ = []
 
