@@ -25,8 +25,9 @@ source-repository head
 
 library
   exposed-modules:
-      GldsBytecode
       AlexToParsec
+      ConvertASTtoInstructions
+      GldsBytecode
       Helpers
       Lexer
       Lexer.Tokens
@@ -34,10 +35,10 @@ library
       Parser
       Parser.AST
       Parser.Internal
-      StackMachine
       Parser.ParseAndLex
       Parser.Shorthands
       Parser.WithPos
+      StackMachine
   other-modules:
       Paths_GLaDOS
   autogen-modules:
@@ -48,11 +49,10 @@ library
   build-tools:
       alex
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
     , binary
     , bytestring
-    , array
-    , base >=4.7 && <5
     , composition-prelude
     , containers
     , megaparsec
@@ -90,8 +90,10 @@ test-suite GLaDOS-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      CompilerSpec
       LexerSpec
       ParserSpec
+      VmSpec
       Paths_GLaDOS
   autogen-modules:
       Paths_GLaDOS
