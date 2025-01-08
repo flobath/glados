@@ -19,11 +19,19 @@ import Parser2 (
     pExpression,
     pExpression,
     pTypeIdentifier,
-    pVariableDecl, pReturnStatement, pVariableDeclStatement, pBlockExpression, pFunction, pMainFunction, pProgram
+    pVariableDecl,
+    pReturnStatement,
+    pVariableDeclStatement,
+    pBlockExpression,
+    pFunction,
+    pMainFunction,
+    pProgram,
     )
 import Parser.WithPos(withPos)
 import Lexer (showLexError, alexScanTokens)
-import Lexer.Tokens(Token(Control))
+import Lexer.Tokens (
+    ControlSequence(..),
+    )
 import Parser.ParseAndLex (
     ParseLexError(..),
     parseAndLex,
@@ -32,7 +40,6 @@ import Parser.ParseAndLex (
 import Parser.Shorthands
 import Parser.AST (BlockExpression(BlockExpression), Function (Function), MainFunction (MainFunction), Program (Program))
 import Test.Hspec.Megaparsec (etok, err, utok, shouldFailWith, elabel)
-import Lexer.Tokens (ControlSequence(..), Token (Identifier))
 import Parser.Internal2 (liftMyToken)
 import AlexToParsec (TokenStream(..))
 import Data.Text (Text)
