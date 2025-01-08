@@ -6,7 +6,25 @@ module StackMachine (
     Stack,
     StackProgram,
     Environment,
-    execute
+    push,
+    pop,
+    pushEnv,
+    storeEnv,
+    applyOperator,
+    addition,
+    subtraction,
+    multiplication,
+    division,
+    modulus,
+    equal,
+    notEqual,
+    lessThan,
+    lessEqual,
+    greaterThan,
+    greaterEqual,
+    andOperator,
+    orOperator,
+    execute'
 ) where
 
 import Data.Int (Int64)
