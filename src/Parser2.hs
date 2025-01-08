@@ -235,6 +235,7 @@ pReturnStatement :: Parser Statement
 pReturnStatement = StReturn <$> (pKeyword KeyWReturn *> pExpression)
 
 pVariableDecl :: Parser VariableDeclaration
+-- We might be able to remove the `try` here if type ids and var ids are different tokens
 pVariableDecl = try (VariableDeclaration
     <$> pTypeIdentifier
     <*> pVarIdentifier
@@ -247,10 +248,20 @@ pVariableDeclStatement = do
     value <- tryParse (pControl OperAssign *> pExpression)
     return $ StVariableDecl decl value
 
+pAssignStatement :: Parser Statement
+pAssignStatement = try (StAssignment
+    <$> pVarIdentifier
+    <* pControl OperAssign
+    <* manyEol
+    <*> pExpression
+    <?> "assignment statement"
+    )
+
 pStatement :: Parser Statement
 pStatement = choice $ map (<* pEndOfStatement)
     [ pReturnStatement
     , pVariableDeclStatement
+    , pAssignStatement
     , pExpression <&> StExpression
     ]
 

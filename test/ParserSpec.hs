@@ -12,7 +12,8 @@ import Test.Hspec (
     Spec,
     describe,
     it,
-    shouldBe
+    shouldBe,
+    context,
     )
 import Text.Megaparsec (ShowErrorComponent, VisualStream, TraversableStream, ParseErrorBundle, errorBundlePretty, parse, Parsec)
 import Parser2 (
@@ -213,6 +214,20 @@ spec = do
                 (tId "i32")
                 (vId "myint")
                 (Just $ eaInt 42)
+        context "assignment statement" $ do
+            it "basic succes" $
+                parseAndLex pStatement "abc = 4;"
+                `shouldLexParse` sAssi "abc" (eaInt 4)
+            it "assign to function call" $
+                parseAndLex pStatement "x = f(a, b)\n"
+                `shouldLexParse` sAssi "x" (eCall (eaId "f") [eaId "a", eaId "b"])
+            it "missing expression" $
+                lexParse pStatement "myvar =;"
+                `shouldFailWith` err 2 (
+                    utok (withPos 1 8 1 9 1 (Control Semicolon))
+                    <> elabel "expression"
+                )
+
 
     describe "block expressions" $ do
         it "empty block" $

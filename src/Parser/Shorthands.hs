@@ -37,6 +37,7 @@ eoAnd a b = ExprOperation $ OpInfix $ InfixAnd a b
 sRet = StReturn
 sDecl t n = StVariableDecl (VariableDeclaration t n)
 sExpr = StExpression
+sAssi t = StAssignment (VarIdentifier t)
 
 fn text params retType sts = Function text params retType (BlockExpression sts)
 fnMain params sts = MainFunction params (BlockExpression sts)
