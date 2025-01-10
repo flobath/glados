@@ -9,4 +9,5 @@ nav:
     - Index: reference/index.md
     - Operators: reference/operator_table.md
     - Keywords: reference/keywords.md
+    - Whitespace: reference/whitespace.md
   - About: about.md

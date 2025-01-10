@@ -8,3 +8,4 @@ Here is the list of reference pages:
 
 - [Operator table](./operator_table.md)
 - [List of keywords](./keywords.md)
+- [Whitespace in FunChill](./whitespace.md)
