@@ -7,3 +7,4 @@ If you just want to have an idea of what FunChill code looks like without too mu
 Here is the list of reference pages:
 
 - [Operator table](./operator_table.md)
+- [List of keywords](./keywords.md)

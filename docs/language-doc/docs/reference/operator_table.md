@@ -22,3 +22,7 @@ Note that all suffix operators have the same precedence, and same goes for all p
 | 6         | `!=`      |Infix  | Not equals                | Left-to-right |
 | 6         | `&&`      |Infix  | Logical AND               | Left-to-right |
 | 6         | `||`      |Infix  | Logical OR                | Left-to-right |
+
+---
+
+*[Back to reference index](./index.md)*

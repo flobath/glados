@@ -8,4 +8,5 @@ nav:
   - Reference:
     - Index: reference/index.md
     - Operators: reference/operator_table.md
+    - Keywords: reference/keywords.md
   - About: about.md
