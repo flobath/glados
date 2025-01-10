@@ -36,6 +36,8 @@ spec = do
             myScanTok "\\\n" `shouldBe` Right []
         it "escaped \\r\\n" $
             myScanTok "\\\r\n" `shouldBe` Right []
+        it "lex a linebreak after a line comment" $ do
+            myScanTok "a // comment\n" `shouldBe` Right [Identifier "a", Control LineBreak]
 
     describe "Lex some identifiers" $ do
         expectSingleToken "'abc' identifier" "abc" $ Identifier "abc"

@@ -154,6 +154,9 @@ spec = do
         it "parenthesised expressions" $
             parseAndLex pExpression "(1 + 9) / abc"
             `shouldLexParse` eoDiv (eoAdd (eaInt 1) (eaInt 9)) (eaId "abc")
+        it "a - b - c = (a - b) - c" $
+            parseAndLex pExpression "a - b - c"
+            `shouldLexParse` eoSub (eoSub (eaId "a") (eaId "b")) (eaId "c")
 
     describe "conditionals" $ do
         it "if conditional without else arm" $
