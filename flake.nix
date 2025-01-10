@@ -43,7 +43,13 @@
         devShells.default = pkgs.mkShell {
           name = "Superb haskell flake shell";
           inputsFrom = [config.haskellProjects.default.outputs.devShell];
-          nativeBuildInputs = with pkgs; [bashInteractiveFHS chez stack];
+          nativeBuildInputs = with pkgs; [
+            # Build tools
+            stack
+
+            # Documentation tools
+            mkdocs
+          ];
         };
 
         packages.default = self'.packages.GLaDOS;

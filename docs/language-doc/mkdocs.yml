@@ -1,0 +1,11 @@
+site_name: FunChill Documentation
+theme:
+  name: null
+  custom_dir: 'cinder'
+nav:
+  - Home: index.md
+  - Intro: introduction.md
+  - Reference:
+    - Index: reference/index.md
+    - Operators: reference/operator_table.md
+  - About: about.md
