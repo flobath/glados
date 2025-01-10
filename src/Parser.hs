@@ -193,7 +193,7 @@ pConditionalBody = do
     condition <- pGroupedExpression
     void manyEol
     firstArm <- pExpression
-    secondArm <- tryParse $ do
+    secondArm <- maybeParse $ do
         void manyEol
         void (pKeyword KeyWElse)
         void manyEol
@@ -245,7 +245,7 @@ pVariableDecl = try (VariableDeclaration
 pVariableDeclStatement :: Parser Statement
 pVariableDeclStatement = do
     decl <- pVariableDecl
-    value <- tryParse (pControl OperAssign *> pExpression)
+    value <- maybeParse (pControl OperAssign *> pExpression)
     return $ StVariableDecl decl value
 
 pAssignStatement :: Parser Statement
@@ -297,7 +297,7 @@ pFunction = do
     void (pKeyword KeyWFun) <* manyEol
     name <- pIdentifier <* manyEol <?> "function name"
     paramList <- pFunParamList <* manyEol <?> "parameter list"
-    retType <- tryParse pReturnType <* manyEol <?> "return type"
+    retType <- maybeParse pReturnType <* manyEol <?> "return type"
     body <- pBlockExpression <* manyEol <?> "function body"
 
     return $ Function name paramList retType body
