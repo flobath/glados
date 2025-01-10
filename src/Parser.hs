@@ -193,7 +193,7 @@ pConditionalBody = do
     condition <- pGroupedExpression
     void manyEol
     firstArm <- pExpression
-    secondArm <- maybeParse $ do
+    secondArm <- tryParse $ do
         void manyEol
         void (pKeyword KeyWElse)
         void manyEol
