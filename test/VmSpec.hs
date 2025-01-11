@@ -1,12 +1,11 @@
 module VmSpec (spec) where
 
 import Test.Hspec ( hspec, describe, it, shouldBe , shouldThrow, anyException, Spec)
-import StackMachine ( push, pop, pushArgs, pushEnv, 
-    applyOperator, execute,
+import StackMachine ( push, pop, pushEnv,
+    applyOperator, execute',
     subtraction, multiplication, division, modulus, addition,
     equal, notEqual, lessThan, lessEqual, greaterThan, greaterEqual, andOperator, orOperator,
-    jumpIfTrue, jumpIfFalse,
-    Value(..), Operator(..), Instruction(..), Program, Stack )
+    Value(..), Operator(..), StackInstruction(..), StackProgram)
 import Control.Exception (evaluate)
 import qualified Data.Text
 import Data.Text (Text)
@@ -131,15 +130,15 @@ spec = do
             orOperator [BoolValue True, BoolValue False, BoolValue True] `shouldBe` Right [BoolValue True, BoolValue True]
         it "orOperator error" $ do
             orOperator [BoolValue True] `shouldBe` Left "Cannot apply or"
-    describe "jump" $ do
-        it "jumpIfTrue 2 True" $ do
-            jumpIfTrue 2 [BoolValue True] [Push (IntValue 1), Push (IntValue 2), Push (IntValue 3)] `shouldBe` [Push (IntValue 3)]
-        it "jumpIfTrue 2 False" $ do
-            jumpIfTrue 2 [BoolValue False] [Push (IntValue 1), Push (IntValue 2), Push (IntValue 3)] `shouldBe` [Push (IntValue 1), Push (IntValue 2), Push (IntValue 3)]
-        it "jumpIfFalse 2 True" $ do
-            jumpIfFalse 2 [BoolValue True] [Push (IntValue 1), Push (IntValue 2), Push (IntValue 3)] `shouldBe` [Push (IntValue 1), Push (IntValue 2), Push (IntValue 3)]
-        it "jumpIfFalse 2 False" $ do
-            jumpIfFalse 2 [BoolValue False] [Push (IntValue 1), Push (IntValue 2), Push (IntValue 3)] `shouldBe` [Push (IntValue 3)]
+    --describe "jump" $ do
+    --    it "jumpIfTrue 2 True" $ do
+    --        jumpIfTrue 2 [BoolValue True] [PushValue (IntValue 1), PushValue (IntValue 2), PushValue (IntValue 3)] `shouldBe` [PushValue (IntValue 3)]
+    --    it "jumpIfTrue 2 False" $ do
+    --        jumpIfTrue 2 [BoolValue False] [PushValue (IntValue 1), PushValue (IntValue 2), PushValue (IntValue 3)] `shouldBe` [PushValue (IntValue 1), PushValue (IntValue 2), PushValue (IntValue 3)]
+    --    it "jumpIfFalse 2 True" $ do
+    --        jumpIfFalse 2 [BoolValue True] [PushValue (IntValue 1), PushValue (IntValue 2), PushValue (IntValue 3)] `shouldBe` [PushValue (IntValue 1), PushValue (IntValue 2), PushValue (IntValue 3)]
+    --    it "jumpIfFalse 2 False" $ do
+    --        jumpIfFalse 2 [BoolValue False] [PushValue (IntValue 1), PushValue (IntValue 2), PushValue (IntValue 3)] `shouldBe` [PushValue (IntValue 3)]
     describe "push" $ do
         it "push 1" $ do
             push (IntValue 1) [] `shouldBe` [IntValue 1]
@@ -150,11 +149,11 @@ spec = do
             pop [IntValue 1] `shouldBe` Right (IntValue 1, [])
         it "pop 1, 2" $ do
             pop [IntValue 1, IntValue 2] `shouldBe` Right (IntValue 1, [IntValue 2])
-    describe "pushArgs" $ do
-        it "pushArgs 2" $ do
-            pushArgs 2 [IntValue 1, IntValue 2, IntValue 3] [IntValue 1, IntValue 2] `shouldBe` Right [IntValue 3, IntValue 1, IntValue 2]
-        it "pushArgs 0, 1" $ do
-            pushArgs 0 [IntValue 1] [IntValue 2, IntValue 3] `shouldBe` Right [IntValue 1, IntValue 2, IntValue 3]
+    --describe "pushArgs" $ do
+    --    it "pushArgs 2" $ do
+    --        pushArgs 2 [IntValue 1, IntValue 2, IntValue 3] [IntValue 1, IntValue 2] `shouldBe` Right [IntValue 3, IntValue 1, IntValue 2]
+    --    it "pushArgs 0, 1" $ do
+    --        pushArgs 0 [IntValue 1] [IntValue 2, IntValue 3] `shouldBe` Right [IntValue 1, IntValue 2, IntValue 3]
     describe "pushEnv" $ do
         it "pushEnv" $ do
             pushEnv "env" [("env", IntValue 8)] [] `shouldBe` Right [IntValue 8]
@@ -187,30 +186,30 @@ spec = do
             applyOperator Or [BoolValue True, BoolValue False] `shouldBe` Right [BoolValue True]
     describe "execute" $ do
         it "execute" $ do
-            execute [] [] [Push (IntValue 1), Push (IntValue 2), OpValue Add, Return] [] `shouldBe` Right (IntValue 3)
+            execute' [PushValue (IntValue 1), PushValue (IntValue 2), OpValue Add, Return] `shouldBe` Right (IntValue 3)
         it "execute addition error" $ do
-            execute [] [] [Push (IntValue 1), OpValue Add, Return] [] `shouldBe` Left "Cannot apply addition"
+            execute' [PushValue (IntValue 1), OpValue Add, Return] `shouldBe` Left "Cannot apply addition"
         it "execute subtraction error" $ do
-            execute [] [] [Push (IntValue 1), OpValue Sub, Return] [] `shouldBe` Left "Cannot apply subtraction"
+            execute' [PushValue (IntValue 1), OpValue Sub, Return] `shouldBe` Left "Cannot apply subtraction"
         it "execute multiplication error" $ do
-            execute [] [] [Push (IntValue 1), OpValue Mul, Return] [] `shouldBe` Left "Cannot apply multiplication"
+            execute' [PushValue (IntValue 1), OpValue Mul, Return] `shouldBe` Left "Cannot apply multiplication"
         it "execute division error" $ do
-            execute [] [] [Push (IntValue 1), OpValue Div, Return] [] `shouldBe` Left "Cannot apply division"
+            execute' [PushValue (IntValue 1), OpValue Div, Return] `shouldBe` Left "Cannot apply division"
         it "execute modulus error" $ do
-            execute [] [] [Push (IntValue 1), OpValue Mod, Return] [] `shouldBe` Left "Cannot apply modulus"
+            execute' [PushValue (IntValue 1), OpValue Mod, Return] `shouldBe` Left "Cannot apply modulus"
         it "execute equal error" $ do
-            execute [] [] [Push (IntValue 1), OpValue Eq, Return] [] `shouldBe` Left "Cannot apply equal"
+            execute' [PushValue (IntValue 1), OpValue Eq, Return] `shouldBe` Left "Cannot apply equal"
         it "execute notEqual error" $ do
-            execute [] [] [Push (IntValue 1), OpValue Ne, Return] [] `shouldBe` Left "Cannot apply not equal"
+            execute' [PushValue (IntValue 1), OpValue Ne, Return] `shouldBe` Left "Cannot apply not equal"
         it "execute lessThan error" $ do
-            execute [] [] [Push (IntValue 1), OpValue Lt, Return] [] `shouldBe` Left "Cannot apply less than"
+            execute' [PushValue (IntValue 1), OpValue Lt, Return] `shouldBe` Left "Cannot apply less than"
         it "execute lessEqual error" $ do
-            execute [] [] [Push (IntValue 1), OpValue Le, Return] [] `shouldBe` Left "Cannot apply less equal"
+            execute' [PushValue (IntValue 1), OpValue Le, Return] `shouldBe` Left "Cannot apply less equal"
         it "execute greaterThan error" $ do
-            execute [] [] [Push (IntValue 1), OpValue Gt, Return] [] `shouldBe` Left "Cannot apply greater than"
+            execute' [PushValue (IntValue 1), OpValue Gt, Return] `shouldBe` Left "Cannot apply greater than"
         it "execute greaterEqual error" $ do
-            execute [] [] [Push (IntValue 1), OpValue Ge, Return] [] `shouldBe` Left "Cannot apply greater equal"
+            execute' [PushValue (IntValue 1), OpValue Ge, Return] `shouldBe` Left "Cannot apply greater equal"
         it "execute and error" $ do
-            execute [] [] [Push (BoolValue True), OpValue And, Return] [] `shouldBe` Left "Cannot apply and"
+            execute' [PushValue (BoolValue True), OpValue And, Return] `shouldBe` Left "Cannot apply and"
         it "execute or error" $ do
-            execute [] [] [Push (BoolValue True), OpValue Or, Return] [] `shouldBe` Left "Cannot apply or"
+            execute' [PushValue (BoolValue True), OpValue Or, Return] `shouldBe` Left "Cannot apply or"

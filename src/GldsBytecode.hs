@@ -3,7 +3,7 @@ module GldsBytecode (
     readProgramFromFile
 ) where
 
-import StackMachine (Value(..), Operator(..), Instruction(..), Program)
+import StackMachine (Value(..), Operator(..), StackInstruction(..), StackProgram)
 import Data.Binary.Put
 import Data.Binary.Get
 import qualified Data.ByteString.Lazy as BL
@@ -19,9 +19,6 @@ serializeValue (IntValue i) = do
 serializeValue (BoolValue b) = do
     putWord8 1
     putWord8 (if b then 1 else 0)
-serializeValue (FuncValue func) = do
-    putWord8 2
-    serializeProgram func
 
 serializeOperator :: Operator -> Put
 serializeOperator Add = putWord8 0
@@ -38,35 +35,37 @@ serializeOperator Ge = putWord8 10
 serializeOperator And = putWord8 11
 serializeOperator Or = putWord8 12
 
-serializeInstruction :: Instruction -> Put
-serializeInstruction (Push val) = do
+serializeInstruction :: StackInstruction -> Put
+serializeInstruction (PushValue value) = do
     putWord8 0
-    serializeValue val
-serializeInstruction (PushArgs n) = do
-    putWord8 1
-    putInt32le (fromIntegral n)
+    serializeValue value
 serializeInstruction (PushEnv name) = do
     putWord8 2
-    mapM_ putWord8 (map (fromIntegral . fromEnum) name)
-    putWord8 0 -- Null terminator for the string
-serializeInstruction Call = putWord8 3
-serializeInstruction Return = putWord8 4
-serializeInstruction (JumpIfTrue n) = do
-    putWord8 5
+    putByteString (BL.toStrict (BL.pack (map (fromIntegral . fromEnum) name ++ [0])))
+serializeInstruction (StoreEnv name) = do
+    putWord8 3
+    putByteString (BL.toStrict (BL.pack (map (fromIntegral . fromEnum) name ++ [0])))
+serializeInstruction (Call n) = do
+    putWord8 4
     putInt32le (fromIntegral n)
-serializeInstruction (JumpIfFalse n) = do
+serializeInstruction Return = putWord8 5
+serializeInstruction (Jump n) = do
     putWord8 6
     putInt32le (fromIntegral n)
-serializeInstruction (OpValue op) = do
+serializeInstruction (JumpIfFalse n) = do
     putWord8 7
+    putInt32le (fromIntegral n)
+serializeInstruction (OpValue op) = do
+    putWord8 8
     serializeOperator op
+serializeInstruction _ = error "Not implemented"
 
-serializeProgram :: Program -> Put
+serializeProgram :: StackProgram -> Put
 serializeProgram = mapM_ serializeInstruction
 
-writeProgramToFile :: FilePath -> Program -> IO ()
+writeProgramToFile :: FilePath -> StackProgram -> IO ()
 writeProgramToFile path program = BL.writeFile path (runPut $ do
-  mapM_ putWord8 [0x47, 0x4C, 0x44, 0x53] -- Magic number
+  mapM_ putWord8 [7, 12, 4, 19]
   serializeProgram program)
 
 
@@ -79,7 +78,6 @@ deserializeValue = do
     case tag of
         0 -> IntValue . fromIntegral <$> getInt32le
         1 -> BoolValue . (/= 0) <$> getWord8
-        2 -> FuncValue <$> deserializeProgram
         _ -> fail "Unknown Value tag"
 
 deserializeOperator :: Get Operator
@@ -101,21 +99,21 @@ deserializeOperator = do
         12 -> return Or
         _ -> fail "Unknown Operator tag"
 
-deserializeInstruction :: Get Instruction
+deserializeInstruction :: Get StackInstruction
 deserializeInstruction = do
     tag <- getWord8
     case tag of
-        0 -> Push <$> deserializeValue
-        1 -> PushArgs . fromIntegral <$> getInt32le
+        0 -> PushValue <$> deserializeValue
         2 -> PushEnv <$> getNullTerminatedString
-        3 -> return Call
-        4 -> return Return
-        5 -> JumpIfTrue . fromIntegral <$> getInt32le
-        6 -> JumpIfFalse . fromIntegral <$> getInt32le
-        7 -> OpValue <$> deserializeOperator
+        3 -> StoreEnv <$> getNullTerminatedString
+        4 -> Call . fromIntegral <$> getInt32le
+        5 -> return Return
+        6 -> Jump . fromIntegral <$> getInt32le
+        7 -> JumpIfFalse . fromIntegral <$> getInt32le
+        8 -> OpValue <$> deserializeOperator
         _ -> fail "Unknown Instruction tag"
 
-deserializeProgram :: Get Program
+deserializeProgram :: Get StackProgram
 deserializeProgram = do
     empty <- isEmpty
     if empty
@@ -139,8 +137,7 @@ getBytesUntilNull = do
             rest <- getBytesUntilNull
             return (byte : rest)
 
--- Read Program from Bytecode File
-readProgramFromFile :: FilePath -> IO Program
+readProgramFromFile :: FilePath -> IO StackProgram
 readProgramFromFile path = do
     bytecode <- BL.readFile path
     let magic = runGet (replicateM 4 getWord8) bytecode
