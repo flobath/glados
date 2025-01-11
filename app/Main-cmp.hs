@@ -9,6 +9,8 @@ import Parser.ParseAndLex (parseAndLex, ParseLexError)
 import Parser2 (pProgram)
 import System.Environment (getArgs)
 import qualified Data.Text as T
+import ConvertASTtoInstructions (convertToStackInstructions)
+import GldsBytecode (writeProgramToFile)
 
 main :: IO ()
 main = do
@@ -21,4 +23,5 @@ main = do
             let contentsText = T.pack contents
             case parseAndLex pProgram contentsText of
                 Left err -> print err 
-                Right ast -> print "Parsed successfully" 
+                Right ast -> case convertToStackInstructions ast of
+                    instrs -> writeProgramToFile "a.out" instrs
