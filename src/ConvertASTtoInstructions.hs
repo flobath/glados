@@ -1,5 +1,5 @@
 module ConvertASTtoInstructions (
-    convertToStackInstructions,
+    convertToStackInstructions
 ) where
 
 import Parser.AST

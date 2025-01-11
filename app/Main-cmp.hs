@@ -7,10 +7,10 @@ import Lib
 import Control.Monad.Trans.State (StateT(runStateT))
 import Parser.ParseAndLex (parseAndLex, ParseLexError)
 import Parser2 (pProgram)
+import GldsBytecode (writeProgramToFile)
+import ConvertASTtoInstructions (convertToStackInstructions)
 import System.Environment (getArgs)
 import qualified Data.Text as T
-import ConvertASTtoInstructions (convertToStackInstructions)
-import GldsBytecode (writeProgramToFile)
 
 main :: IO ()
 main = do
