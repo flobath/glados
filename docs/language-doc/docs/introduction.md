@@ -18,7 +18,7 @@ fun my_factorial(i32 n): i32 {
 }
 ```
 
-As you can see from this example, FunChill is very similar to modern C-like programming languages so it should be simple to learn both for beginners or experienced developpers.
+As you can see from this example, FunChill is very similar to modern C-like programming languages so it should be simple to learn both for beginners or experienced developers.
 
 Some key features in this code snippet are:
 
@@ -125,7 +125,7 @@ fun f { // Comment after opening brace
 } // Comment after closing brace
 ```
 
-You can also use `/*` and `*/` to introduce a block comment -- that is -- to ignore all characters between the opening `/*` and the closing `*/`.  
+You can also use `/*` and `*/` to introduce a block comment − that is − to ignore all characters between the opening `/*` and the closing `*/`.  
 As of 2.0, nested block comments are not supported, such that `/* /* /* */` represents a single, syntactically valid block comment, while `/* /* */ */` represents a block comment followed by a trailing `*/` which will certainly cause a parsing error.
 
 ```
