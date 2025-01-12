@@ -1,7 +1,9 @@
 site_name: FunChill Documentation
+
 theme:
   name: null
   custom_dir: 'cinder'
+
 nav:
   - Home: index.md
   - Intro: introduction.md
@@ -10,4 +12,9 @@ nav:
     - Operators: reference/operator_table.md
     - Keywords: reference/keywords.md
     - Whitespace: reference/whitespace.md
+    - Grammar: reference/grammar.md
   - About: about.md
+
+plugins:
+  - search
+  - macros

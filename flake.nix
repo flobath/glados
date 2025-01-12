@@ -49,6 +49,7 @@
 
             # Documentation tools
             mkdocs
+            python312Packages.mkdocs-macros
           ];
         };
 

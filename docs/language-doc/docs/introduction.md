@@ -28,7 +28,7 @@ Some key features in this code snippet are:
 
 ## Overview of features
 
-This overview aims at giving you an idea of what's available in the language and how to do basic things. For more detail about a specific topic, follow the links from the overview; or for a complete overview of what's available, have a look at [the formal grammar](../../grammar/grammar.peg) <!-- TODO: Fix grammar link >
+This overview aims at giving you an idea of what's available in the language and how to do basic things. For more detail about a specific topic, follow the links from the overview; or for a complete overview of what's available, have a look at the [language reference pages](./reference/index.md).
 
 ### Built-in types
 
