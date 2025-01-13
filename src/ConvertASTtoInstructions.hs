@@ -9,25 +9,25 @@ import Data.Int (Int64)
 import qualified Data.Map as Map
 
 
-convertToStackInstructions :: Program -> [StackInstruction]
-convertToStackInstructions (Program mainFunc functions) =
-    let mainInstrs = convertMainFunction mainFunc
-        funcInstrs = concatMap convertFunction functions
-        allInstrs = mainInstrs ++ funcInstrs
+convertToStackInstructions :: Program -> Either String [StackInstruction]
+convertToStackInstructions (Program mainFunc functions) = do
+    mainInstrs <- Right $ convertMainFunction mainFunc
+    funcInstrs <- concat <$> mapM (Right . convertFunction) functions
+    let allInstrs = mainInstrs ++ funcInstrs
         funcLengths = generateFunctionMap functions
         mainLength = length allInstrs - sum (Map.elems funcLengths)
-    in replaceCallFuncName allInstrs funcLengths mainLength
+    replaceCallFuncName allInstrs funcLengths mainLength
 
-replaceCallFuncName :: [StackInstruction] -> Map.Map String Int -> Int -> [StackInstruction]
-replaceCallFuncName instrs funcLengths mainLength = map replace instrs
+replaceCallFuncName :: [StackInstruction] -> Map.Map String Int -> Int -> Either String [StackInstruction]
+replaceCallFuncName instrs funcLengths mainLength = mapM replace instrs
   where
     funcOffsets = scanl (+) mainLength (Map.elems funcLengths)
     funcMap = Map.fromList $ zip (Map.keys funcLengths) funcOffsets
 
     replace (CallFuncName name) = case Map.lookup (unpack name) funcMap of
-      Just idx -> Call idx
-      Nothing -> error $ "Function " ++ unpack name ++ " not found"
-    replace instr = instr
+      Just idx -> Right (Call idx)
+      Nothing -> Left $ "Function " ++ unpack name ++ " not found"
+    replace instr = Right instr
 
 generateFunctionMap :: [Function] -> Map.Map String Int
 generateFunctionMap functions = Map.fromList $ map getFunctionLength functions
