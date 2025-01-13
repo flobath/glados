@@ -1,6 +1,6 @@
 # FunChill formal grammar
 
-The Funchill formal grammar is written as [PEG](https://bford.info/pub/lang/peg.pdf) (parsing expression grammar), a formal syntax designed to unambiguously describe various grammars.
+The FunChill formal grammar is written as [PEG](https://bford.info/pub/lang/peg.pdf) (parsing expression grammar), a formal syntax designed to unambiguously describe various grammars.
 
 ## Grammar
 

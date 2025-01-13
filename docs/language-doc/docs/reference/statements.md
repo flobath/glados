@@ -70,3 +70,7 @@ Making linebreaks valid end of statements comes a cost, though: it makes splitti
 - And all infix and prefix operators
 
 Linebreaks are also discarded in many places in conditional expressions, as described in the [whitespace reference](./whitespace.md). In fact, you can more generally find good information and insight about how linebreaks can work as end of statement that reference.
+
+---
+
+*[Back to reference index](./index.md)*
