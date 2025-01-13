@@ -12,18 +12,27 @@ import Test.Hspec (
     Spec,
     describe,
     it,
-    shouldBe
+    shouldBe,
+    context,
     )
 import Text.Megaparsec (ShowErrorComponent, VisualStream, TraversableStream, ParseErrorBundle, errorBundlePretty, parse, Parsec)
 import Parser (
     pExpression,
     pExpression,
     pTypeIdentifier,
-    pVariableDecl, pReturnStatement, pVariableDeclStatement, pBlockExpression, pFunction, pMainFunction, pProgram
+    pVariableDecl,
+    pStatement,
+    pBlockExpression,
+    pFunction,
+    pMainFunction,
+    pProgram,
     )
 import Parser.WithPos(withPos)
 import Lexer (showLexError, alexScanTokens)
-import Lexer.Tokens(Token(Control))
+import Lexer.Tokens (
+    Token(..),
+    ControlSequence(..),
+    )
 import Parser.ParseAndLex (
     ParseLexError(..),
     parseAndLex,
@@ -32,8 +41,7 @@ import Parser.ParseAndLex (
 import Parser.Shorthands
 import Parser.AST (BlockExpression(BlockExpression), Function (Function), MainFunction (MainFunction), Program (Program))
 import Test.Hspec.Megaparsec (etok, err, utok, shouldFailWith, elabel)
-import Lexer.Tokens (ControlSequence(..), Token (Identifier))
-import Parser.Internal (liftMyToken)
+import Parser.Internal2 (liftMyToken)
 import AlexToParsec (TokenStream(..))
 import Data.Text (Text)
 
@@ -195,17 +203,31 @@ spec = do
 
     describe "basic statements" $ do
         it "return statement" $
-            parseAndLex pReturnStatement "return a"
+            parseAndLex pStatement "return a;"
             `shouldLexParse` sRet (eaId "a")
         it "var decl statement (no value)" $
-            parseAndLex pVariableDeclStatement "i32 myint"
+            parseAndLex pStatement "i32 myint;"
             `shouldLexParse` sDecl (tId "i32") (vId "myint") Nothing
         it "var decl statement with initialiser" $
-            parseAndLex pVariableDeclStatement "i32 myint = 42"
+            parseAndLex pStatement "i32 myint = 42\n"
             `shouldLexParse` sDecl
                 (tId "i32")
                 (vId "myint")
                 (Just $ eaInt 42)
+        context "assignment statement" $ do
+            it "basic succes" $
+                parseAndLex pStatement "abc = 4;"
+                `shouldLexParse` sAssi "abc" (eaInt 4)
+            it "assign to function call" $
+                parseAndLex pStatement "x = f(a, b)\n"
+                `shouldLexParse` sAssi "x" (eCall (eaId "f") [eaId "a", eaId "b"])
+            it "missing expression" $
+                lexParse pStatement "myvar =;"
+                `shouldFailWith` err 2 (
+                    utok (withPos 1 8 1 9 1 (Control Semicolon))
+                    <> elabel "expression"
+                )
+
 
     describe "block expressions" $ do
         it "empty block" $

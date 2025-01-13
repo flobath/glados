@@ -25,11 +25,14 @@ BlockExpression <- OpenBrace Statement* CloseBrace
 Statement <-
     ( Expression
     / VariableDeclarationStatement
+    / AssignStatement
     / ReturnStatement
     ) EndOfStatement
 
 VariableDeclarationStatement <- VariableDeclaration (OperAssign Expression)?
 VariableDeclaration <- TypeIdentifier Identifier
+
+AssignStatement <- Identifier AssignOperator Expression
 
 ReturnStatement <- KeyW_return Expression
 
@@ -137,8 +140,10 @@ KeyW_main   <- 'main'   EndOfWord AnySpacing
 ### Operators ###
 # All operators allow line breaks, hence the AnySpacing
 
-#// Assignments can't be made in expressions for now
-# AssignOperator <- OperAssign
+AssignOperator <- OperAssign
+    # / OperAssignAdd
+    # / OperAssignSub
+    # (for when have more assign operators)
 
 LogicalOrOperator <- OperOr
 
