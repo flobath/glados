@@ -29,16 +29,13 @@ library
       Helpers
       Lexer
       Lexer.Tokens
-      Lib
       Megaparsec96
       Parser
       Parser.AST
       Parser.Internal
-      Parser.Internal2
       Parser.ParseAndLex
       Parser.Shorthands
       Parser.WithPos
-      Parser2
   other-modules:
       Paths_GLaDOS
   autogen-modules:
@@ -62,7 +59,6 @@ library
 executable GLaDOS-exe
   main-is: Main.hs
   other-modules:
-      Repl
       Paths_GLaDOS
   autogen-modules:
       Paths_GLaDOS

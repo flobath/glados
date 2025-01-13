@@ -1,178 +1,319 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Parser (
-    booleanParser,
-    stringParser,
-    integerParser,
-    symbolRefParser,
-    lambdaParser,
-    defineParser,
-    expressionParser,
-    oppositeParser,
-    addParser,
-    subtractParser,
-    multiplyParser,
-    divideParser,
-    moduloParser,
-    notParser,
-    eqParser,
-    inferiorParser,
-    ifParser,
-    callParser,
-    parseExpression,
+    pIntLiteral,
+    pVarIdentifier,
+    pTypeIdentifier,
+    pBoolean,
+    pAtom,
+    pPrimaryExpression,
+    pPrefixOp,
+    pMultiplyOp,
+    pAdditionOp,
+    pComparisonOp,
+    pEqualityOp,
+    pLogicalAndOp,
+    pLogicalOrOp,
+    pSuffixOpExpr,
+    pPrefixOpExpr,
+    pInfixlOpExpr,
+    pMultiplyOpExpr,
+    pAdditionOpExpr,
+    pComparisonOpExpr,
+    pEqualityOpExpr,
+    pLogicalAndExpr,
+    pLogicalOrExpr,
+    pOpExpr,
+    pConditionalBody,
+    pIfConditional,
+    pUnlessConditional,
+    pExpression,
+    pGroupedExpression,
+    pExprList,
+    pReturnStatement,
+    pVariableDecl,
+    pVariableDeclStatement,
+    pStatement,
+    pEndOfStatement,
+    pBlockExpression,
+    pFunParamList,
+    pReturnType,
+    pFunction,
+    pMainFunction,
+    pProgram,
 ) where
+
+import Helpers ((<:>))
+
+import Text.Megaparsec (
+    (<?>),
+    choice,
+    MonadParsec (hidden, try),
+    )
+
+import Data.Functor((<&>), ($>), void)
+import Control.Applicative((<|>), Alternative (many))
 
 import Parser.Internal
 
-import Text.Megaparsec (
-    MonadParsec (try),
-    choice,
-    (<?>),
+import Lexer.Tokens (
+    Token(..),
+    Keyword (..),
+    ControlSequence (..),
+    )
+import Parser.AST (
+    VarIdentifier (VarIdentifier),
+    TypeIdentifier (TypeIdentifier),
+    AtomicExpression (..),
+    Expression (..),
+    Statement (..),
+    VariableDeclaration (VariableDeclaration),
+    BlockExpression (BlockExpression),
+    PrefixOperation (..),
+    Operation (OpPrefix, OpInfix),
+    InfixOperation (..),
+    PrefixOperator,
+    InfixOperator,
+    Function (Function),
+    MainFunction (MainFunction),
+    Program (Program),
     )
 
-import Lib (
-    Primitive (Boolean, Constant, SymbolReference, SymbolList),
-    Symbol (Symbol),
-    Expression (Operation, Primitive),
-    ifOperator,
-    Arguments (Triple, Single, Pair, List),
-    Operator (Unary, Binary, Ternary, Nary),
-    defineOperator,
-    divideOperator,
-    multiplyOperator,
-    subtractOperator,
-    addOperator,
-    oppositeOperator,
-    notOperator,
-    moduloOperator,
-    eqOperator,
-    inferiorOperator,
-    callOperator,
-    lambdaOperator,
+pVarIdentifier :: Parser VarIdentifier
+pVarIdentifier = pIdentifier <&> VarIdentifier <?> "variable identifier"
+
+pTypeIdentifier :: Parser TypeIdentifier
+pTypeIdentifier = pIdentifier <&> TypeIdentifier <?> "type identifier"
+
+pBoolean :: Parser Bool
+pBoolean = pKeyword KeyWTrue $> True
+        <|> pKeyword KeyWFalse $> False
+        <?> "boolean literal"
+
+pAtom :: Parser AtomicExpression
+pAtom = choice
+    [ pIntLiteral       <&> AtomIntLiteral
+    , pVarIdentifier    <&> AtomIdentifier
+    , pBoolean          <&> AtomBooleanLiteral
+    ]
+
+pPrimaryExpression :: Parser Expression
+pPrimaryExpression = choice
+    [ pAtom             <&> ExprAtomic
+    , pBlockExpression  <&> ExprBlock
+    , pGroupedExpression
+    ]
+
+pPrefixOp :: Parser PrefixOperator
+pPrefixOp = choice
+    [ pControl OperSub $> PreNeg
+    , pControl OperNot $> PreNot
+    , pControl OperAdd $> PrePlus
+    ]
+
+pMultiplyOp :: Parser InfixOperator
+pMultiplyOp = choice
+    [ pControl OperMul $> InfixMul
+    , pControl OperDiv $> InfixDiv
+    , pControl OperMod $> InfixMod
+    ]
+
+pAdditionOp :: Parser InfixOperator
+pAdditionOp = choice
+    [ pControl OperAdd $> InfixAdd
+    , pControl OperSub $> InfixSub
+    ]
+
+pComparisonOp :: Parser InfixOperator
+pComparisonOp = choice
+    [ pControl OperGt $> InfixGt
+    , pControl OperLt $> InfixLt
+    , pControl OperGe $> InfixGe
+    , pControl OperLe $> InfixLe
+    ]
+
+pEqualityOp :: Parser InfixOperator
+pEqualityOp = choice
+    [ pControl OperEquals $> InfixEq
+    , pControl OperDiffer $> InfixNeq
+    ]
+
+pLogicalAndOp :: Parser InfixOperator
+pLogicalAndOp = pControl OperAnd $> InfixAnd
+
+pLogicalOrOp :: Parser InfixOperator
+pLogicalOrOp = pControl OperOr $> InfixOr
+
+
+pSuffixOpExpr :: Parser Expression
+pSuffixOpExpr = do
+    base <- pPrimaryExpression
+    fCalls <- hidden $ many pExprList
+
+    return $ foldl ExprFunctionCall base fCalls
+
+pPrefixOpExpr :: Parser Expression
+pPrefixOpExpr = do
+    prefixes <- many pPrefixOp
+    base <- pSuffixOpExpr
+
+    return $ foldr ((ExprOperation . OpPrefix) .) base prefixes
+
+pInfixlOpExpr :: Parser Expression -> Parser InfixOperator -> Parser Expression
+pInfixlOpExpr pPrev pInfix = do
+    base <- pPrev
+    operations <- hidden $ many (liftA2 (,) pInfix pPrev)
+
+    return $ foldl
+        (\acc (oper, expr) -> ExprOperation $ OpInfix $ oper acc expr)
+        base
+        operations
+
+pMultiplyOpExpr :: Parser Expression
+pMultiplyOpExpr = pInfixlOpExpr pPrefixOpExpr pMultiplyOp
+
+pAdditionOpExpr :: Parser Expression
+pAdditionOpExpr = pInfixlOpExpr pMultiplyOpExpr pAdditionOp
+
+pComparisonOpExpr :: Parser Expression
+pComparisonOpExpr = pInfixlOpExpr pAdditionOpExpr pComparisonOp
+
+pEqualityOpExpr :: Parser Expression
+pEqualityOpExpr = pInfixlOpExpr pComparisonOpExpr pEqualityOp
+
+pLogicalAndExpr :: Parser Expression
+pLogicalAndExpr = pInfixlOpExpr pEqualityOpExpr pLogicalAndOp
+
+pLogicalOrExpr :: Parser Expression
+pLogicalOrExpr = pInfixlOpExpr pLogicalAndExpr pLogicalOrOp
+
+pOpExpr :: Parser Expression
+pOpExpr = pLogicalOrExpr
+
+pConditionalBody :: Parser (Expression, Expression, Maybe Expression)
+pConditionalBody = do
+    condition <- pGroupedExpression
+    void manyEol
+    firstArm <- pExpression
+    secondArm <- tryParse $ do
+        void manyEol
+        void (pKeyword KeyWElse)
+        void manyEol
+        pExpression
+
+    return (condition, firstArm, secondArm)
+
+pIfConditional :: Parser Expression
+pIfConditional = do
+    void (pKeyword KeyWIf)
+    void manyEol
+    (condition, firstArm, secondArm) <- pConditionalBody
+
+    return $ ExprIfConditional condition firstArm secondArm
+
+pUnlessConditional :: Parser Expression
+pUnlessConditional = do
+    void (pKeyword KeyWUnless)
+    void manyEol
+    (condition, firstArm, secondArm) <- pConditionalBody
+
+    let condition' = ExprOperation $ OpPrefix $ PreNot condition
+    return $ ExprIfConditional condition' firstArm secondArm
+
+pExpression :: Parser Expression
+pExpression = choice
+    [ pOpExpr
+    , pIfConditional
+    , pUnlessConditional
+    ] <?> "expression"
+
+pGroupedExpression :: Parser Expression
+pGroupedExpression = pBetweenParenthesis pExpression
+
+pExprList :: Parser [Expression]
+pExprList = pBetweenParenthesis $ pCommaSep pExpression
+
+pReturnStatement :: Parser Statement
+pReturnStatement = StReturn <$> (pKeyword KeyWReturn *> pExpression)
+
+pVariableDecl :: Parser VariableDeclaration
+-- We might be able to remove the `try` here if type ids and var ids are different tokens
+pVariableDecl = try (VariableDeclaration
+    <$> pTypeIdentifier
+    <*> pVarIdentifier
+    <?> "variable declaration"
     )
-import Data.Functor (($>), void, (<&>))
-import Control.Applicative ((<|>), Alternative (many, some))
-import qualified Text.Megaparsec.Char.Lexer as L
-import Text.Megaparsec.Char.Lexer (signed)
-import Data.Text (Text, unpack)
 
--- Parser for chez-scheme boolean literals #f and #t
-booleanParser :: Parser Primitive
-booleanParser = (pSymbolStrict' "#t" $> Boolean True) <|> (pSymbolStrict' "#f" $> Boolean False)
+pVariableDeclStatement :: Parser Statement
+pVariableDeclStatement = do
+    decl <- pVariableDecl
+    value <- tryParse (pControl OperAssign *> pExpression)
+    return $ StVariableDecl decl value
 
--- Parser for chez-scheme string literals
-stringParser :: Parser Primitive
-stringParser = undefined
+pAssignStatement :: Parser Statement
+pAssignStatement = try (StAssignment
+    <$> pVarIdentifier
+    <* pControl OperAssign
+    <* manyEol
+    <*> pExpression
+    <?> "assignment statement"
+    )
 
--- Parser for chez-scheme integer literals
-integerParser :: Parser Primitive
-integerParser = Constant <$> pLexemeStrict (signed (return ()) L.decimal)
+pStatement :: Parser Statement
+pStatement = choice $ map (<* pEndOfStatement)
+    [ pReturnStatement
+    , pVariableDeclStatement
+    , pAssignStatement
+    , pExpression <&> StExpression
+    ]
 
--- Parser for symbol references
-symbolRefParser :: Parser Primitive
-symbolRefParser = pLexemeStrict (SymbolReference . Symbol . unpack <$> parseSymName)
+pEndOfStatement :: Parser [Token]
+pEndOfStatement = do
+    x <- pControl Semicolon <|> eol
+    xs <- manyEol
+    return $ x:xs
 
--- Parser for lambda declaration
-lambdaParser :: Parser Expression
-lambdaParser = pBetweenParenthesis $ do
-    void (pSymbolStrict "lambda")
-    paramsLexemes <- pBetweenParenthesis (many (pLexemeStrict parseSymName))
-    let params = Primitive $ SymbolList $ map (Symbol . unpack) paramsLexemes
-    Operation lambdaOperator . Pair params <$> expressionParser
+pBlockExpression :: Parser BlockExpression
+pBlockExpression = BlockExpression <$>
+    pBetweenBrace (many pStatement)
 
-pSimpleDefine :: Parser Expression
-pSimpleDefine = do
-    symName <- pLexemeStrict parseSymName
-    Operation defineOperator . Pair
-        (Primitive (SymbolList [Symbol (unpack symName)]))
-        <$> expressionParser
+pFunParamList :: Parser [VariableDeclaration]
+pFunParamList = (pControl OpenParen *> manyEol *> pFunParamList') <|> pure []
+    where
+        -- Helper which recursively parses vdecls until a closing paren
+        pFunParamList' :: Parser [VariableDeclaration]
+        pFunParamList' = choice
+            [ pControl CloseParen $> []
+            , pVariableDecl <:> choice
+                [ pControl CloseParen $> []
+                , pControl Comma *> manyEol *> pFunParamList'
+                ]
+            ]
 
-pLambdaDefine :: Parser Expression
-pLambdaDefine = do
-    (funcName:paramNames) <- pBetweenParenthesis $ some $ pLexemeStrict parseSymName
-    body <- expressionParser
-    let func = Symbol $ unpack funcName
-    let params = Primitive $ SymbolList $ map (Symbol . unpack) paramNames
-    return $ Operation defineOperator (Pair
-        (Primitive $ SymbolList [func])
-        (Operation lambdaOperator (Pair params body)))
 
-defineParser :: Parser Expression
-defineParser = pBetweenParenthesis $ do
-    void (pSymbolStrict "define")
-    pSimpleDefine <|> pLambdaDefine
+pReturnType :: Parser TypeIdentifier
+pReturnType = pControl Colon *> manyEol *> pTypeIdentifier
 
-pSingleExpression :: Parser Arguments
-pSingleExpression = Single <$> expressionParser
+pFunction :: Parser Function
+pFunction = do
+    void (pKeyword KeyWFun) <* manyEol
+    name <- pIdentifier <* manyEol <?> "function name"
+    paramList <- pFunParamList <* manyEol <?> "parameter list"
+    retType <- tryParse pReturnType <* manyEol <?> "return type"
+    body <- pBlockExpression <* manyEol <?> "function body"
 
-pExpressionPair :: Parser Arguments
-pExpressionPair = Pair <$> expressionParser <*> expressionParser
+    return $ Function name paramList retType body
 
-pExpressionTriple :: Parser Arguments
-pExpressionTriple = Triple
-    <$> expressionParser
-    <*> expressionParser
-    <*> expressionParser
+pMainFunction :: Parser MainFunction
+pMainFunction = do
+    void (pKeyword KeyWMain) <* manyEol
+    paramList <- pFunParamList <* manyEol
+    body <- pBlockExpression <* manyEol
 
-parseCall :: Parser Expression
-parseCall = pBetweenParenthesis $ do
-    exprList <- some parseExpression
-    return $ Operation callOperator $ List exprList
+    return $ MainFunction paramList body
 
-pOperation :: Text -> Operator -> Parser Expression
-pOperation _ (Nary _) = parseCall
-pOperation name op = pBetweenParenthesis $ do
-    void (pSymbolStrict name)
-    Operation op <$> pArg
-    where pArg = case op of
-            (Unary _) -> pSingleExpression
-            (Binary _) -> pExpressionPair
-            (Ternary _) -> pExpressionTriple
+pProgram :: Parser Program
+pProgram = do
+    preMain <- many pFunction
+    mainFunc <- pMainFunction
+    postMain <- many pFunction
 
-oppositeParser,
-    addParser,
-    subtractParser,
-    multiplyParser,
-    divideParser,
-    moduloParser,
-    notParser,
-    eqParser,
-    inferiorParser,
-    ifParser,
-    callParser
-    :: Parser Expression
-oppositeParser = pOperation "-" oppositeOperator
-addParser = pOperation "+" addOperator
-subtractParser = pOperation "-" subtractOperator
-multiplyParser = pOperation "*" multiplyOperator
-divideParser = pOperation "div" divideOperator
-moduloParser = pOperation "mod" moduloOperator
-notParser = pOperation "not" notOperator
-eqParser = pOperation "eq?" eqOperator
-inferiorParser = pOperation "<" inferiorOperator
-ifParser = pOperation "if" ifOperator
-callParser = pOperation "" callOperator
-
-expressionParser :: Parser Expression
-expressionParser = Text.Megaparsec.choice (map Text.Megaparsec.try
-    [ booleanParser <&> Primitive
-    -- , stringParser <&> Primitive
-    , integerParser <&> Primitive
-    , symbolRefParser <&> Primitive
-    , lambdaParser
-    , defineParser
-    , oppositeParser
-    , addParser
-    , subtractParser
-    , multiplyParser
-    , divideParser
-    , moduloParser
-    , notParser
-    , eqParser
-    , inferiorParser
-    , ifParser
-    , callParser
-    ]) <?> "an expression"
-
-parseExpression :: Parser Expression
-parseExpression = pManyWhiteSpace >> expressionParser
+    return $ Program mainFunc (preMain ++ postMain)
