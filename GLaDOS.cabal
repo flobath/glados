@@ -29,6 +29,7 @@ library
       Helpers
       Lexer
       Lexer.Tokens
+      Megaparsec96
       Parser
       Parser.AST
       Parser.Internal
