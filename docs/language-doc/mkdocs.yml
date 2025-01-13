@@ -12,6 +12,7 @@ nav:
     - Operators: reference/operator_table.md
     - Keywords: reference/keywords.md
     - Expressions: reference/expressions.md
+    - Statements: reference/statements.md
     - Whitespace: reference/whitespace.md
     - Grammar: reference/grammar.md
   - About: about.md

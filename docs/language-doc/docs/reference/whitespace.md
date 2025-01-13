@@ -31,7 +31,7 @@ In FunChill, two linebreak sequences are recognised:
 - ASCII LineFeed `\n` (0x0a)
 - ASCII CarriageReturn LineFeed `\r\n` (0X0D0A)
 
-These linebreak sequences are exceptionnaly ignored by the lexer when preceded by a backslash `\` (0x5C), in which case they behave as any whitespace.  
+These linebreak sequences are exceptionally ignored by the lexer when preceded by a backslash `\` (0x5C), in which case they behave as any whitespace.  
 So, in the following example, a backslash allows writing the addition on a separate line:
 ```
 fun f {
@@ -43,9 +43,9 @@ fun f {
 So, finally, what happens to linebreaks which are not escaped?  
 In short, when outside of a function: they are simply ignored; when inside a function body: they are an alternative to semicolons as "end of statements".
 
-... But they still sometimes ignored for readibilty. For a technical explanation of how linebreaks can be ignored within a function body, keep reading, or for a practical explanation, go to the [function reference](./functions#end-of-statement).
+... But they still sometimes ignored for readability. For a technical explanation of how linebreaks can be ignored within a function body, keep reading, or for a practical explanation, go to the [statement reference](./statements.md#end-of-statements).
 
-### How linebreaks are conditionnally ignored
+### How linebreaks are conditionally ignored
 
 To understand the following explanation, you will need a basic understanding of how the FunChill compiler works. There are two parts of the compiler which are relevant to understand how linebreaks are ignored:
 
