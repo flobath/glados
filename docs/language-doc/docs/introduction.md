@@ -32,7 +32,7 @@ This overview aims at giving you an idea of what's available in the language and
 
 ### Built-in types
 
-Here is a table of the built-in types:
+Here is a table of the basic types:
 
 | Type identifier       | Description                                           |
 |-----------------------|-------------------------------------------------------|
@@ -45,8 +45,9 @@ Here is a table of the built-in types:
 | `u32`                 | 32 bits unsigned integer                              |
 | `u64`                 | 64 bits unsigned integer                              |
 | `bool`                | Boolean value (`true` / `false`)                      |
-| `(type1, type2, ...)` | [Tuple type](./types.md#tuple) (group of values)      |
 | `()`                  | Unit type (empty tuple)                               |
+
+See more information about types, and the full type table in the [type reference](./reference/types.md).
 
 ### Operators
 
