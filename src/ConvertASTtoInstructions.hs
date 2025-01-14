@@ -83,8 +83,9 @@ convertExpression (ExprIfConditional cond trueBranch falseBranch) =
 convertExpression (ExprWhileLoop cond body) =
     let condInstrs = convertExpression cond
         bodyInstrs = convertExpression body
+        jumpFalse = JumpIfFalse (length bodyInstrs + 2)
         jumpBack = Jump (-length bodyInstrs - length condInstrs - 1)
-    in condInstrs ++ [JumpIfFalse (length bodyInstrs + 2)] ++ bodyInstrs ++ [jumpBack]
+    in condInstrs ++ [jumpFalse] ++ bodyInstrs ++ [jumpBack]
 
 convertExpression (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) args) = [NewEnv] ++ concatMap convertExpression args ++ [CallFuncName name]
 
