@@ -29,7 +29,6 @@ module StackMachine (
 
 import Data.Int (Int64)
 import Data.Text (Text)
-import Debug.Trace (trace)
 
 data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
 
