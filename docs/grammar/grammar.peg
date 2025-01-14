@@ -125,6 +125,7 @@ NumericLiteral <- [0-9]+ InlineSpacing
 Keyword
     <- KeyW_fun
     /  KeyW_if
+    /  KeyW_while
     /  keyW_unless
     /  KeyW_else
     /  KeyW_return
@@ -134,6 +135,7 @@ Keyword
 
 KeyW_fun    <- 'fun'    EndOfWord AnySpacing
 KeyW_if     <- 'if'     EndOfWord AnySpacing
+KeyW_while  <- 'while'  EndOfWord AnySpacing
 KeyW_unless <- 'unless' EndOfWord AnySpacing
 KeyW_else   <- 'else'   EndOfWord AnySpacing
 KeyW_return <- 'return' EndOfWord InlineSpacing # 'return' can be a statement on its own
