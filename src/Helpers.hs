@@ -5,9 +5,11 @@ module Helpers (
     (?:),
     ffmap,
     (<:>),
+    (>&<)
 ) where
 
 import Control.Applicative ( Alternative((<|>)) )
+import Data.Bifunctor (Bifunctor(first))
 
 -- Helper function used to create combinator operators
 -- See defintion of (<||>) and (<<|>>) for example uses
@@ -43,6 +45,10 @@ infixr 5 ?:
 infixr 5 <:>
 (<:>) :: Applicative f => f a -> f [a] -> f [a]
 (<:>) = liftA2 (:)
+
+-- Helper which maps over the error variant of an 'Either'
+(>&<) :: Bifunctor p => p a c -> (a -> b) -> p b c
+(>&<) = flip first
 
 ffmap :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
 ffmap = fmap . fmap

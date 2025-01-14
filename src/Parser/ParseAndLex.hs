@@ -6,13 +6,9 @@ module Parser.ParseAndLex (
 import Parser.Internal2 (ParserError, Parser)
 import Lexer (LexerError, myScanTokens, showLexError)
 import Data.Text (Text)
-import Data.Bifunctor (Bifunctor(first))
 import Text.Megaparsec (runParser, errorBundlePretty)
 import AlexToParsec (TokenStream(TokenStream, myStreamInput, unTokenStream))
-
--- Helper which maps over the error variant of an 'Either'
-(>&<) :: Bifunctor p => p a c -> (a -> b) -> p b c
-(>&<) = flip first
+import Helpers((>&<))
 
 data ParseLexError = LexingError LexerError | ParsingError ParserError
 
