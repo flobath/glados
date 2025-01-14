@@ -44,6 +44,7 @@ convertStatement (StExpression expr) = convertExpression expr
 convertStatement (StVariableDecl (VariableDeclaration _ (VarIdentifier name)) (Just expr)) =
     convertExpression expr ++ [StoreEnv (unpack name)] -- TODO: take care of the type
 convertStatement (StVariableDecl (VariableDeclaration _ (VarIdentifier name)) Nothing) = [PushValue (IntValue 0), StoreEnv (unpack name)] -- TODO: have a default null value and take care of the type
+convertStatement (StAssignment (VarIdentifier name) expr) = convertExpression expr ++ [StoreEnv (unpack name)]
 convertStatement (StReturn expr) = convertExpression expr ++ [Return]
 
 convertExpression :: Expression -> [StackInstruction]
