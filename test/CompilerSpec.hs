@@ -9,18 +9,21 @@ import ConvertASTtoInstructions
 
 import Data.Text (pack)
 
-intConstant x = ExprAtomic (AtomIntLiteral x)
 typeId x = TypeIdentifier (pack x)
 varId x = VarIdentifier (pack x)
 varRef x = ExprAtomic (AtomIdentifier (VarIdentifier (pack x)))
-setVar x = StAssignment (VarIdentifier (pack x))
 
+intConstant x = ExprAtomic (AtomIntLiteral x)
+boolConstant x = ExprAtomic (AtomBooleanLiteral x)
 sumExpr a b = ExprOperation (OpInfix (InfixAdd a b))
-mulExpr a b = ExprOperation (OpInfix (InfixMul a b))
 subExpr a b = ExprOperation (OpInfix (InfixSub a b))
+mulExpr a b = ExprOperation (OpInfix (InfixMul a b))
+modExpr a b = ExprOperation (OpInfix (InfixMod a b))
 
+setVar x = StAssignment (VarIdentifier (pack x))
 localDecl name = StVariableDecl (VariableDeclaration (typeId "i32") $ varId name) Nothing
 localIntDecl name x = StVariableDecl (VariableDeclaration (typeId "i32") $ varId name) $ Just $ intConstant x
+localBoolDecl name x = StVariableDecl (VariableDeclaration (typeId "bool") $ varId name) $ Just $ boolConstant x
 
 programA = Program (MainFunction [] (BlockExpression [StReturn $ sumExpr (intConstant 3) (intConstant 5)])) []
 programB = Program (MainFunction [] (BlockExpression [localIntDecl "a" 5, StReturn (varRef "a")])) []
