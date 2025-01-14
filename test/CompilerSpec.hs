@@ -43,6 +43,14 @@ programE = Program (MainFunction [] (BlockExpression [localDecl "a", setVar "a" 
         setVar "a" $ ExprIfConditional (ExprOperation (OpInfix (InfixAnd (ExprOperation (OpPrefix (PreNot (varRef "c")))) (ExprOperation (OpInfix (InfixNeq (varRef "a") (intConstant 0))))))) (intConstant 1) (Just (intConstant 0)),
         StReturn $ varRef "a"
     ])) []
+programF = Program (MainFunction [] (BlockExpression [localIntDecl "a" 5, localIntDecl "b" 5,
+        StReturn $ ExprFunctionCall (varRef "f") [varRef "a", varRef "b"]
+    ])) [
+            Function (pack "f") [VariableDeclaration (typeId "i32") $ varId "a", VariableDeclaration (typeId "i32") $ varId "b"] (Just $ typeId "i32")
+                (BlockExpression [StReturn $ sumExpr (varRef "a") (ExprFunctionCall (varRef "inc") [varRef "b"])]),
+            Function (pack "inc") [VariableDeclaration (typeId "i32") $ varId "a"] (Just $ typeId "i32")
+                (BlockExpression [StReturn $ sumExpr (varRef "a") (intConstant 1)])
+        ]
 
 spec :: Spec
 spec = do
@@ -111,5 +119,27 @@ spec = do
                     PushValue (IntValue 0),
                     StoreEnv "a",
                     PushEnv "a",
+                    Return
+                ]
+        it "Function call" $ do
+            convertToStackInstructions programF `shouldBe` Right [
+                    PushValue (IntValue 5),
+                    StoreEnv "a",
+                    PushValue (IntValue 5),
+                    StoreEnv "b",
+                    NewEnv,
+                    PushEnv "a",
+                    PushEnv "b",
+                    Call 9,
+                    Return,
+                    PushEnv "a",
+                    NewEnv,
+                    PushEnv "b",
+                    Call 15,
+                    OpValue Add,
+                    Return,
+                    PushEnv "a",
+                    PushValue (IntValue 1),
+                    OpValue Add,
                     Return
                 ]
