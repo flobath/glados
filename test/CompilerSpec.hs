@@ -29,6 +29,20 @@ programA = Program (MainFunction [] (BlockExpression [StReturn $ sumExpr (intCon
 programB = Program (MainFunction [] (BlockExpression [localIntDecl "a" 5, StReturn (varRef "a")])) []
 programC = Program (MainFunction [] (BlockExpression [localIntDecl "a" 5, StReturn (ExprOperation (OpInfix (InfixAdd (intConstant 5) (varRef "a"))))])) []
 programD = Program (MainFunction [] (BlockExpression [localIntDecl "a" 5, StReturn (ExprIfConditional (ExprOperation (OpInfix (InfixGt (intConstant 10) (varRef "a")))) (intConstant 0) $ Just (intConstant 1))])) []
+programE = Program (MainFunction [] (BlockExpression [localDecl "a", setVar "a" $ intConstant 0,
+        StExpression $ ExprBlock $ BlockExpression [
+                localIntDecl "b" 5,
+                setVar "b" $ sumExpr (varRef "b") (varRef "a"),
+                setVar "a" $ ExprIfConditional (ExprOperation (OpInfix (InfixEq (varRef "b") (intConstant 5)))) (intConstant 1) Nothing
+            ],
+        setVar "a" $ mulExpr (varRef "a") (intConstant 10),
+        setVar "a" $ subExpr (varRef "a") (intConstant 2),
+        setVar "a" $ sumExpr (varRef "a") $ ExprIfConditional (ExprOperation (OpInfix (InfixGe (varRef "a") (intConstant 0)))) (intConstant 1) (Just (intConstant 0)),
+        setVar "a" $ modExpr (varRef "a") (intConstant 2),
+        localBoolDecl "c" False,
+        setVar "a" $ ExprIfConditional (ExprOperation (OpInfix (InfixAnd (ExprOperation (OpPrefix (PreNot (varRef "c")))) (ExprOperation (OpInfix (InfixNeq (varRef "a") (intConstant 0))))))) (intConstant 1) (Just (intConstant 0)),
+        StReturn $ varRef "a"
+    ])) []
 
 spec :: Spec
 spec = do
@@ -41,3 +55,61 @@ spec = do
             convertToStackInstructions programC `shouldBe` Right [PushValue (IntValue 5), StoreEnv "a", PushValue (IntValue 5), PushEnv "a", OpValue Add, Return]
         it "Simple conditional return" $ do
             convertToStackInstructions programD `shouldBe` Right [PushValue (IntValue 5), StoreEnv "a", PushValue (IntValue 10), PushEnv "a", OpValue Gt, JumpIfFalse 2, PushValue (IntValue 0), Jump 1, PushValue (IntValue 1), Return]
+        it "All operators" $ do
+            convertToStackInstructions programE `shouldBe` Right [
+                    PushValue (IntValue 0),
+                    StoreEnv "a",
+                    PushValue (IntValue 0),
+                    StoreEnv "a",
+                    PushValue (IntValue 5),
+                    StoreEnv "b",
+                    PushEnv "b",
+                    PushEnv "a",
+                    OpValue Add,
+                    StoreEnv "b",
+                    PushEnv "b",
+                    PushValue (IntValue 5),
+                    OpValue Eq,
+                    JumpIfFalse 2,
+                    PushValue (IntValue 1),
+                    Jump 0,
+                    StoreEnv "a",
+                    PushEnv "a",
+                    PushValue (IntValue 10),
+                    OpValue Mul,
+                    StoreEnv "a",
+                    PushEnv "a",
+                    PushValue (IntValue 2),
+                    OpValue Sub,
+                    StoreEnv "a",
+                    PushEnv "a",
+                    PushEnv "a",
+                    PushValue (IntValue 0),
+                    OpValue Ge,
+                    JumpIfFalse 2,
+                    PushValue (IntValue 1),
+                    Jump 1,
+                    PushValue (IntValue 0),
+                    OpValue Add,
+                    StoreEnv "a",
+                    PushEnv "a",
+                    PushValue (IntValue 2),
+                    OpValue Mod,
+                    StoreEnv "a",
+                    PushValue (BoolValue False),
+                    StoreEnv "c",
+                    PushEnv "c",
+                    PushValue (BoolValue False),
+                    OpValue Eq,
+                    PushEnv "a",
+                    PushValue (IntValue 0),
+                    OpValue Ne,
+                    OpValue And,
+                    JumpIfFalse 2,
+                    PushValue (IntValue 1),
+                    Jump 1,
+                    PushValue (IntValue 0),
+                    StoreEnv "a",
+                    PushEnv "a",
+                    Return
+                ]
