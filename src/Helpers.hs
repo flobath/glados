@@ -7,10 +7,15 @@ module Helpers (
     (<:>),
     (>&<),
     orelse,
+    exitWithErrorMessage,
+    orExitWith,
+    headOr,
 ) where
 
-import Control.Applicative ( Alternative((<|>), empty) )
+import Control.Applicative (Alternative((<|>)))
 import Data.Bifunctor (Bifunctor(first))
+import System.Exit (exitWith, ExitCode (ExitFailure))
+import System.IO (stderr, hPutStrLn)
 
 -- Helper function used to create combinator operators
 -- See defintion of (<||>) and (<<|>>) for example uses
@@ -57,3 +62,13 @@ ffmap = fmap . fmap
 orelse :: Monad m => Either t a -> (t -> m a) -> m a
 orelse (Right b) _ = return b
 orelse (Left a) f = f a
+
+exitWithErrorMessage :: String -> IO a
+exitWithErrorMessage msg = hPutStrLn stderr msg >> exitWith (ExitFailure 84)
+
+orExitWith :: (String -> Either String a) -> String -> IO a
+orExitWith f msg = f msg `orelse` exitWithErrorMessage
+
+headOr :: [a] -> b -> Either b a
+headOr [] b = Left b
+headOr (x:_) _ = Right x

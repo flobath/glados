@@ -3,23 +3,17 @@
 
 module Main (main) where
 
-import Lib
-import Control.Monad.Trans.State (StateT(runStateT))
 import GldsBytecode(readProgramFromFile)
-import StackMachine (Program, execute)
+import StackMachine (execute')
 import System.Environment (getArgs)
-import Data.Either (either)
+import Helpers (headOr, orExitWith, exitWithErrorMessage, orelse)
 
 main :: IO ()
 main = do
     args <- getArgs
-    if null args
-        then putStrLn "No file found"
-        else do
-            let file = head args
-            program <- readProgramFromFile file
-            let result = execute [] [] program []
-            either
-                (\err -> putStrLn $ "Error: " ++ err)
-                print
-                result
+    file <- headOr args `orExitWith` "No input file to compile"
+    eitherProgram <- readProgramFromFile file
+    program <- eitherProgram `orelse` exitWithErrorMessage
+    result <- execute' program `orelse` exitWithErrorMessage
+
+    print result
