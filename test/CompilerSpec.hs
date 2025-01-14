@@ -51,6 +51,7 @@ programF = Program (MainFunction [] (BlockExpression [localIntDecl "a" 5, localI
             Function (pack "inc") [VariableDeclaration (typeId "i32") $ varId "a"] (Just $ typeId "i32")
                 (BlockExpression [StReturn $ sumExpr (varRef "a") (intConstant 1)])
         ]
+programG = Program (MainFunction [] (BlockExpression [StReturn $ ExprFunctionCall (varRef "f") []])) []
 
 spec :: Spec
 spec = do
@@ -143,3 +144,5 @@ spec = do
                     OpValue Add,
                     Return
                 ]
+        it "Missing function" $ do
+            convertToStackInstructions programG `shouldBe` Left "Function f not found"
