@@ -90,6 +90,7 @@ test-suite GLaDOS-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      CompilerSpec
       LexerSpec
       ParserSpec
       VmSpec
