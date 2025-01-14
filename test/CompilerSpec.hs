@@ -63,7 +63,7 @@ spec = do
         it "Simple variable addition return" $ do
             convertToStackInstructions programC `shouldBe` Right [PushValue (IntValue 5), StoreEnv "a", PushValue (IntValue 5), PushEnv "a", OpValue Add, Return]
         it "Simple conditional return" $ do
-            convertToStackInstructions programD `shouldBe` Right [PushValue (IntValue 5), StoreEnv "a", PushValue (IntValue 10), PushEnv "a", OpValue Gt, JumpIfFalse 2, PushValue (IntValue 0), Jump 1, PushValue (IntValue 1), Return]
+            convertToStackInstructions programD `shouldBe` Right [PushValue (IntValue 5), StoreEnv "a", PushValue (IntValue 10), PushEnv "a", OpValue Gt, JumpIfFalse 3, PushValue (IntValue 0), Jump 2, PushValue (IntValue 1), Return]
         it "All operators" $ do
             convertToStackInstructions programE `shouldBe` Right [
                     PushValue (IntValue 0),
@@ -79,9 +79,9 @@ spec = do
                     PushEnv "b",
                     PushValue (IntValue 5),
                     OpValue Eq,
-                    JumpIfFalse 2,
+                    JumpIfFalse 3,
                     PushValue (IntValue 1),
-                    Jump 0,
+                    Jump 1,
                     StoreEnv "a",
                     PushEnv "a",
                     PushValue (IntValue 10),
@@ -95,9 +95,9 @@ spec = do
                     PushEnv "a",
                     PushValue (IntValue 0),
                     OpValue Ge,
-                    JumpIfFalse 2,
+                    JumpIfFalse 3,
                     PushValue (IntValue 1),
-                    Jump 1,
+                    Jump 2,
                     PushValue (IntValue 0),
                     OpValue Add,
                     StoreEnv "a",
@@ -114,9 +114,9 @@ spec = do
                     PushValue (IntValue 0),
                     OpValue Ne,
                     OpValue And,
-                    JumpIfFalse 2,
+                    JumpIfFalse 3,
                     PushValue (IntValue 1),
-                    Jump 1,
+                    Jump 2,
                     PushValue (IntValue 0),
                     StoreEnv "a",
                     PushEnv "a",

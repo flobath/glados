@@ -76,8 +76,8 @@ convertExpression (ExprIfConditional cond trueBranch falseBranch) =
     let condInstrs = convertExpression cond
         trueInstrs = convertExpression trueBranch
         falseInstrs = maybe [] convertExpression falseBranch
-        jumpFalse = JumpIfFalse (length trueInstrs + 1)
-        jumpEnd = Jump (length falseInstrs)
+        jumpFalse = JumpIfFalse (length trueInstrs + 2)
+        jumpEnd = Jump (length falseInstrs + 1)
     in condInstrs ++ [jumpFalse] ++ trueInstrs ++ [jumpEnd] ++ falseInstrs
 
 convertExpression (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) args) = [NewEnv] ++ concatMap convertExpression args ++ [CallFuncName name]
