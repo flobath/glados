@@ -5,10 +5,11 @@ module Helpers (
     (?:),
     ffmap,
     (<:>),
-    (>&<)
+    (>&<),
+    orelse,
 ) where
 
-import Control.Applicative ( Alternative((<|>)) )
+import Control.Applicative ( Alternative((<|>), empty) )
 import Data.Bifunctor (Bifunctor(first))
 
 -- Helper function used to create combinator operators
@@ -52,3 +53,7 @@ infixr 5 <:>
 
 ffmap :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
 ffmap = fmap . fmap
+
+orelse :: Monad m => Either t a -> (t -> m a) -> m a
+orelse (Right b) _ = return b
+orelse (Left a) f = f a
