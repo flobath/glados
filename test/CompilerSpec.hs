@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
+
 module CompilerSpec (spec) where
 
 import Test.Hspec
@@ -5,25 +7,28 @@ import Parser.AST
 import StackMachine
 import ConvertASTtoInstructions
 
-import qualified Data.Map as Map
 import Data.Text (pack)
-import Parser.AST (MainFunction(MainFunction), BlockExpression (BlockExpression), Statement (StReturn, StVariableDecl), VariableDeclaration (VariableDeclaration), Expression (ExprAtomic), AtomicExpression (AtomIdentifier))
-import StackMachine (StackInstruction(StoreEnv))
 
-sumExpr = ExprOperation (OpInfix (InfixAdd (ExprAtomic (AtomIntLiteral 5)) (ExprAtomic (AtomIntLiteral 3))))
+intConstant x = ExprAtomic (AtomIntLiteral x)
+typeId x = TypeIdentifier (pack x)
+varId x = VarIdentifier (pack x)
+varRef x = ExprAtomic (AtomIdentifier (VarIdentifier (pack x)))
+setVar x = StAssignment (VarIdentifier (pack x))
 
-i32Type = TypeIdentifier (pack "i32")
-varA = VarIdentifier (pack "a")
+sumExpr a b = ExprOperation (OpInfix (InfixAdd a b))
+mulExpr a b = ExprOperation (OpInfix (InfixMul a b))
+subExpr a b = ExprOperation (OpInfix (InfixSub a b))
 
-localIntStmt x = StVariableDecl (VariableDeclaration i32Type varA) $ Just $ ExprAtomic (AtomIntLiteral x)
+localDecl name = StVariableDecl (VariableDeclaration (typeId "i32") $ varId name) Nothing
+localIntDecl name x = StVariableDecl (VariableDeclaration (typeId "i32") $ varId name) $ Just $ intConstant x
 
-programA = Program (MainFunction [] (BlockExpression [StReturn sumExpr])) []
-programB = Program (MainFunction [] (BlockExpression [localIntStmt 5, StReturn (ExprAtomic (AtomIdentifier varA))])) []
+programA = Program (MainFunction [] (BlockExpression [StReturn $ sumExpr (intConstant 3) (intConstant 5)])) []
+programB = Program (MainFunction [] (BlockExpression [localIntDecl "a" 5, StReturn (varRef "a")])) []
 
 spec :: Spec
 spec = do
     describe "Full programs" $ do
         it "Simple addition return" $ do
-            convertToStackInstructions programA `shouldBe` [PushValue (IntValue 5), PushValue (IntValue 3), OpValue Add, Return]
+            convertToStackInstructions programA `shouldBe` Right [PushValue (IntValue 3), PushValue (IntValue 5), OpValue Add, Return]
         it "Simple variable return" $ do
-            convertToStackInstructions programB `shouldBe` [PushValue (IntValue 5), StoreEnv "a", PushEnv "a", Return]
+            convertToStackInstructions programB `shouldBe` Right [PushValue (IntValue 5), StoreEnv "a", PushEnv "a", Return]
