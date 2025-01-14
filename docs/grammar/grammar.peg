@@ -51,6 +51,11 @@ UnlessExpr  <- KeyW_unless  ConditionalBody
 # if/unless         condition             first arm              optional second arm
 ConditionalBody <- GroupedExpr AnySpacing Expression (AnySpacing KeyW_else Expression)?
 
+WhileExpr   <- KeyW_while   ConditionalBody
+
+# while             condition             body
+ConditionalBody <- GroupedExpr AnySpacing Expression
+
 # OR is the least precedent operator, so an "operation"
 # (combination of any number of operators) is a LogicalOrExpr
 OperationExpr <- LogicalOrExpr
