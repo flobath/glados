@@ -24,6 +24,7 @@ data Keyword
     = KeyWReturn
     | KeyWIf
     | KeyWUnless
+    | KeyWWhile
     | KeyWElse
     | KeyWFun
     | KeyWTrue

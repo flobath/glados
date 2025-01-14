@@ -169,6 +169,13 @@ spec = do
             parseAndLex pExpression "unless (a) b"
             `shouldLexParse` eIf (eoNot $ eaId "a") (eaId "b") Nothing
 
+    describe "loops" $ do
+        it "while loop" $
+            parseAndLex pExpression "while (myvar > 8 * 4) 8 + 3"
+            `shouldLexParse` eWhile
+                (eoGt (eaId "myvar") (eoMul (eaInt 8) (eaInt 4)))
+                (eoAdd (eaInt 8) (eaInt 3))
+
     describe "function calls" $ do
         it "call with no arguments" $
             parseAndLex pExpression "myfunction()"

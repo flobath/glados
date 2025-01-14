@@ -39,6 +39,7 @@ data Statement
 
 data Expression
     = ExprIfConditional Expression Expression (Maybe Expression)
+    | ExprWhileLoop Expression Expression
     | ExprFunctionCall Expression [Expression]
     | ExprOperation Operation
     | ExprBlock BlockExpression

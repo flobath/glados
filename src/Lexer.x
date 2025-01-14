@@ -73,6 +73,7 @@ tokens :-
     if      { ctokKeyW KeyWIf }
     unless  { ctokKeyW KeyWUnless }
     else    { ctokKeyW KeyWElse }
+    while   { ctokKeyW KeyWWhile }
     fun     { ctokKeyW KeyWFun }
     true    { ctokKeyW KeyWTrue }
     false   { ctokKeyW KeyWFalse }
