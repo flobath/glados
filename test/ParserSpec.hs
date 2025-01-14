@@ -255,6 +255,24 @@ spec = do
         it "block containing an expression an expression" $
             parseAndLex pExpression "{a;}"
             `shouldLexParse` eBlk [ sExpr $ eaId "a"]
+        it "block containing var assignement and while loop" $
+            parseAndLex pExpression "\
+                \{\n\
+                \   i32 a = 5\n\
+                \   while (a < 7) {\n\
+                \       a = a + 1\n\
+                \   }\n\
+                \   return a\n\
+                \}"
+            `shouldLexParse` eBlk
+                [ sDecl (tId "i32") (vId "a") (Just $ eaInt 5)
+                , sExpr $ eWhile
+                    (eoLt (eaId "a") (eaInt 7))
+                    (eBlk [
+                        sAssi "a" (eoAdd (eaId "a") (eaInt 1))
+                    ])
+                , sRet $ eaId "a"
+                ]
         it "fail with missing end of statement" $
             lexParse pBlockExpression "{i32 a = 4}"
             `shouldFailWith` err 5 (
