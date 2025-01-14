@@ -33,6 +33,7 @@ newtype BlockExpression = BlockExpression [Statement]
 data Statement
     = StExpression Expression
     | StVariableDecl VariableDeclaration (Maybe Expression)
+    | StAssignment VarIdentifier Expression
     | StReturn Expression
     deriving (Eq, Show)
 

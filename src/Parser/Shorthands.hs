@@ -6,7 +6,7 @@ import Parser.AST
 
 tId = TypeIdentifier
 vId = VarIdentifier
-vdecl = VariableDeclaration
+vdecl t1 t2 = VariableDeclaration (TypeIdentifier t1) (VarIdentifier t2)
 eIf = ExprIfConditional
 eCall = ExprFunctionCall
 eOp = ExprOperation
@@ -37,6 +37,7 @@ eoAnd a b = ExprOperation $ OpInfix $ InfixAnd a b
 sRet = StReturn
 sDecl t n = StVariableDecl (VariableDeclaration t n)
 sExpr = StExpression
+sAssi t = StAssignment (VarIdentifier t)
 
 fn text params retType sts = Function text params retType (BlockExpression sts)
 fnMain params sts = MainFunction params (BlockExpression sts)

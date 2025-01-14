@@ -3,7 +3,8 @@ module Helpers (
     (<||>),
     (<<|>>),
     (?:),
-    ffmap
+    ffmap,
+    (<:>),
 ) where
 
 import Control.Applicative ( Alternative((<|>)) )
@@ -32,6 +33,16 @@ comb combinator f1 f2 input = f1 input `combinator` f2 input
 infixr 5 ?:
 (?:) :: Functor f => a -> f [a] -> f [a]
 (?:) x = fmap (x:)
+
+-- Applies (:) to Applicative-wrapped elements and Lists
+--
+-- Examples:
+-- - Just 5 <:> Just [4, 3] = Just [5, 4, 3]
+-- - Nothing <:> Just [4, 3] = Nothing
+-- - Just 5 <:> Nothing = Nothing
+infixr 5 <:>
+(<:>) :: Applicative f => f a -> f [a] -> f [a]
+(<:>) = liftA2 (:)
 
 ffmap :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
 ffmap = fmap . fmap
