@@ -19,6 +19,10 @@ serializeValue (IntValue i) = do
 serializeValue (BoolValue b) = do
     putWord8 1
     putWord8 (if b then 1 else 0)
+serializeValue (ListValue xs) = do
+    putWord8 2
+    putInt32le (fromIntegral $ length xs)
+    mapM_ serializeValue xs
 
 serializeOperator :: Operator -> Put
 serializeOperator Add = putWord8 0
@@ -34,6 +38,7 @@ serializeOperator Gt = putWord8 9
 serializeOperator Ge = putWord8 10
 serializeOperator And = putWord8 11
 serializeOperator Or = putWord8 12
+serializeOperator ListIndex = putWord8 13
 
 serializeInstruction :: StackInstruction -> Put
 serializeInstruction (PushValue value) = do
@@ -58,7 +63,6 @@ serializeInstruction (JumpIfFalse n) = do
 serializeInstruction (OpValue op) = do
     putWord8 8
     serializeOperator op
-serializeInstruction _ = error "Not implemented"
 
 serializeProgram :: StackProgram -> Put
 serializeProgram = mapM_ serializeInstruction
@@ -76,6 +80,10 @@ deserializeValue = do
     case tag of
         0 -> Right . IntValue . fromIntegral <$> getInt32le
         1 -> Right . BoolValue . (/= 0) <$> getWord8
+        2 -> do
+            len <- fromIntegral <$> getInt32le
+            xs <- replicateM len deserializeValue
+            return $ fmap ListValue (sequence xs)
         _ -> return $ Left "Unknown Value tag"
 
 deserializeOperator :: Get (Either String Operator)
@@ -95,6 +103,7 @@ deserializeOperator = do
         10 -> return $ Right Ge
         11 -> return $ Right And
         12 -> return $ Right Or
+        13 -> return $ Right ListIndex
         _ -> return $ Left "Unknown Operator tag"
 
 deserializeInstruction :: Get (Either String StackInstruction)
@@ -147,3 +156,12 @@ readProgramFromFile path = do
     if magic /= [0x47, 0x4C, 0x44, 0x53]
         then return $ Left "Invalid magic number"
         else return $ runGet deserializeProgram (BL.drop 4 bytecode)
+
+exampleProgram :: StackProgram
+exampleProgram = [
+    PushValue (ListValue [IntValue 1, IntValue 2, IntValue 3]),
+    PushEnv "x",
+    OpValue Add,
+    StoreEnv "y",
+    Return
+    ]

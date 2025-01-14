@@ -30,9 +30,11 @@ module StackMachine (
 import Data.Int (Int64)
 import Data.Text (Text)
 
-data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
+data Value = IntValue Int64 | BoolValue Bool | ListValue [Value]
+    deriving (Show, Eq)
 
-data Operator = Add | Sub | Mul | Div | Mod | Eq | Ne | Lt | Le | Gt | Ge | And | Or deriving (Show, Eq)
+data Operator = Add | Sub | Mul | Div | Mod | Eq | Ne | Lt | Le | Gt | Ge | And | Or | ListIndex
+    deriving (Show, Eq)
 
 data StackInstruction = PushValue Value | PushEnv String | StoreEnv String | Call Int | NewEnv | CallFuncName Text | Return | Jump Int | JumpIfFalse Int | OpValue Operator
     deriving (Show, Eq)
@@ -87,9 +89,12 @@ applyOperator Gt = greaterThan
 applyOperator Ge = greaterEqual
 applyOperator And = andOperator
 applyOperator Or = orOperator
+applyOperator ListIndex = listIndex
 
 addition :: Stack -> Either String Stack
 addition (IntValue x : IntValue y : xs) = Right (IntValue (x + y) : xs)
+addition (ListValue x : ListValue y : xs) = Right (ListValue (x ++ y) : xs)
+addition (ListValue x : _) = Left "Cannot concatenate list with non-list"
 addition _ = Left "Cannot apply addition"
 
 subtraction :: Stack -> Either String Stack
@@ -145,6 +150,18 @@ andOperator _ = Left "Cannot apply and"
 orOperator :: Stack -> Either String Stack
 orOperator (BoolValue x : BoolValue y : xs) = Right (BoolValue (x || y) : xs)
 orOperator _ = Left "Cannot apply or"
+
+-- List operations
+
+(!!?) :: [a] -> Int -> Maybe a
+(!!?) [] _ = Nothing
+(!!?) (x:_) 0 = Just x
+(!!?) (_:xs) n = xs !!? (n - 1)
+
+listIndex :: Stack -> Either String Stack
+listIndex (IntValue i : ListValue xs : xs') = case xs !!? fromIntegral i of
+    Just x -> Right (x : xs')
+    Nothing -> Left "Index out of bounds"
 
 -- Execution
 
