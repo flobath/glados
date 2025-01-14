@@ -52,6 +52,15 @@ programF = Program (MainFunction [] (BlockExpression [localIntDecl "a" 5, localI
                 (BlockExpression [StReturn $ sumExpr (varRef "a") (intConstant 1)])
         ]
 programG = Program (MainFunction [] (BlockExpression [StReturn $ ExprFunctionCall (varRef "f") []])) []
+programH = Program (MainFunction [] (
+        BlockExpression [
+            localIntDecl "a" 5,
+            StExpression $ ExprWhileLoop
+                (ExprOperation (OpInfix (InfixLt (varRef "a") (intConstant 7))))
+                (ExprBlock (BlockExpression [setVar "a" (sumExpr (varRef "a") (intConstant 1))])),
+            StReturn (varRef "a")
+        ]
+    )) []
 
 spec :: Spec
 spec = do
@@ -146,3 +155,19 @@ spec = do
                 ]
         it "Missing function" $ do
             convertToStackInstructions programG `shouldBe` Left "Function f not found"
+        it "Simple while return" $ do
+            convertToStackInstructions programH `shouldBe` Right [
+                    PushValue (IntValue 5),
+                    StoreEnv "a",
+                    PushEnv "a",
+                    PushValue (IntValue 7),
+                    OpValue Lt,
+                    JumpIfFalse 6,
+                    PushEnv "a",
+                    PushValue (IntValue 1),
+                    OpValue Add,
+                    StoreEnv "a",
+                    Jump (-8),
+                    PushEnv "a",
+                    Return
+                ]
