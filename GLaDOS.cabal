@@ -25,6 +25,7 @@ source-repository head
 
 library
   exposed-modules:
+      GldsBytecode
       AlexToParsec
       Helpers
       Lexer
@@ -33,6 +34,7 @@ library
       Parser
       Parser.AST
       Parser.Internal
+      StackMachine
       Parser.ParseAndLex
       Parser.Shorthands
       Parser.WithPos
@@ -46,7 +48,10 @@ library
   build-tools:
       alex
   build-depends:
-      array
+      base >=4.7 && <5
+    , binary
+    , bytestring
+    , array
     , base >=4.7 && <5
     , composition-prelude
     , containers
@@ -71,6 +76,8 @@ executable GLaDOS-exe
       GLaDOS
     , array
     , base >=4.7 && <5
+    , binary
+    , bytestring
     , composition-prelude
     , containers
     , megaparsec
@@ -97,6 +104,8 @@ test-suite GLaDOS-test
       GLaDOS
     , array
     , base >=4.7 && <5
+    , binary
+    , bytestring
     , composition-prelude
     , containers
     , hspec

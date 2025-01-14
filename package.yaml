@@ -26,6 +26,8 @@ dependencies:
   - transformers
   - monad-loops
   - text
+  - binary
+  - bytestring
   - array
   - containers
 
