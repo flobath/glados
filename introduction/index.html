@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    
+    <link rel="shortcut icon" href="../img/favicon.ico">
+
+    
+    <title>Intro - FunChill Documentation</title>
+    
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/v4-shims.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.min.css">
+    <link href='//rsms.me/inter/inter.css' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,600,700&subset=latin-ext,latin' rel='stylesheet' type='text/css'>
+    <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+    <link href="../css/base.min.css" rel="stylesheet">
+    <link href="../css/cinder.min.css" rel="stylesheet">
+
+    
+        
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/styles/github.min.css">
+        
+    
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+            <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+        <![endif]-->
+
+    
+
+     
+</head>
+
+<body>
+
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
+
+            <!-- Main title -->
+
+            
+              <a class="navbar-brand" href="..">FunChill Documentation</a>
+            
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                
+                
+                    <li >
+                        <a href="..">Home</a>
+                    </li>
+                
+                
+                
+                    <li class="active">
+                        <a href="./">Intro</a>
+                    </li>
+                
+                
+                
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Reference <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                        
+                            
+<li >
+    <a href="../reference/">Index</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../reference/operator_table/">Operators</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../reference/keywords/">Keywords</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../reference/types/">Types</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../reference/expressions/">Expressions</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../reference/statements/">Statements</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../reference/whitespace/">Whitespace</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../reference/grammar/">Grammar</a>
+</li>
+
+                        
+                        </ul>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../about/">About</a>
+                    </li>
+                
+                
+                </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                            <i class="fas fa-search"></i> Search
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="prev" href="..">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="next" href="../reference/">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+    <div class="container">
+        
+        
+        <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="first-level active"><a href="#introduction-to-funchill">Introduction to FunChill</a></li>
+            <li class="second-level"><a href="#quick-example">Quick example</a></li>
+                
+            <li class="second-level"><a href="#overview-of-features">Overview of features</a></li>
+                
+                <li class="third-level"><a href="#built-in-types">Built-in types</a></li>
+                <li class="third-level"><a href="#operators">Operators</a></li>
+                <li class="third-level"><a href="#functions">Functions</a></li>
+                <li class="third-level"><a href="#comments">Comments</a></li>
+    </ul>
+</div></div>
+        <div class="col-md-9" role="main">
+
+<h1 id="introduction-to-funchill">Introduction to FunChill</h1>
+<p>The FunChill programming language is a C-like language which aims at being simple to read and write while providing sensible features.</p>
+<h2 id="quick-example">Quick example</h2>
+<p>Here is a simple factorial function written in FunChill.</p>
+<pre><code>fun my_factorial(i32 n): i32 {
+    if (n &lt; 0) {
+        return -1 // -1 is returned as an error
+    }
+    if (n &lt;= 1) {
+        return 1
+    }
+    return n * my_factorial(n - 1)
+}
+</code></pre>
+<p>As you can see from this example, FunChill is very similar to modern C-like programming languages so it should be simple to learn both for beginners or experienced developers.</p>
+<p>Some key features in this code snippet are:</p>
+<ul>
+<li><code>fun</code> is used to introduce a function declaration</li>
+<li><code>:</code> declares the function return type</li>
+<li>Semicolons at line endings are <em><a href="./link/to/explanation/of/end-of-statements">optional</a></em></li>
+</ul>
+<h2 id="overview-of-features">Overview of features</h2>
+<p>This overview aims at giving you an idea of what's available in the language and how to do basic things. For more detail about a specific topic, follow the links from the overview; or for a complete overview of what's available, have a look at the <a href="../reference/">language reference pages</a>.</p>
+<h3 id="built-in-types">Built-in types</h3>
+<p>Here is a table of the basic types:</p>
+<table>
+<thead>
+<tr>
+<th>Type identifier</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>i8</code></td>
+<td>8  bits   signed integer</td>
+</tr>
+<tr>
+<td><code>i16</code></td>
+<td>16 bits   signed integer</td>
+</tr>
+<tr>
+<td><code>i32</code></td>
+<td>32 bits   signed integer</td>
+</tr>
+<tr>
+<td><code>i64</code></td>
+<td>64 bits   signed integer</td>
+</tr>
+<tr>
+<td><code>u8</code></td>
+<td>8  bits unsigned integer</td>
+</tr>
+<tr>
+<td><code>u16</code></td>
+<td>16 bits unsigned integer</td>
+</tr>
+<tr>
+<td><code>u32</code></td>
+<td>32 bits unsigned integer</td>
+</tr>
+<tr>
+<td><code>u64</code></td>
+<td>64 bits unsigned integer</td>
+</tr>
+<tr>
+<td><code>bool</code></td>
+<td>Boolean value (<code>true</code> / <code>false</code>)</td>
+</tr>
+<tr>
+<td><code>()</code></td>
+<td>Unit type (empty tuple)</td>
+</tr>
+</tbody>
+</table>
+<p>See more information about types, and the full type table in the <a href="../reference/types/">type reference</a>.</p>
+<h3 id="operators">Operators</h3>
+<p>FunChill features all basic arithmetic and logical operators you would expect from any programming language. Here is a short list of all operators:</p>
+<ul>
+<li>Prefix <code>+</code> / <code>-</code>: Sign prefixes, so that you can write signed number literals (<code>-75</code>, <code>+3</code>)</li>
+<li>Prefix <code>!</code>: Logical not operator</li>
+<li>All arithmetic <code>+</code> <code>-</code> <code>*</code> <code>/</code> <code>%</code>: For addition, subtraction, multiplication, division and modulus.</li>
+<li>Comparison operators: <code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code></li>
+<li>Equality operators: <code>==</code> and <code>!=</code></li>
+<li>Boolean logical operators: <code>&amp;&amp;</code> and <code>||</code></li>
+</ul>
+<p>Addition and subtraction have lower precedence than the others, so <code>1 + 2 * 3</code> is indeed parsed as <code>1 + (2 * 3)</code>.<br />
+For a complete reference of operators associativity and precedence, see the full <a href="../reference/operator_table/">operator table</a>.</p>
+<h3 id="functions">Functions</h3>
+<p>Functions can only be declared in the global scope. A function declaration is introduced by the <code>fun</code> keyword, followed by the function identifier, the parameter list, the return type and the function body.
+Here is a simple example:</p>
+<pre><code>fun my_add(i32 a, i32 b): i32 {
+    return a + b
+}
+</code></pre>
+<p>A function body consists of zero or more statements wrapped in curly braces. In general, a statement can be a variable declaration, a function call or a <code>return</code> statement for example. See the complete list of statements <a href="">here</a>.</p>
+<p>If you have a function which returns <code>()</code>, you can omit the return type:</p>
+<pre><code>// Explicit return type of `()`
+fun my_function(i32 i): () {}
+
+// Implicit return type of `()`
+fun my_function(i32 i) {}
+</code></pre>
+<p>If your function takes no parameters, you can omit the parameter list:</p>
+<pre><code>// Explicit empty parameter list
+fun my_get_int(): i32 {
+    return 42
+}
+
+// Omitted parameter list
+fun my_get_int: i32 {
+    return 42
+}
+</code></pre>
+<p>It is also possible to omit both the parameter list and the return type:</p>
+<pre><code>fun f {}
+</code></pre>
+<h4 id="main-function">Main function</h4>
+<p>To declare the main function to your program, use the <code>main</code> keyword, followed by a parameter list, a return type, and a function body.</p>
+<p>Everything that can be omitted in a function declaration can also be omitted in a main declaration.</p>
+<pre><code>main(): i32 {
+    return 42
+}
+</code></pre>
+<h3 id="comments">Comments</h3>
+<p>Comments are just what you expect them to be. Use <code>//</code> to introduce a line comment: all characters until the end of line will be ignored.</p>
+<pre><code>// I am a comment
+fun f { // Comment after opening brace
+    // Comment inside a function
+    i32 a = 0 // Comment after a variable
+// Weirdly indented comment
+} // Comment after closing brace
+</code></pre>
+<p>You can also use <code>/*</code> and <code>*/</code> to introduce a block comment − that is − to ignore all characters between the opening <code>/*</code> and the closing <code>*/</code>.<br />
+As of 2.0, nested block comments are not supported, such that <code>/* /* /* */</code> represents a single, syntactically valid block comment, while <code>/* /* */ */</code> represents a block comment followed by a trailing <code>*/</code> which will certainly cause a parsing error.</p>
+<pre><code>/* This is a block comment */
+fun /*inline block comment*/ myfunc/* abc */(i32 a /*, i32 b*/)/*: ()*/
+/*
+{
+    return
+}
+*/
+{
+    some_other_func(a)
+}
+</code></pre></div>
+        
+        
+    </div>
+
+    
+      <footer class="col-md-12 text-center">
+          
+          
+            <hr>
+            <p>
+            <small>
+            Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.
+            <a href="https://brainmade.org/">
+                <img
+                    src="https://brainmade.org/black-logo.png"
+                    alt="BrainMade.org"
+                    style="padding-right: 20px;padding-left: 20px; height: 16px;"
+                />
+            </a>
+            Written by Florent Charpentier
+            </small>
+            </p>
+          
+
+          
+          
+      </footer>
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="../js/bootstrap-3.0.3.min.js"></script>
+
+    
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/highlight.min.js"></script>
+        
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    <script>var base_url = ".."</script>
+    
+    <script src="../js/base.js"></script>
+    <script src="../search/main.js"></script>
+
+    <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+    </body>
+
+</html>

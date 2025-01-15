@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+
+    
+    <title>Grammar - FunChill Documentation</title>
+    
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/v4-shims.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.min.css">
+    <link href='//rsms.me/inter/inter.css' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,600,700&subset=latin-ext,latin' rel='stylesheet' type='text/css'>
+    <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
+    <link href="../../css/base.min.css" rel="stylesheet">
+    <link href="../../css/cinder.min.css" rel="stylesheet">
+
+    
+        
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/styles/github.min.css">
+        
+    
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+            <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+        <![endif]-->
+
+    
+
+     
+</head>
+
+<body>
+
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
+
+            <!-- Main title -->
+
+            
+              <a class="navbar-brand" href="../..">FunChill Documentation</a>
+            
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                
+                
+                    <li >
+                        <a href="../..">Home</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../../introduction/">Intro</a>
+                    </li>
+                
+                
+                
+                    <li class="dropdown active">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Reference <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                        
+                            
+<li >
+    <a href="../">Index</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../operator_table/">Operators</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../keywords/">Keywords</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../types/">Types</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../expressions/">Expressions</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../statements/">Statements</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../whitespace/">Whitespace</a>
+</li>
+
+                        
+                            
+<li class="active">
+    <a href="./">Grammar</a>
+</li>
+
+                        
+                        </ul>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../../about/">About</a>
+                    </li>
+                
+                
+                </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                            <i class="fas fa-search"></i> Search
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="prev" href="../whitespace/">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="next" href="../../about/">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+    <div class="container">
+        
+        
+        <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="first-level active"><a href="#funchill-formal-grammar">FunChill formal grammar</a></li>
+            <li class="second-level"><a href="#grammar">Grammar</a></li>
+                
+    </ul>
+</div></div>
+        <div class="col-md-9" role="main">
+
+<h1 id="funchill-formal-grammar">FunChill formal grammar</h1>
+<p>The FunChill formal grammar is written as <a href="https://bford.info/pub/lang/peg.pdf">PEG</a> (parsing expression grammar), a formal syntax designed to unambiguously describe various grammars.</p>
+<h2 id="grammar">Grammar</h2>
+<pre><code>Root &lt;- TopLevelDeclNotMain* MainFunction TopLevelDeclNotMain* EndOfFile
+
+
+### Top level declarations ###
+
+# Top level declarations which are not the main function
+TopLevelDeclNotMain &lt;- FunctionDeclaration
+
+FunctionDeclaration &lt;- FunctionSignature FunctionBody
+MainFunction &lt;- KeyW_main ParameterList? FunctionBody
+
+FunctionSignature &lt;- KeyW_fun Identifier ParameterList? ReturnType?
+FunctionBody &lt;- BlockExpression AnySpacing
+
+ReturnType &lt;- Colon Type AnySpacing
+ParameterList &lt;- OpenParen VariableDeclarationList CloseParen
+VariableDeclarationList &lt;- VariableDeclaration? (Comma VariableDeclaration)* Comma?
+
+
+### Block level ###
+
+# Blocks can actually be evaluated as expressions
+BlockExpression &lt;- OpenBrace Statement* CloseBrace
+
+Statement &lt;-
+    ( Expression
+    / VariableDeclarationStatement
+    / AssignStatement
+    / ReturnStatement
+    ) EndOfStatement
+
+VariableDeclarationStatement &lt;- VariableDeclaration (OperAssign Expression)?
+VariableDeclaration &lt;- TypeIdentifier Identifier
+
+AssignStatement &lt;- Identifier AssignOperator Expression
+
+ReturnStatement &lt;- KeyW_return Expression
+
+EndOfStatement &lt;- (Semicolon / LineBreak) AnySpacing
+
+
+### Expression level ###
+# Expressions are listed in different categories to
+# express operator precedence.
+
+Expression &lt;- IfExpr / UnlessExpr / OperationExpr
+
+IfExpr      &lt;- KeyW_if      ConditionalBody
+UnlessExpr  &lt;- KeyW_unless  ConditionalBody
+
+# if/unless         condition             first arm              optional second arm
+ConditionalBody &lt;- GroupedExpr AnySpacing Expression (AnySpacing KeyW_else Expression)?
+
+# OR is the least precedent operator, so an &quot;operation&quot;
+# (combination of any number of operators) is a LogicalOrExpr
+OperationExpr &lt;- LogicalOrExpr
+
+LogicalOrExpr &lt;- LogicalAndExpr (LogicalOrOperator LogicalAndExpr)*
+
+LogicalAndExpr &lt;- EqualityExpr (LogicalAndOperator EqualityExpr)*
+
+EqualityExpr &lt;- ComparisonExpr (EqualityOperator ComparisonExpr)*
+
+ComparisonExpr &lt;- AdditionExpr (ComparisonOperator AdditionExpr)*
+
+AdditionExpr &lt;- MultiplicationExpr (AdditionOperator MultiplicationExpr)*
+
+MultiplicationExpr &lt;- PrefixOpExpr (MultiplicationOperator PrefixOpExpr)*
+
+PrefixOpExpr &lt;- PrefixOperator* SuffixOpExpr
+
+SuffixOpExpr &lt;- PrimaryExpr SuffixOperator*
+
+# Basic expression with no operator applied -- highest precedence
+PrimaryExpr
+    &lt;- AtomicExpr
+    /  GroupedExpr
+    /  BlockExpression
+
+GroupedExpr &lt;- OpenParen Expression CloseParen
+
+# An expression which is not composed of subexpressions
+AtomicExpr
+    &lt;- NumericLiteral
+    /  BooleanLiteral
+    /  Identifier
+
+
+### Identifiers ###
+
+# Alphanumeric constructs which are not keywords are identifiers
+
+TypeIdentifier &lt;- Identifier # For now, type identifiers are the same as others
+Identifier &lt;- !Keyword IdentStart IdentCont* InlineSpacing
+IdentStart &lt;- [a-zA-Z_]
+IdentCont &lt;- IdentStart / [0-9]
+
+
+### Type literals ###
+
+Type &lt;- PrimaryType # / UserDefinedType
+                    # For when we will have user-defined types
+PrimaryType &lt;- ('bool' / IntegerType) InlineSpacing
+IntegerType &lt;- ( 'i' / 'u' ) ( '8' / '16' / '32' / '64' ) InlineSpacing
+
+
+### Literals ###
+
+BooleanLiteral &lt;- KeyW_true / KeyW_false
+NumericLiteral &lt;- [0-9]+ InlineSpacing
+
+
+### Keywords ###
+# We specify EndOfWord after each keyword so that
+# &quot;funny&quot; does not match the 'fun' keyword for example.
+#
+# Most keywords allow linebreaks to allow placing expressions on separate
+# lines without opening braces.
+
+Keyword
+    &lt;- KeyW_fun
+    /  KeyW_if
+    /  keyW_unless
+    /  KeyW_else
+    /  KeyW_return
+    /  KeyW_true
+    /  KeyW_false
+    /  KeyW_main
+
+KeyW_fun    &lt;- 'fun'    EndOfWord AnySpacing
+KeyW_if     &lt;- 'if'     EndOfWord AnySpacing
+KeyW_unless &lt;- 'unless' EndOfWord AnySpacing
+KeyW_else   &lt;- 'else'   EndOfWord AnySpacing
+KeyW_return &lt;- 'return' EndOfWord InlineSpacing # 'return' can be a statement on its own
+KeyW_true   &lt;- 'true'   EndOfWord InlineSpacing
+KeyW_false  &lt;- 'false'  EndOfWord InlineSpacing
+KeyW_main   &lt;- 'main'   EndOfWord AnySpacing
+
+
+### Operators ###
+# All operators allow line breaks, hence the AnySpacing
+
+AssignOperator &lt;- OperAssign
+    # / OperAssignAdd
+    # / OperAssignSub
+    # (for when have more assign operators)
+
+LogicalOrOperator &lt;- OperOr
+
+LogicalAndOperator &lt;- OperAnd
+
+EqualityOperator
+    &lt;- OperEquals
+    /  OperDiffers
+
+ComparisonOperator
+    &lt;- OperGt
+    /  OperLt
+    /  OperGe
+    /  OperLe
+
+AdditionOperator
+    &lt;- OperAdd
+    /  OperSub
+
+MultiplicationOperator
+    &lt;- OperMul
+    /  OperDiv
+    /  OperMod
+
+PrefixOperator
+    &lt;- OperAdd
+    /  OperSub
+    /  OperNot
+
+SuffixOperator
+    &lt;- OperFunctionCall
+    # / &lt;other suffix operators&gt;, such as [], potentially ++, --,
+
+# We define function calls as a suffix operator to allow first-class functions
+OperFunctionCall &lt;- OpenParen ExpressionList CloseParen
+ExpressionList &lt;- Expression? (Comma Expression)* Comma?
+
+OperAssign  &lt;- '='  ![=]    AnySpacing
+OperAdd     &lt;- '+'  ![=]    AnySpacing
+OperSub     &lt;- '-'  ![=]    AnySpacing
+OperMul     &lt;- '*'  ![=]    AnySpacing
+OperDiv     &lt;- '/'  ![=]    AnySpacing
+OperMod     &lt;- '%'  ![=]    AnySpacing
+OperEquals  &lt;- '=='         AnySpacing
+OperDiffers &lt;- '!='         AnySpacing
+OperNot     &lt;- '!'  ![=]    AnySpacing
+OperAnd     &lt;- '&amp;&amp;'         AnySpacing
+OperOr      &lt;- '||'         AnySpacing
+OperGt      &lt;- '&gt;'  ![=]    AnySpacing
+OperLt      &lt;- '&lt;'  ![=]    AnySpacing
+OperGe      &lt;- '&lt;='         AnySpacing
+OperLe      &lt;- '&gt;='         AnySpacing
+
+
+### Primitive separators ###
+# We allow AnySpacing after any kind of opening bracket
+# so that they can introduce multiline expressions.
+# Commas too consume AnySpacing so that they can continue multiline
+# expressions. This neatly allows multiline lists without cluttering
+# the Expression grammar.
+
+OpenParen   &lt;- '(' AnySpacing
+CloseParen  &lt;- ')' InlineSpacing
+# OpenBrack   &lt;- '[' AnySpacing    # Square brackets are unused for now
+# CloseBrack  &lt;- ']' InlineSpacing # Square brackets are unused for now
+OpenBrace   &lt;- '{' AnySpacing
+CloseBrace  &lt;- '}' InlineSpacing
+Comma       &lt;- ',' AnySpacing
+Semicolon   &lt;- ';' AnySpacing
+Colon       &lt;- ':' AnySpacing
+
+
+### Blanks: spaces and newlines ###
+
+EndOfWord &lt;- ![a-zA-Z0-9] InlineSpacing
+
+AnySpacing &lt;- (InlineSpacing / LineBreak)*
+InlineSpacing &lt;- (InlineSpace / LineComment / BlockComment)*
+LineComment &lt;- '//' (!LineBreak .)*
+BlockComment &lt;- '/*' ( !'*/' .)* '*/'
+InlineSpace &lt;- ' ' / '\t' / ('\\' LineBreak) # End of lines can be escaped
+LineBreak &lt;- !'\\' ('\n' / '\r\n')
+EndOfFile &lt;- !.
+</code></pre>
+<hr />
+<p><em><a href="../">Back to reference index</a></em></p></div>
+        
+        
+    </div>
+
+    
+      <footer class="col-md-12 text-center">
+          
+          
+            <hr>
+            <p>
+            <small>
+            Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.
+            <a href="https://brainmade.org/">
+                <img
+                    src="https://brainmade.org/black-logo.png"
+                    alt="BrainMade.org"
+                    style="padding-right: 20px;padding-left: 20px; height: 16px;"
+                />
+            </a>
+            Written by Florent Charpentier
+            </small>
+            </p>
+          
+
+          
+          
+      </footer>
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="../../js/bootstrap-3.0.3.min.js"></script>
+
+    
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/highlight.min.js"></script>
+        
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    <script>var base_url = "../.."</script>
+    
+    <script src="../../js/base.js"></script>
+    <script src="../../search/main.js"></script>
+
+    <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+    </body>
+
+</html>

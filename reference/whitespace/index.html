@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+
+    
+    <title>Whitespace - FunChill Documentation</title>
+    
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/v4-shims.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.min.css">
+    <link href='//rsms.me/inter/inter.css' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,600,700&subset=latin-ext,latin' rel='stylesheet' type='text/css'>
+    <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
+    <link href="../../css/base.min.css" rel="stylesheet">
+    <link href="../../css/cinder.min.css" rel="stylesheet">
+
+    
+        
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/styles/github.min.css">
+        
+    
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+            <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+        <![endif]-->
+
+    
+
+     
+</head>
+
+<body>
+
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
+
+            <!-- Main title -->
+
+            
+              <a class="navbar-brand" href="../..">FunChill Documentation</a>
+            
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                
+                
+                    <li >
+                        <a href="../..">Home</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../../introduction/">Intro</a>
+                    </li>
+                
+                
+                
+                    <li class="dropdown active">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Reference <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                        
+                            
+<li >
+    <a href="../">Index</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../operator_table/">Operators</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../keywords/">Keywords</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../types/">Types</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../expressions/">Expressions</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../statements/">Statements</a>
+</li>
+
+                        
+                            
+<li class="active">
+    <a href="./">Whitespace</a>
+</li>
+
+                        
+                            
+<li >
+    <a href="../grammar/">Grammar</a>
+</li>
+
+                        
+                        </ul>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../../about/">About</a>
+                    </li>
+                
+                
+                </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                            <i class="fas fa-search"></i> Search
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="prev" href="../statements/">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="next" href="../grammar/">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+    <div class="container">
+        
+        
+        <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="first-level active"><a href="#whitespace-in-funchill">Whitespace in FunChill</a></li>
+            <li class="second-level"><a href="#characters-counted-as-whitespace">Characters counted as "whitespace"</a></li>
+                
+            <li class="second-level"><a href="#what-happens-to-whitespace-in-code">What happens to whitespace in code</a></li>
+                
+            <li class="second-level"><a href="#what-happens-to-linebreaks">What happens to linebreaks</a></li>
+                
+                <li class="third-level"><a href="#how-linebreaks-are-conditionally-ignored">How linebreaks are conditionally ignored</a></li>
+    </ul>
+</div></div>
+        <div class="col-md-9" role="main">
+
+<h1 id="whitespace-in-funchill">Whitespace in FunChill</h1>
+<p>In FunChill, whitespace is mostly ignored. This means that you are free to indent your code however you like, or add any amount of whitespace in between every word.</p>
+<h2 id="characters-counted-as-whitespace">Characters counted as "whitespace"</h2>
+<p>As of FunChill 2.0, the only characters recognised as pure whitespace are:</p>
+<ul>
+<li>ASCII Space <code></code> (0x20)</li>
+<li>ASCII Tab   <code>\t</code> (0x09)</li>
+</ul>
+<p>Importantly, linebreaks are not considered simple whitespace because they have an important role in functions: they can be used interchangeably with semicolons to end statements.</p>
+<h2 id="what-happens-to-whitespace-in-code">What happens to whitespace in code</h2>
+<p>Whitespace is handled by the FunChill lexer, which explicitly ignores them and produces no token when lexing whitespace. Whitespace still serves as a delimiter between identifiers, so it is not always optional.</p>
+<p>A simple example where whitespace is mandatory:</p>
+<pre><code>// This works
+fun myfunc {}
+
+// This doesn't work
+funmyfunc {}
+</code></pre>
+<h2 id="what-happens-to-linebreaks">What happens to linebreaks</h2>
+<p>In FunChill, two linebreak sequences are recognised:</p>
+<ul>
+<li>ASCII LineFeed <code>\n</code> (0x0a)</li>
+<li>ASCII CarriageReturn LineFeed <code>\r\n</code> (0X0D0A)</li>
+</ul>
+<p>These linebreak sequences are exceptionally ignored by the lexer when preceded by a backslash <code>\</code> (0x5C), in which case they behave as any whitespace.<br />
+So, in the following example, a backslash allows writing the addition on a separate line:</p>
+<pre><code>fun f {
+    i32 a = 1 \
+        + 2
+}
+</code></pre>
+<p>So, finally, what happens to linebreaks which are not escaped?<br />
+In short, when outside of a function: they are simply ignored; when inside a function body: they are an alternative to semicolons as "end of statements".</p>
+<p>... But they still sometimes ignored for readability. For a technical explanation of how linebreaks can be ignored within a function body, keep reading, or for a practical explanation, go to the <a href="../statements/#end-of-statements">statement reference</a>.</p>
+<h3 id="how-linebreaks-are-conditionally-ignored">How linebreaks are conditionally ignored</h3>
+<p>To understand the following explanation, you will need a basic understanding of how the FunChill compiler works. There are two parts of the compiler which are relevant to understand how linebreaks are ignored:</p>
+<ol>
+<li>The Lexer, which converts source files into a stream of <em>tokens</em> (identifiers, literals, operators, brackets, ...)</li>
+<li>The Parser, which converts a stream of tokens into an <strong>a</strong>bstract <strong>s</strong>yntax <strong>t</strong>ree (usually referred to as AST): a recursive data structure which expresses the syntax of the language</li>
+</ol>
+<p>The FunChill lexer usually converts linebreak sequences (<code>\n</code> or <code>\r\n</code>) to <code>Linebreak</code> tokens, which will be included in the token stream resulting from lexing a file.</p>
+<p>Escaped linebreaks are ignored at the lexer level: when a linebreak sequence is preceded by the backslash character, it will be explicitly ignored, thus producing no token in the resulting token stream.</p>
+<p>On the other hand, linebreaks which are not escaped make it to the parser, which implements some smart rules to allow linebreaks to be an alternative to semicolons while also allowing the user to split expressions into several lines.</p>
+<p>To start with, line breaks are ignored at the top level (outside of function bodies).<br />
+Within a function body, line breaks are explicitly not ignored: they are preserved preciously when parsing expressions or operator chains so that they can be consumed as an "end of statement" at the end. This means the following:</p>
+<pre><code>fun f {
+    i32 a = 8
+          + 2
+}
+</code></pre>
+<p>will be parsed the same as</p>
+<pre><code>fun f {
+    i32 a = 8;
+    +2;
+}
+</code></pre>
+<p>But thankfully, the following parses properly</p>
+<pre><code>fun f {
+    i32 a = 8 +
+            2
+}
+</code></pre>
+<p>How so?, well, some specific tokens discard all linebreaks directly following them. It's actually quite a big number of tokens; here is the full list:</p>
+<ul>
+<li><code>;</code></li>
+<li><code>:</code></li>
+<li><code>,</code></li>
+<li><code>{</code></li>
+<li><code>(</code></li>
+<li>All prefix and infix operators</li>
+</ul>
+<p>Linebreaks are also discarded between the different parts of a conditional expression:</p>
+<ul>
+<li>Between the <code>if</code>/<code>unless</code> and the parenthesised condition</li>
+<li>Between the condition and the first arm expression</li>
+<li>Between the first arm expression and the <code>else</code> (only if there is an <code>else</code>)</li>
+<li>Between the <code>else</code> and the second arm expression</li>
+</ul>
+<p>such that the following are correctly parsed as single conditional expressions:</p>
+<pre><code>fun f {
+    // Same as if (a) b else c
+    if
+        (a)
+        b
+    else
+        c
+
+    // Same as above
+    if (a)
+        b
+    else
+        c
+
+    // Same as if (a) b
+    if (a)
+        b
+}
+</code></pre>
+<hr />
+<p><em><a href="../">Back to reference index</a></em></p></div>
+        
+        
+    </div>
+
+    
+      <footer class="col-md-12 text-center">
+          
+          
+            <hr>
+            <p>
+            <small>
+            Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.
+            <a href="https://brainmade.org/">
+                <img
+                    src="https://brainmade.org/black-logo.png"
+                    alt="BrainMade.org"
+                    style="padding-right: 20px;padding-left: 20px; height: 16px;"
+                />
+            </a>
+            Written by Florent Charpentier
+            </small>
+            </p>
+          
+
+          
+          
+      </footer>
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="../../js/bootstrap-3.0.3.min.js"></script>
+
+    
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/highlight.min.js"></script>
+        
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    <script>var base_url = "../.."</script>
+    
+    <script src="../../js/base.js"></script>
+    <script src="../../search/main.js"></script>
+
+    <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+    </body>
+
+</html>
