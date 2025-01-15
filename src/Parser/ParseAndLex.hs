@@ -3,7 +3,7 @@ module Parser.ParseAndLex (
     parseAndLex,
 ) where
 
-import Parser.Internal2 (ParserError, Parser)
+import Parser.Internal (ParserError, Parser)
 import Lexer (LexerError, myScanTokens, showLexError)
 import Data.Text (Text)
 import Text.Megaparsec (runParser, errorBundlePretty)

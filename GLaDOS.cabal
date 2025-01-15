@@ -31,16 +31,13 @@ library
       Helpers
       Lexer
       Lexer.Tokens
-      Lib
       Megaparsec96
       Parser
       Parser.AST
       Parser.Internal
-      Parser.Internal2
       Parser.ParseAndLex
       Parser.Shorthands
       Parser.WithPos
-      Parser2
       StackMachine
   other-modules:
       Paths_GLaDOS
@@ -67,7 +64,6 @@ library
 executable GLaDOS-cmp
   main-is: Main-cmp.hs
   other-modules:
-      Repl
       Paths_GLaDOS
   autogen-modules:
       Paths_GLaDOS
@@ -93,7 +89,6 @@ executable GLaDOS-cmp
 executable GLaDOS-exe
   main-is: Main-exe.hs
   other-modules:
-      Repl
       Paths_GLaDOS
   autogen-modules:
       Paths_GLaDOS
@@ -120,6 +115,7 @@ test-suite GLaDOS-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      CompilerSpec
       LexerSpec
       ParserSpec
       VmSpec

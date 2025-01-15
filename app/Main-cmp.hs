@@ -4,7 +4,7 @@
 module Main (main) where
 
 import Parser.ParseAndLex (parseAndLex)
-import Parser2 (pProgram)
+import Parser (pProgram)
 import GldsBytecode (writeProgramToFile)
 import ConvertASTtoInstructions (convertToStackInstructions)
 import System.Environment (getArgs)
