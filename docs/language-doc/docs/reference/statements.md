@@ -47,7 +47,7 @@ In FunChill, statements written in block expressions must be terminated by an en
 - Semicolon `;`
 - Linebreak `\n` or `\r\n`
 
-Strictly speaking, end of statements are part of statements themselves; as such, when we say that block expressions contain zero ore more statements, we imply that and end of statement must be present for each statement, including the last one.
+Strictly speaking, end of statements are part of statements themselves; as such, when we say that block expressions contain zero ore more statements, we imply that an end of statement must be present for each statement, including the last one.
 
 Linebreaks and semicolons can be used interchangeably as end of statements, even in the same block expression:
 ```
@@ -62,7 +62,7 @@ fun f {
 
 The fact that linebreaks are valid end of statements aims at making semicolons optional, so feel free to use this more idiomatic style when writing FunChill instead of cramming all your end of lines with semicolons.
 
-Making linebreaks valid end of statements comes a cost, though: it makes splitting expressions on several lines harder, because the linebreak could be interpreted as an end of statement. To help mitigate that, FunChill gives special power to certain characters: discard any number of following linebreaks to allow multiline expressions. Those characters are:
+Making linebreaks valid end of statements comes at a cost, though: it makes splitting expressions on several lines harder, because the linebreak could be interpreted as an end of statement. To help mitigate that, FunChill gives special power to certain characters: discard any number of following linebreaks to allow multiline expressions. Those characters are:
 
 - `,` Comma
 - `(` Opening parenthesis
