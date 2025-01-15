@@ -218,7 +218,7 @@
 <li>Semicolon <code>;</code></li>
 <li>Linebreak <code>\n</code> or <code>\r\n</code></li>
 </ul>
-<p>Strictly speaking, end of statements are part of statements themselves; as such, when we say that block expressions contain zero ore more statements, we imply that and end of statement must be present for each statement, including the last one.</p>
+<p>Strictly speaking, end of statements are part of statements themselves; as such, when we say that block expressions contain zero ore more statements, we imply that an end of statement must be present for each statement, including the last one.</p>
 <p>Linebreaks and semicolons can be used interchangeably as end of statements, even in the same block expression:</p>
 <pre><code>fun f {
     i32 a = 15 // linebreak ends the statement
@@ -229,7 +229,7 @@
 }
 </code></pre>
 <p>The fact that linebreaks are valid end of statements aims at making semicolons optional, so feel free to use this more idiomatic style when writing FunChill instead of cramming all your end of lines with semicolons.</p>
-<p>Making linebreaks valid end of statements comes a cost, though: it makes splitting expressions on several lines harder, because the linebreak could be interpreted as an end of statement. To help mitigate that, FunChill gives special power to certain characters: discard any number of following linebreaks to allow multiline expressions. Those characters are:</p>
+<p>Making linebreaks valid end of statements comes at a cost, though: it makes splitting expressions on several lines harder, because the linebreak could be interpreted as an end of statement. To help mitigate that, FunChill gives special power to certain characters: discard any number of following linebreaks to allow multiline expressions. Those characters are:</p>
 <ul>
 <li><code>,</code> Comma</li>
 <li><code>(</code> Opening parenthesis</li>
