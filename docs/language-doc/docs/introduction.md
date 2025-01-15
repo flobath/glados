@@ -24,7 +24,7 @@ Some key features in this code snippet are:
 
 - `fun` is used to introduce a function declaration
 - `:` declares the function return type
-- Semicolons at line endings are *[optional](./link/to/explanation/of/end-of-statements)*
+- Semicolons at line endings are *[optional](reference/statements.md#end-of-statements)*
 
 ## Overview of features
 
