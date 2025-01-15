@@ -232,8 +232,7 @@ pWhileLoop :: Parser Expression
 pWhileLoop = do
     condition <- pWhileLoopCondition
     void manyEol
-    body <- pExpression
-    return $ ExprWhileLoop condition body
+    ExprWhileLoop condition <$> pExpression
 
 pDoWhileLoop :: Parser Expression
 pDoWhileLoop = do
@@ -241,8 +240,7 @@ pDoWhileLoop = do
     void manyEol
     body <- pExpression
     void manyEol
-    condition <- pWhileLoopCondition
-    return $ ExprDoWhileLoop body condition
+    ExprDoWhileLoop body <$> pWhileLoopCondition
 
 pExpression :: Parser Expression
 pExpression = choice
