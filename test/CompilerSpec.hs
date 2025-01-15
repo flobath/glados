@@ -61,6 +61,15 @@ programH = Program (MainFunction [] (
             StReturn (varRef "a")
         ]
     )) []
+programI = Program (MainFunction [] (
+        BlockExpression [
+            localIntDecl "a" 5,
+            StExpression $ ExprDoWhileLoop
+                (ExprBlock (BlockExpression [setVar "a" (sumExpr (varRef "a") (intConstant 1))]))
+                (ExprOperation (OpInfix (InfixLt (varRef "a") (intConstant 7)))),
+            StReturn (varRef "a")
+        ]
+    )) []
 
 spec :: Spec
 spec = do
@@ -168,6 +177,22 @@ spec = do
                     OpValue Add,
                     StoreEnv "a",
                     Jump (-8),
+                    PushEnv "a",
+                    Return
+                ]
+        it "Simple do while return" $ do
+            convertToStackInstructions programI `shouldBe` Right [
+                    PushValue (IntValue 5),
+                    StoreEnv "a",
+                    PushEnv "a",
+                    PushValue (IntValue 1),
+                    OpValue Add,
+                    StoreEnv "a",
+                    PushEnv "a",
+                    PushValue (IntValue 7),
+                    OpValue Lt,
+                    JumpIfFalse 2,
+                    Jump (-8)
                     PushEnv "a",
                     Return
                 ]

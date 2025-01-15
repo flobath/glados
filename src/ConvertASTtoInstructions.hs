@@ -87,6 +87,13 @@ convertExpression (ExprWhileLoop cond body) =
         jumpBack = Jump (-length bodyInstrs - length condInstrs - 1)
     in condInstrs ++ [jumpFalse] ++ bodyInstrs ++ [jumpBack]
 
+convertExpression (ExprDoWhileLoop body cond) =
+    let bodyInstrs = convertExpression body
+        condInstrs = convertExpression cond
+        jumpFalse = JumpIfFalse 2
+        jumpBack = Jump (-length bodyInstrs - length condInstrs - 1)
+    in bodyInstrs ++ condInstrs ++ [jumpFalse] ++ [jumpBack]
+
 convertExpression (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) args) = [NewEnv] ++ concatMap convertExpression args ++ [CallFuncName name]
 
 convertExpression _ = []
