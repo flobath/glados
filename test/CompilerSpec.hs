@@ -192,7 +192,7 @@ spec = do
                     PushValue (IntValue 7),
                     OpValue Lt,
                     JumpIfFalse 2,
-                    Jump (-8)
+                    Jump (-8),
                     PushEnv "a",
                     Return
                 ]
