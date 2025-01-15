@@ -218,18 +218,32 @@ spec = do
             execute' [
                     PushValue (IntValue 5),
                     StoreEnv "a",
-
                     PushEnv "a",
                     PushValue (IntValue 7),
                     OpValue Lt,
                     JumpIfFalse 6,
-
                     PushEnv "a",
                     PushValue (IntValue 1),
                     OpValue Add,
                     StoreEnv "a",
                     Jump (-8),
-
+                    PushEnv "a",
+                    Return
+                ]
+            `shouldBe` Right (IntValue 7)
+        it "execute do while loop" $ do
+            execute' [
+                    PushValue (IntValue 5),
+                    StoreEnv "a",
+                    PushEnv "a",
+                    PushValue (IntValue 1),
+                    OpValue Add,
+                    StoreEnv "a",
+                    PushEnv "a",
+                    PushValue (IntValue 7),
+                    OpValue Lt,
+                    JumpIfFalse 2,
+                    Jump (-8),
                     PushEnv "a",
                     Return
                 ]
