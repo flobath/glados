@@ -14,6 +14,7 @@ main = do
     file <- headOr args `orExitWith` "No input file to compile"
     eitherProgram <- readProgramFromFile file
     program <- eitherProgram `orelse` exitWithErrorMessage
-    result <- execute' program `orelse` exitWithErrorMessage
+    case execute' program of
+        Left err -> putStrLn err
+        Right (print, return) -> putStrLn print
 
-    print result

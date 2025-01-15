@@ -34,7 +34,8 @@ data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
 
 data Operator = Add | Sub | Mul | Div | Mod | Eq | Ne | Lt | Le | Gt | Ge | And | Or deriving (Show, Eq)
 
-data StackInstruction = PushValue Value | PushEnv String | StoreEnv String | Call Int | NewEnv | CallFuncName Text | Return | Jump Int | JumpIfFalse Int | OpValue Operator
+data StackInstruction = PushValue Value | PushEnv String | StoreEnv String | Call Int | NewEnv | CallFuncName Text
+    | Return | Jump Int | JumpIfFalse Int | OpValue Operator | Print Value
     deriving (Show, Eq)
 
 type Args = [Value]
@@ -146,14 +147,29 @@ orOperator :: Stack -> Either String Stack
 orOperator (BoolValue x : BoolValue y : xs) = Right (BoolValue (x || y) : xs)
 orOperator _ = Left "Cannot apply or"
 
+-- Print
+
+boolToString :: Bool -> String
+boolToString True = "true"
+boolToString False = "false"
+
+intToString :: Int64 -> String
+intToString = show
+
+printFunc :: Stack -> Either String String
+printFunc (x : xs) = case x of
+    IntValue n -> Right (intToString n)
+    BoolValue b -> Right (boolToString b)
+printFunc _ = Left "Cannot print"
+
 -- Execution
 
-execute' :: StackProgram -> Either String Value
+execute' :: StackProgram -> Either String (String, Value)
 execute' prog = execute [] [] prog 0 [] []
 
-execute :: [Environment] -> Args -> StackProgram -> ProgramCounter -> ReturnStack -> Stack -> Either String Value
+execute :: [Environment] -> Args -> StackProgram -> ProgramCounter -> ReturnStack -> Stack -> Either String (String, Value)
 execute _ _ [] _ _ stack = case pop stack of
-    Right (value, _) -> Right value
+    Right (value, _) -> Right ("", value)
     Left err -> Left err
 execute envStack args prog pc returnStack stack
     | pc >= length prog = Left "Program counter out of bounds"
@@ -161,7 +177,7 @@ execute envStack args prog pc returnStack stack
         Return -> case returnStack of
             (retAddr:rest) -> execute (tail envStack) args prog retAddr rest stack
             [] -> case pop stack of
-                Right (value, _) -> Right value
+                Right (value, _) -> Right ("", value)
                 Left err -> Left err
         PushValue x -> execute envStack args prog (pc + 1) returnStack (push x stack)
         PushEnv name -> case pushEnv name (head envStack) stack of
@@ -180,4 +196,9 @@ execute envStack args prog pc returnStack stack
         JumpIfFalse n -> case stack of
             (BoolValue False : _) -> execute envStack args prog (pc + n) returnStack stack
             _ -> execute envStack args prog (pc + 1) returnStack stack
+        Print x -> case execute envStack args prog (pc + 1) returnStack stack of
+            Right (output, value) -> case printFunc (x : stack) of
+                Right str -> Right (output ++ str, value)
+                Left err -> Left err
+            Left error -> Left error
         _ -> Left "Execution error"
