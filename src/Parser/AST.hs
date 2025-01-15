@@ -41,6 +41,7 @@ data Expression
     = ExprIfConditional Expression Expression (Maybe Expression)
     | ExprWhileLoop Expression Expression
     | ExprDoWhileLoop Expression Expression
+    | ExprForLoop Expression Expression Expression Expression
     | ExprFunctionCall Expression [Expression]
     | ExprOperation Operation
     | ExprBlock BlockExpression

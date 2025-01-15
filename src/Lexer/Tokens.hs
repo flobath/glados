@@ -26,6 +26,8 @@ data Keyword
     | KeyWUnless
     | KeyWWhile
     | KeyWDo
+    | KeyWFor
+    | KeyWIn
     | KeyWElse
     | KeyWFun
     | KeyWTrue
