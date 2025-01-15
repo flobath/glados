@@ -154,11 +154,23 @@ spec = do
         it "parenthesised expressions" $
             parseAndLex pExpression "(1 + 9) / abc"
             `shouldLexParse` eoDiv (eoAdd (eaInt 1) (eaInt 9)) (eaId "abc")
+        it "a - b - c = (a - b) - c" $
+            parseAndLex pExpression "a - b - c"
+            `shouldLexParse` eoSub (eoSub (eaId "a") (eaId "b")) (eaId "c")
 
     describe "conditionals" $ do
         it "if conditional without else arm" $
             parseAndLex pExpression "if (a) b"
             `shouldLexParse` eIf (eaId "a") (eaId "b") Nothing
+        it "if conditional without else arm (multiline)" $
+            parseAndLex pExpression "if\n(a)\nb"
+            `shouldLexParse` eIf (eaId "a") (eaId "b") Nothing
+        it "if conditional with an else arm (multiline)" $
+            parseAndLex pExpression "if\n(myvar > 8 * 4)\n8 + 3\nelse\nfalsecondition"
+            `shouldLexParse` eIf
+                (eoGt (eaId "myvar") (eoMul (eaInt 8) (eaInt 4)))
+                (eoAdd (eaInt 8) (eaInt 3))
+                (Just (eaId "falsecondition"))
         it "if conditional with an else arm" $
             parseAndLex pExpression "if (myvar > 8 * 4) 8 + 3 else falsecondition"
             `shouldLexParse` eIf
@@ -214,6 +226,12 @@ spec = do
                 (tId "i32")
                 (vId "myint")
                 (Just $ eaInt 42)
+        it "if statement" $
+            parseAndLex pStatement "if (a)\nb\n"
+            `shouldLexParse` sExpr (eIf (eaId "a") (eaId "b") Nothing)
+        it "if else statement" $
+            parseAndLex pStatement "if (a)\nb\nelse\nc\n"
+            `shouldLexParse` sExpr (eIf (eaId "a") (eaId "b") (Just (eaId "c")))
         context "assignment statement" $ do
             it "basic succes" $
                 parseAndLex pStatement "abc = 4;"
