@@ -25,8 +25,9 @@ module Parser (
     pConditionalBody,
     pIfConditional,
     pUnlessConditional,
-    pLoopBody,
+    pWhileLoopCondition,
     pWhileLoop,
+    pDoWhileLoop,
     pExpression,
     pGroupedExpression,
     pExprList,
@@ -220,21 +221,28 @@ pUnlessConditional = do
     let condition' = ExprOperation $ OpPrefix $ PreNot condition
     return $ ExprIfConditional condition' firstArm secondArm
 
-pLoopBody :: Parser (Expression, Expression)
-pLoopBody = do
-    condition <- pGroupedExpression
-    void manyEol
-    body <- pExpression
 
-    return (condition, body)
+pWhileLoopCondition :: Parser Expression
+pWhileLoopCondition = do
+    void (pKeyword KeyWWhile)
+    void manyEol
+    pGroupedExpression
 
 pWhileLoop :: Parser Expression
 pWhileLoop = do
-    void (pKeyword KeyWWhile)
+    condition <- pWhileLoopCondition
     void manyEol
-    (condition, body) <- pLoopBody
+    body <- pExpression
     return $ ExprWhileLoop condition body
 
+pDoWhileLoop :: Parser Expression
+pDoWhileLoop = do
+    void (pKeyword KeyWDo)
+    void manyEol
+    body <- pExpression
+    void manyEol
+    condition <- pWhileLoopCondition
+    return $ ExprDoWhileLoop body condition
 
 pExpression :: Parser Expression
 pExpression = choice
@@ -242,6 +250,7 @@ pExpression = choice
     , pIfConditional
     , pUnlessConditional
     , pWhileLoop
+    , pDoWhileLoop
     ] <?> "expression"
 
 pGroupedExpression :: Parser Expression

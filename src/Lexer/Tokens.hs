@@ -25,6 +25,7 @@ data Keyword
     | KeyWIf
     | KeyWUnless
     | KeyWWhile
+    | KeyWDo
     | KeyWElse
     | KeyWFun
     | KeyWTrue

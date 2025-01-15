@@ -175,6 +175,11 @@ spec = do
             `shouldLexParse` eWhile
                 (eoGt (eaId "myvar") (eoMul (eaInt 8) (eaInt 4)))
                 (eoAdd (eaInt 8) (eaInt 3))
+        it "do while loop" $
+            parseAndLex pExpression "do 8 + 3 while (myvar > 8 * 4)"
+            `shouldLexParse` eDoWhile
+                (eoAdd (eaInt 8) (eaInt 3))
+                (eoGt (eaId "myvar") (eoMul (eaInt 8) (eaInt 4)))
 
     describe "function calls" $ do
         it "call with no arguments" $
@@ -271,6 +276,24 @@ spec = do
                     (eBlk [
                         sAssi "a" (eoAdd (eaId "a") (eaInt 1))
                     ])
+                , sRet $ eaId "a"
+                ]
+        it "block containing var assignement and do while loop" $
+            parseAndLex pExpression "\
+                \{\n\
+                \   i32 a = 5\n\
+                \   do {\n\
+                \       a = a + 1\n\
+                \   } while (a < 7)\n\
+                \   return a\n\
+                \}"
+            `shouldLexParse` eBlk
+                [ sDecl (tId "i32") (vId "a") (Just $ eaInt 5)
+                , sExpr $ eDoWhile
+                    (eBlk [
+                        sAssi "a" (eoAdd (eaId "a") (eaInt 1))
+                    ])
+                    (eoLt (eaId "a") (eaInt 7))
                 , sRet $ eaId "a"
                 ]
         it "fail with missing end of statement" $
