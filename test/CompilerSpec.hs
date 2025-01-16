@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module CompilerSpec (spec) where
 
@@ -8,6 +9,7 @@ import StackMachine
 import ConvertASTtoInstructions
 
 import Data.Text (pack)
+import Parser.Shorthands
 
 typeId x = TypeIdentifier (pack x)
 varId x = VarIdentifier (pack x)
@@ -52,24 +54,26 @@ programF = Program (MainFunction [] (BlockExpression [localIntDecl "a" 5, localI
                 (BlockExpression [StReturn $ sumExpr (varRef "a") (intConstant 1)])
         ]
 programG = Program (MainFunction [] (BlockExpression [StReturn $ ExprFunctionCall (varRef "f") []])) []
-programH = Program (MainFunction [] (
-        BlockExpression [
-            localIntDecl "a" 5,
-            StExpression $ ExprWhileLoop
-                (ExprOperation (OpInfix (InfixLt (varRef "a") (intConstant 7))))
-                (ExprBlock (BlockExpression [setVar "a" (sumExpr (varRef "a") (intConstant 1))])),
-            StReturn (varRef "a")
+programH = Program (fnMain [] [
+            sDecl (tId "i32") (vId "a") (Just $ eaInt 5),
+            sExpr $ eWhile
+                (eoLt (eaId "a") (eaInt 7))
+                (eBlk [
+                    sAssi "a" (eoAdd (eaId "a") (eaInt 1))
+                ]),
+            sRet $ eaId "a"
         ]
-    )) []
-programI = Program (MainFunction [] (
-        BlockExpression [
-            localIntDecl "a" 5,
-            StExpression $ ExprDoWhileLoop
-                (ExprBlock (BlockExpression [setVar "a" (sumExpr (varRef "a") (intConstant 1))]))
-                (ExprOperation (OpInfix (InfixLt (varRef "a") (intConstant 7)))),
-            StReturn (varRef "a")
+    ) []
+programI = Program (fnMain [] [
+            sDecl (tId "i32") (vId "a") (Just $ eaInt 5),
+            sExpr $ eDoWhile
+                (eBlk [
+                    sAssi "a" (eoAdd (eaId "a") (eaInt 1))
+                ])
+                (eoLt (eaId "a") (eaInt 7)),
+            sRet $ eaId "a"
         ]
-    )) []
+    ) []
 
 spec :: Spec
 spec = do
