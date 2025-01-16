@@ -11,7 +11,7 @@ import Helpers (headOr, orExitWith, exitWithErrorMessage, orelse)
 main :: IO ()
 main = do
     args <- getArgs
-    file <- headOr args `orExitWith` "No input file to compile"
+    file <- headOr args `orExitWith` "No program to execute"
     eitherProgram <- readProgramFromFile file
     program <- eitherProgram `orelse` exitWithErrorMessage
     result <- execute' program `orelse` exitWithErrorMessage
