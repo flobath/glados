@@ -51,8 +51,8 @@ UnlessExpr  <- KeyW_unless  ConditionalBody
 # if/unless         condition             first arm              optional second arm
 ConditionalBody <- GroupedExpr AnySpacing Expression (AnySpacing KeyW_else Expression)?
 
-WhileExpr   <- KeyW_while   ConditionalBody
-DoWhileExpr <- KeyW_do      ConditionalBody
+WhileExpr   <- KeyW_while   WhileBody
+DoWhileExpr <- KeyW_do      DoWhileBody
 
 # while             condition             body
 ConditionalBody <- GroupedExpr AnySpacing Expression
