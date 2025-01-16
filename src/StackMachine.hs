@@ -34,7 +34,7 @@ data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
 
 data Operator = Add | Sub | Mul | Div | Mod | Eq | Ne | Lt | Le | Gt | Ge | And | Or deriving (Show, Eq)
 
-data StackInstruction = PushValue Value | PushEnv String | StoreEnv String | Call Int | NewEnv | CallFuncName Text | Return | Jump Int | JumpIfFalse Int | OpValue Operator
+data StackInstruction = PushValue Value | PushEnv String | StoreEnv String | Call Int | NewEnv | StoreArgs Text Int | CallFuncName Text | Return | Jump Int | JumpIfFalse Int | OpValue Operator
     deriving (Show, Eq)
 
 type Args = [Value]
@@ -150,6 +150,13 @@ orOperator _ = Left "Cannot apply or"
 
 execute' :: StackProgram -> Either String Value
 execute' prog = execute [[]] [] prog 0 [] []
+
+popN :: Int -> Stack -> Either String ([Value], Stack)
+popN n stack = if length stack < n
+  then Left "Cannot pop empty stack"
+    else
+  case splitAt n stack of
+    (values, stack') -> Right (values, stack')
 
 execute :: [Environment] -> Args -> StackProgram -> ProgramCounter -> ReturnStack -> Stack -> Either String Value
 execute _ _ [] _ _ stack = case pop stack of
