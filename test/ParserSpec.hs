@@ -187,6 +187,11 @@ spec = do
             `shouldLexParse` eWhile
                 (eoGt (eaId "myvar") (eoMul (eaInt 8) (eaInt 4)))
                 (eoAdd (eaInt 8) (eaInt 3))
+        it "until loop" $
+            parseAndLex pExpression "until (myvar > 8 * 4) 8 + 3"
+            `shouldLexParse` eWhile
+                (eoNot $ eoGt (eaId "myvar") (eoMul (eaInt 8) (eaInt 4)))
+                (eoAdd (eaInt 8) (eaInt 3))
         it "do while loop" $
             parseAndLex pExpression "do 8 + 3 while (myvar > 8 * 4)"
             `shouldLexParse` eDoWhile
@@ -293,6 +298,24 @@ spec = do
                     (eoLt (eaId "a") (eaInt 7))
                     (eBlk [
                         sAssi "a" (eoAdd (eaId "a") (eaInt 1))
+                    ])
+                , sRet $ eaId "a"
+                ]
+        it "block containing var assignement and until loop" $
+            parseAndLex pExpression "\
+                \{\n\
+                \   i32 a = 10\n\
+                \   until (a < 7) {\n\
+                \       a = a - 1\n\
+                \   }\n\
+                \   return a\n\
+                \}"
+            `shouldLexParse` eBlk
+                [ sDecl (tId "i32") (vId "a") (Just $ eaInt 10)
+                , sExpr $ eWhile
+                    (eoNot $ eoLt (eaId "a") (eaInt 7))
+                    (eBlk [
+                        sAssi "a" (eoSub (eaId "a") (eaInt 1))
                     ])
                 , sRet $ eaId "a"
                 ]

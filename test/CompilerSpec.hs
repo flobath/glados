@@ -65,6 +65,15 @@ programH = Program (fnMain [] [
         ]
     ) []
 programI = Program (fnMain [] [
+            sDecl (tId "i32") (vId "a") (Just $ eaInt 10),
+            sExpr $ eWhile
+                (eoNot $ eoLt (eaId "a") (eaInt 7))
+                (eBlk [
+                    sAssi "a" (eoSub (eaId "a") (eaInt 1))
+                ]),
+            sRet $ eaId "a"
+    ]) []
+programJ = Program (fnMain [] [
             sDecl (tId "i32") (vId "a") (Just $ eaInt 5),
             sExpr $ eDoWhile
                 (eBlk [
@@ -184,8 +193,26 @@ spec = do
                     PushEnv "a",
                     Return
                 ]
-        it "Simple do while return" $ do
+        it "Simple until return" $ do
             convertToStackInstructions programI `shouldBe` Right [
+                    PushValue (IntValue 10),
+                    StoreEnv "a",
+                    PushValue (IntValue 7),
+                    PushEnv "a",
+                    OpValue Lt,
+                    PushValue (BoolValue False),
+                    OpValue Eq,
+                    JumpIfFalse 6,
+                    PushValue (IntValue 1),
+                    PushEnv "a",
+                    OpValue Sub,
+                    StoreEnv "a",
+                    Jump (-10),
+                    PushEnv "a",
+                    Return
+                ]
+        it "Simple do while return" $ do
+            convertToStackInstructions programJ `shouldBe` Right [
                     PushValue (IntValue 5),
                     StoreEnv "a",
                     PushValue (IntValue 1),
