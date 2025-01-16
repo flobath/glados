@@ -149,7 +149,7 @@ orOperator _ = Left "Cannot apply or"
 -- Execution
 
 execute' :: StackProgram -> Either String Value
-execute' prog = execute [] [] prog 0 [] []
+execute' prog = execute [[]] [] prog 0 [] []
 
 execute :: [Environment] -> Args -> StackProgram -> ProgramCounter -> ReturnStack -> Stack -> Either String Value
 execute _ _ [] _ _ stack = case pop stack of

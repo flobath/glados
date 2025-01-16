@@ -4,6 +4,7 @@ module Parser.Internal (
     pKeyword,
     pControl,
     tryConsume,
+    maybeParse,
     tryParse,
     eol,
     pSepBy,
@@ -36,8 +37,11 @@ type ParserError = ParseErrorBundle TokenStream Void
 tryConsume :: Parser a -> Parser ()
 tryConsume p = void p <|> return ()
 
+maybeParse :: Parser a -> Parser (Maybe a)
+maybeParse p = (p <&> Just) <|> return Nothing
+
 tryParse :: Parser a -> Parser (Maybe a)
-tryParse p = (p <&> Just) <|> return Nothing
+tryParse p = (try p <&> Just) <|> return Nothing
 
 liftMyToken :: Token -> WithPos Token
 liftMyToken = WithPos pos pos 0
@@ -72,7 +76,7 @@ manyEol = hidden $ many eol
 -- The return value of the separator parser is discarded.
 pSepBy :: Parser a -> Parser b -> Parser [b]
 pSepBy sep p = do
-    x <- tryParse p             -- Attempt to parse a leading expr
+    x <- maybeParse p             -- Attempt to parse a leading expr
     xs <- many (try $ sep >> p) -- Parse all <sep expr>
     tryConsume sep              -- Ignore potential trailing separator
 
