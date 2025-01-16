@@ -51,13 +51,16 @@ UnlessExpr  <- KeyW_unless  ConditionalBody
 # if/unless         condition             first arm              optional second arm
 ConditionalBody <- GroupedExpr AnySpacing Expression (AnySpacing KeyW_else Expression)?
 
-WhileExpr   <- KeyW_while   ConditionalBody
-DoWhileExpr <- KeyW_do      ConditionalBody
+WhileExpr   <- KeyW_while   WhileBody
+UntilExpr   <- KeyW_until   WhileBody
 
-# while             condition             body
-ConditionalBody <- GroupedExpr AnySpacing Expression
+# while/until       condition             body
+WhileBody       <- GroupedExpr AnySpacing Expression
+
+DoWhileExpr <- KeyW_do      DoWhileBody
+
 # do                body                  condition
-ConditionalBody <- Expression  AnySpacing KeyW_while GroupedExpr
+DoWhileBody     <- Expression  AnySpacing KeyW_while GroupedExpr
 
 # OR is the least precedent operator, so an "operation"
 # (combination of any number of operators) is a LogicalOrExpr
@@ -128,10 +131,11 @@ NumericLiteral <- [0-9]+ InlineSpacing
 Keyword
     <- KeyW_fun
     /  KeyW_if
-    /  KeyW_while
-    /  KeyW_do
     /  keyW_unless
     /  KeyW_else
+    /  KeyW_while
+    /  KeyW_until
+    /  KeyW_do
     /  KeyW_return
     /  KeyW_true
     /  KeyW_false
@@ -139,10 +143,11 @@ Keyword
 
 KeyW_fun    <- 'fun'    EndOfWord AnySpacing
 KeyW_if     <- 'if'     EndOfWord AnySpacing
-KeyW_while  <- 'while'  EndOfWord AnySpacing
-KeyW_do     <- 'do'     EndOfWord AnySpacing
 KeyW_unless <- 'unless' EndOfWord AnySpacing
 KeyW_else   <- 'else'   EndOfWord AnySpacing
+KeyW_while  <- 'while'  EndOfWord AnySpacing
+KeyW_until  <- 'until'  EndOfWord AnySpacing
+KeyW_do     <- 'do'     EndOfWord AnySpacing
 KeyW_return <- 'return' EndOfWord InlineSpacing # 'return' can be a statement on its own
 KeyW_true   <- 'true'   EndOfWord InlineSpacing
 KeyW_false  <- 'false'  EndOfWord InlineSpacing

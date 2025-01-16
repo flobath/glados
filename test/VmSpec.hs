@@ -231,6 +231,25 @@ spec = do
                     Return
                 ]
             `shouldBe` Right (IntValue 7)
+        it "execute until loop" $ do
+            execute' [
+                    PushValue (IntValue 10),
+                    StoreEnv "a",
+                    PushValue (IntValue 7),
+                    PushEnv "a",
+                    OpValue Lt,
+                    PushValue (BoolValue False),
+                    OpValue Eq,
+                    JumpIfFalse 6,
+                    PushValue (IntValue 1),
+                    PushEnv "a",
+                    OpValue Sub,
+                    StoreEnv "a",
+                    Jump (-10),
+                    PushEnv "a",
+                    Return
+                ]
+            `shouldBe` Right (IntValue 6)
         it "execute do while loop" $ do
             execute' [
                     PushValue (IntValue 5),
