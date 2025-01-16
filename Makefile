@@ -12,6 +12,7 @@ all: $(TARGET)
 
 $(TARGET):
 	@stack build
+	@ln -sf $$(stack path --local-install-root)/bin/$(STACK_TARGET) $(TARGET)
 	@ln -sf $$(stack path --local-install-root)/bin/$(STACK_TARGET)-exe $(TARGET)-exe
 	@ln -sf $$(stack path --local-install-root)/bin/$(STACK_TARGET)-cmp $(TARGET)-cmp
 
