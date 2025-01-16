@@ -32,9 +32,34 @@ import Data.Text (Text)
 
 data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
 
-data Operator = Add | Sub | Mul | Div | Mod | Eq | Ne | Lt | Le | Gt | Ge | And | Or deriving (Show, Eq)
+data Operator
+    = Add
+    | Sub
+    | Mul
+    | Div
+    | Mod
+    | Eq
+    | Ne
+    | Lt
+    | Le
+    | Gt
+    | Ge
+    | And
+    | Or
+    deriving (Show, Eq)
 
-data StackInstruction = PushValue Value | PushEnv String | StoreEnv String | Call Int | NewEnv | StoreArgs Text Int | CallFuncName Text | Return | Jump Int | JumpIfFalse Int | OpValue Operator
+data StackInstruction
+    = PushValue Value
+    | PushEnv String
+    | StoreEnv String
+    | Call Int
+    | NewEnv
+    | StoreArgs Text Int
+    | CallFuncName Text
+    | Return
+    | Jump Int
+    | JumpIfFalse Int
+    | OpValue Operator
     deriving (Show, Eq)
 
 type Args = [Value]
