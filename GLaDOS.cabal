@@ -64,6 +64,8 @@ library
 executable GLaDOS-cmp
   main-is: Main-cmp.hs
   other-modules:
+      Compiler
+      VM
       Paths_GLaDOS
   autogen-modules:
       Paths_GLaDOS
@@ -89,6 +91,8 @@ executable GLaDOS-cmp
 executable GLaDOS-exe
   main-is: Main-exe.hs
   other-modules:
+      Compiler
+      VM
       Paths_GLaDOS
   autogen-modules:
       Paths_GLaDOS
