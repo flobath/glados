@@ -52,8 +52,7 @@ programF = Program (MainFunction [] (BlockExpression [localIntDecl "a" 5, localI
                 (BlockExpression [StReturn $ sumExpr (varRef "a") (intConstant 1)])
         ]
 programG = Program (MainFunction [] (BlockExpression [StReturn $ ExprFunctionCall (varRef "f") []])) []
-programH = Program (MainFunction [] (BlockExpression [])) [Function (pack "my_add") [VariableDeclaration (TypeIdentifier (pack "i32")) (VarIdentifier (pack "a")), VariableDeclaration (TypeIdentifier (pack "i32")) (VarIdentifier (pack "b"))] (Just (TypeIdentifier (pack "i32"))) (BlockExpression [StVariableDecl (VariableDeclaration (TypeIdentifier (pack "i32")) (VarIdentifier (pack "result"))) (Just (ExprAtomic (AtomIntLiteral 1))), StReturn (ExprOperation (OpInfix (InfixAdd (varRef "a") (varRef "z"))))])]
-
+programH = Program (MainFunction [] (BlockExpression [])) [Function (pack "my_add") [VariableDeclaration (typeId "i32") (varId "a"), VariableDeclaration (typeId "i32") (varId "b")] (Just $ typeId "i32") (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") (varId "result")) (Just (intConstant 1)), StReturn (sumExpr (varRef "a") (varRef "z"))])]
 
 spec :: Spec
 spec = do

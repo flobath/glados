@@ -151,13 +151,6 @@ orOperator _ = Left "Cannot apply or"
 execute' :: StackProgram -> Either String Value
 execute' prog = execute [[]] [] prog 0 [] []
 
-popN :: Int -> Stack -> Either String ([Value], Stack)
-popN n stack = if length stack < n
-  then Left "Cannot pop empty stack"
-    else
-  case splitAt n stack of
-    (values, stack') -> Right (values, stack')
-
 execute :: [Environment] -> Args -> StackProgram -> ProgramCounter -> ReturnStack -> Stack -> Either String Value
 execute _ _ [] _ _ stack = case pop stack of
     Right (value, _) -> Right value

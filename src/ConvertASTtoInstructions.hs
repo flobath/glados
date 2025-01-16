@@ -4,12 +4,11 @@ module ConvertASTtoInstructions (
 
 import Parser.AST
 import StackMachine
-import Data.Text (unpack)
+import Data.Text (unpack, Text)
 import Control.Monad (foldM)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
-import Debug.Trace (trace)
 
 convertToStackInstructions :: Program -> Either String [StackInstruction]
 convertToStackInstructions (Program mainFunc functions) = do
@@ -25,9 +24,9 @@ convertToStackInstructions (Program mainFunc functions) = do
 replaceStoreArgsWithEnv :: [StackInstruction] -> [Function] -> Either String [StackInstruction]
 replaceStoreArgsWithEnv instrs functions = mapM replace instrs
   where
-    funcMap = Map.fromList [(unpack name, params) | Function name params _ _ <- functions]
+    funcMap = Map.fromList [(name, params) | Function name params _ _ <- functions]
 
-    replace (StoreArgs funcName idx) = case Map.lookup (unpack funcName) funcMap of
+    replace (StoreArgs funcName idx) = case Map.lookup funcName funcMap of
       Just params -> if idx < length params
                      then let (VariableDeclaration _ (VarIdentifier paramName)) = params !! idx
                           in Right (StoreEnv (unpack paramName))
@@ -35,57 +34,57 @@ replaceStoreArgsWithEnv instrs functions = mapM replace instrs
       Nothing -> Left $ "Function '" ++ unpack funcName ++ "' not defined"
     replace instr = Right instr
 
-replaceCallFuncName :: [StackInstruction] -> Map.Map String Int -> Int -> Either String [StackInstruction]
+replaceCallFuncName :: [StackInstruction] -> Map.Map Text Int -> Int -> Either String [StackInstruction]
 replaceCallFuncName instrs funcLengths mainLength = mapM replace instrs
   where
     funcOffsets = scanl (+) mainLength (Map.elems funcLengths)
     funcMap = Map.fromList $ zip (Map.keys funcLengths) funcOffsets
 
-    replace (CallFuncName name) = case Map.lookup (unpack name) funcMap of
+    replace (CallFuncName name) = case Map.lookup name funcMap of
       Just idx -> Right (Call idx)
       Nothing -> Left $ "Function '" ++ unpack name ++ "' not defined"
     replace instr = Right instr
 
-getFunctionLength :: Set.Set String -> Function -> (String, Int)
+getFunctionLength :: Set.Set Text -> Function -> (Text, Int)
 getFunctionLength declaredVars func@(Function name _ _ _) =
   case convertFunction declaredVars func of
-    Right instrs -> (unpack name, length instrs)
-    Left err -> (unpack name, 0)
+    Right instrs -> (name, length instrs)
+    Left err -> (name, 0)
 
-generateFunctionMap :: [Function] -> Map.Map String Int
+generateFunctionMap :: [Function] -> Map.Map Text Int
 generateFunctionMap functions = Map.fromList $ map (getFunctionLength Set.empty) functions
 
-convertFunction :: Set.Set String -> Function -> Either String [StackInstruction]
+convertFunction :: Set.Set Text -> Function -> Either String [StackInstruction]
 convertFunction declaredVars (Function _ params _ (BlockExpression stmts)) = do
-    let paramNames = Set.fromList $ map (\(VariableDeclaration _ (VarIdentifier name)) -> unpack name) params
+    let paramNames = Set.fromList $ map (\(VariableDeclaration _ (VarIdentifier name)) -> name) params
     let newDeclaredVars = Set.union declaredVars paramNames
     (finalVars, instrs) <- foldM (\(vars, acc) stmt -> do
         (newVars, stmtInstrs) <- convertStatement vars stmt
         return (newVars, acc ++ stmtInstrs)) (newDeclaredVars, []) stmts
     return instrs
 
-convertMainFunction :: Set.Set String -> MainFunction -> Either String [StackInstruction]
+convertMainFunction :: Set.Set Text -> MainFunction -> Either String [StackInstruction]
 convertMainFunction declaredVars (MainFunction params (BlockExpression stmts)) = do
-    let paramNames = Set.fromList $ map (\(VariableDeclaration _ (VarIdentifier name)) -> unpack name) params
+    let paramNames = Set.fromList $ map (\(VariableDeclaration _ (VarIdentifier name)) -> name) params
     let newDeclaredVars = Set.union declaredVars paramNames
     (_, instrs) <- foldM (\(vars, acc) stmt -> do
         (newVars, stmtInstrs) <- convertStatement vars stmt
         return (newVars, acc ++ stmtInstrs)) (newDeclaredVars, []) stmts
     return instrs
 
-convertStatement :: Set.Set String -> Statement -> Either String (Set.Set String, [StackInstruction])
+convertStatement :: Set.Set Text -> Statement -> Either String (Set.Set Text, [StackInstruction])
 convertStatement declaredVars (StExpression expr) = do
     exprInstrs <- convertExpression declaredVars expr
     return (declaredVars, exprInstrs)
 convertStatement declaredVars (StVariableDecl (VariableDeclaration _ (VarIdentifier name)) (Just expr)) = do
     exprInstrs <- convertExpression declaredVars expr
-    let newDeclaredVars = Set.insert (unpack name) declaredVars
+    let newDeclaredVars = Set.insert name declaredVars
     return (newDeclaredVars, exprInstrs ++ [StoreEnv (unpack name)])
 convertStatement declaredVars (StVariableDecl (VariableDeclaration _ (VarIdentifier name)) Nothing) = do
-    let newDeclaredVars = Set.insert (unpack name) declaredVars
+    let newDeclaredVars = Set.insert name declaredVars
     return (newDeclaredVars, [PushValue (IntValue 0), StoreEnv (unpack name)])
 convertStatement declaredVars (StAssignment (VarIdentifier name) expr) = do
-    if Set.member (unpack name) declaredVars
+    if Set.member name declaredVars
         then do
             exprInstrs <- convertExpression declaredVars expr
             return (declaredVars, exprInstrs ++ [StoreEnv (unpack name)])
@@ -94,9 +93,9 @@ convertStatement declaredVars (StReturn expr) = do
     exprInstrs <- convertExpression declaredVars expr
     return (declaredVars, exprInstrs ++ [Return])
 
-convertExpression :: Set.Set String -> Expression -> Either String [StackInstruction]
+convertExpression :: Set.Set Text -> Expression -> Either String [StackInstruction]
 convertExpression declaredVars (ExprAtomic (AtomIdentifier (VarIdentifier name))) =
-    if Set.member (unpack name) declaredVars
+    if Set.member name declaredVars
         then Right [PushEnv (unpack name)]
         else Left $ "Variable '" ++ unpack name ++ "' not declared"
 convertExpression declaredVars (ExprAtomic (AtomIntLiteral n)) = Right [PushValue (IntValue n)]
@@ -146,7 +145,7 @@ convertExpression declaredVars (ExprFunctionCall (ExprAtomic (AtomIdentifier (Va
 
 convertExpression _ _ = Right []
 
-convertInfixOperation :: Set.Set String -> Expression -> Expression -> Operator -> Either String [StackInstruction]
+convertInfixOperation :: Set.Set Text -> Expression -> Expression -> Operator -> Either String [StackInstruction]
 convertInfixOperation declaredVars e1 e2 op = do
     e1Instrs <- convertExpression declaredVars e1
     e2Instrs <- convertExpression declaredVars e2
