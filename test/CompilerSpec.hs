@@ -9,6 +9,7 @@ import StackMachine
 import ConvertASTtoInstructions
 
 import Data.Text (pack)
+import Parser.Shorthands
 
 typeId x = TypeIdentifier (pack x)
 varId x = VarIdentifier (pack x)
@@ -153,3 +154,82 @@ spec = do
             convertToStackInstructions programG `shouldBe` Left "Function 'f' not defined"
         it "Missing variable" $ do
             convertToStackInstructions programH `shouldBe` Left "Variable 'z' not declared"
+        it "Simple while return" $ do
+            convertToStackInstructions (Program (fnMain [] [
+                        sDecl (tId "i32") (vId "a") (Just $ eaInt 5),
+                        sExpr $ eWhile
+                            (eoLt (eaId "a") (eaInt 7))
+                            (eBlk [
+                                sAssi "a" (eoAdd (eaId "a") (eaInt 1))
+                            ]),
+                        sRet $ eaId "a"
+                    ]
+                ) [])
+            `shouldBe` Right [
+                    PushValue (IntValue 5),
+                    StoreEnv "a",
+                    PushValue (IntValue 7),
+                    PushEnv "a",
+                    OpValue Lt,
+                    JumpIfFalse 6,
+                    PushValue (IntValue 1),
+                    PushEnv "a",
+                    OpValue Add,
+                    StoreEnv "a",
+                    Jump (-8),
+                    PushEnv "a",
+                    Return
+                ]
+        it "Simple until return" $ do
+            convertToStackInstructions (Program (fnMain [] [
+                        sDecl (tId "i32") (vId "a") (Just $ eaInt 10),
+                        sExpr $ eWhile
+                            (eoNot $ eoLt (eaId "a") (eaInt 7))
+                            (eBlk [
+                                sAssi "a" (eoSub (eaId "a") (eaInt 1))
+                            ]),
+                        sRet $ eaId "a"
+                ]) [])
+            `shouldBe` Right [
+                    PushValue (IntValue 10),
+                    StoreEnv "a",
+                    PushValue (IntValue 7),
+                    PushEnv "a",
+                    OpValue Lt,
+                    PushValue (BoolValue False),
+                    OpValue Eq,
+                    JumpIfFalse 6,
+                    PushValue (IntValue 1),
+                    PushEnv "a",
+                    OpValue Sub,
+                    StoreEnv "a",
+                    Jump (-10),
+                    PushEnv "a",
+                    Return
+                ]
+        it "Simple do while return" $ do
+            convertToStackInstructions (Program (fnMain [] [
+                        sDecl (tId "i32") (vId "a") (Just $ eaInt 5),
+                        sExpr $ eDoWhile
+                            (eBlk [
+                                sAssi "a" (eoAdd (eaId "a") (eaInt 1))
+                            ])
+                            (eoLt (eaId "a") (eaInt 7)),
+                        sRet $ eaId "a"
+                    ]
+                ) [])
+            `shouldBe` Right [
+                    PushValue (IntValue 5),
+                    StoreEnv "a",
+                    PushValue (IntValue 1),
+                    PushEnv "a",
+                    OpValue Add,
+                    StoreEnv "a",
+                    PushValue (IntValue 7),
+                    PushEnv "a",
+                    OpValue Lt,
+                    JumpIfFalse 2,
+                    Jump (-8),
+                    PushEnv "a",
+                    Return
+                ]

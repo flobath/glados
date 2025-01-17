@@ -138,6 +138,20 @@ convertExpression declaredVars (ExprIfConditional cond trueBranch falseBranch) =
         jumpEnd = Jump (length falseInstrs + 1)
     return $ condInstrs ++ [jumpFalse] ++ trueInstrs ++ [jumpEnd] ++ falseInstrs
 
+convertExpression declaredVars (ExprWhileLoop cond body) = do
+    condInstrs <- convertExpression declaredVars cond
+    bodyInstrs <- convertExpression declaredVars body
+    let jumpFalse = JumpIfFalse (length bodyInstrs + 2)
+        jumpBack = Jump (-length bodyInstrs - length condInstrs - 1)
+    return $ condInstrs ++ [jumpFalse] ++ bodyInstrs ++ [jumpBack]
+
+convertExpression declaredVars (ExprDoWhileLoop body cond) = do
+    bodyInstrs <- convertExpression declaredVars body
+    condInstrs <- convertExpression declaredVars cond
+    let jumpFalse = JumpIfFalse 2
+        jumpBack = Jump (-length bodyInstrs - length condInstrs - 1)
+    return $ bodyInstrs ++ condInstrs ++ [jumpFalse] ++ [jumpBack]
+
 convertExpression declaredVars (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) args) = do
     argsInstrs <- concat <$> mapM (convertExpression declaredVars) args
     return $ [NewEnv] ++ argsInstrs ++ zipWith (\i _ -> StoreArgs name (length args - i - 1)) [0..] args ++ [CallFuncName name]
