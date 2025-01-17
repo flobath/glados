@@ -1,3 +1,6 @@
+{-# LANGUAGE CPP #-}
+-- {-# OPTIONS_GHC -DDEBUG #-} -- Uncomment to activate tracing
+
 module StackMachine (
     Value(..),
     Operator(..),
@@ -29,6 +32,8 @@ module StackMachine (
 
 import Data.Int (Int64)
 import Data.Text (Text)
+import Debug.Trace
+import Helpers(myShowList)
 
 data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
 
@@ -177,12 +182,20 @@ execute' :: StackProgram -> Either String Value
 execute' prog = execute [[]] [] prog 0 [] []
 
 execute :: [Environment] -> Args -> StackProgram -> ProgramCounter -> ReturnStack -> Stack -> Either String Value
-execute _ _ [] _ _ stack = case pop stack of
+execute _ _ [] _ _ stack =
+#ifdef DEBUG
+    trace ("End of exec: left with stack: " ++ show stack) $
+#endif
+    case pop stack of
     Right (value, _) -> Right value
     Left err -> Left err
 execute envStack args prog pc returnStack stack
     | pc >= length prog = Left "Program counter out of bounds"
-    | otherwise = case prog !! pc of
+    | otherwise =
+#ifdef DEBUG
+        trace ("exec: " ++ show (prog !! pc) ++ "\n  envStack: " ++ myShowList envStack ++ "\n  args: " ++ show args ++ "\n  pc: " ++ show pc ++ "\n  retStack: " ++ myShowList returnStack ++ "\n  stack: " ++ myShowList stack) $
+#endif
+        case prog !! pc of
         Return -> case returnStack of
             (retAddr:rest) -> execute (tail envStack) args prog retAddr rest stack
             [] -> case pop stack of
