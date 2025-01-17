@@ -29,7 +29,7 @@ replaceStoreArgsWithEnv instrs functions = mapM replace instrs
     replace (StoreArgs funcName idx) = case Map.lookup funcName funcMap of
       Just params -> if idx < length params
                      then let (VariableDeclaration _ (VarIdentifier paramName)) = params !! idx
-                          in Right (StoreEnv (unpack paramName))
+                          in Right (StoreEnv paramName)
                      else Left $ "Index " ++ show idx ++ " out of bounds for function '" ++ unpack funcName ++ "'"
       Nothing -> Left $ "Function '" ++ unpack funcName ++ "' not defined"
     replace instr = Right instr
@@ -79,16 +79,15 @@ convertStatement declaredVars (StExpression expr) = do
 convertStatement declaredVars (StVariableDecl (VariableDeclaration _ (VarIdentifier name)) (Just expr)) = do
     exprInstrs <- convertExpression declaredVars expr
     let newDeclaredVars = Set.insert name declaredVars
-    return (newDeclaredVars, exprInstrs ++ [StoreEnv (unpack name)])
+    return (newDeclaredVars, exprInstrs ++ [StoreEnv name])
 convertStatement declaredVars (StVariableDecl (VariableDeclaration _ (VarIdentifier name)) Nothing) = do
     let newDeclaredVars = Set.insert name declaredVars
-    return (newDeclaredVars, [PushValue (IntValue 0), StoreEnv (unpack name)])
-convertStatement declaredVars (StAssignment (VarIdentifier name) expr) = do
-    if Set.member name declaredVars
-        then do
-            exprInstrs <- convertExpression declaredVars expr
-            return (declaredVars, exprInstrs ++ [StoreEnv (unpack name)])
-        else Left $ "Variable '" ++ unpack name ++ "' not declared"
+    return (newDeclaredVars, [PushValue (IntValue 0), StoreEnv name])
+convertStatement declaredVars (StAssignment (VarIdentifier name) expr) = if Set.member name declaredVars
+    then do
+        exprInstrs <- convertExpression declaredVars expr
+        return (declaredVars, exprInstrs ++ [StoreEnv name])
+    else Left $ "Variable '" ++ unpack name ++ "' not declared"
 convertStatement declaredVars (StReturn expr) = do
     exprInstrs <- convertExpression declaredVars expr
     return (declaredVars, exprInstrs ++ [Return])
@@ -96,7 +95,7 @@ convertStatement declaredVars (StReturn expr) = do
 convertExpression :: Set.Set Text -> Expression -> Either String [StackInstruction]
 convertExpression declaredVars (ExprAtomic (AtomIdentifier (VarIdentifier name))) =
     if Set.member name declaredVars
-        then Right [PushEnv (unpack name)]
+        then Right [PushEnv name]
         else Left $ "Variable '" ++ unpack name ++ "' not declared"
 convertExpression declaredVars (ExprAtomic (AtomIntLiteral n)) = Right [PushValue (IntValue n)]
 convertExpression declaredVars (ExprAtomic (AtomBooleanLiteral b)) = Right [PushValue (BoolValue b)]
@@ -141,7 +140,7 @@ convertExpression declaredVars (ExprIfConditional cond trueBranch falseBranch) =
 
 convertExpression declaredVars (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) args) = do
     argsInstrs <- concat <$> mapM (convertExpression declaredVars) args
-    return $ [NewEnv] ++ argsInstrs ++ zipWith (\i _ -> StoreArgs name ((length args) - i - 1)) [0..] args ++ [CallFuncName name]
+    return $ [NewEnv] ++ argsInstrs ++ zipWith (\i _ -> StoreArgs name (length args - i - 1)) [0..] args ++ [CallFuncName name]
 
 convertExpression _ _ = Right []
 

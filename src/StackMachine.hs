@@ -50,8 +50,8 @@ data Operator
 
 data StackInstruction
     = PushValue Value
-    | PushEnv String
-    | StoreEnv String
+    | PushEnv Text
+    | StoreEnv Text
     | Call Int
     | NewEnv
     | StoreArgs Text Int
@@ -68,7 +68,7 @@ type Stack = [Value]
 
 type StackProgram = [StackInstruction]
 
-type Environment = [(String, Value)]
+type Environment = [(Text, Value)]
 
 type ProgramCounter = Int
 
@@ -83,12 +83,12 @@ pop :: Stack -> Either String (Value, Stack)
 pop (x:xs) = Right (x, xs)
 pop [] = Left "Cannot pop empty stack"
 
-pushEnv :: String -> Environment -> Stack -> Either String Stack
+pushEnv :: Text -> Environment -> Stack -> Either String Stack
 pushEnv name env stack = case lookup name env of
     Just value -> Right (push value stack)
     Nothing -> Left "Cannot find value in environment"
 
-storeEnv :: String -> Environment -> Stack -> Either String Environment
+storeEnv :: Text -> Environment -> Stack -> Either String Environment
 storeEnv name env (value : stack) =
     let updatedEnv = case lookup name env of
                         Just _  -> map (\(k, v) -> if k == name then (k, value) else (k, v)) env
