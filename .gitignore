@@ -3,4 +3,6 @@ dist-*/
 *~
 .vscode/
 result
+glados-exe
+glados-cmp
 glados
