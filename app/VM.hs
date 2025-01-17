@@ -6,8 +6,6 @@ module VM (vm, disassembler) where
 import GldsBytecode(readProgramFromFile)
 import StackMachine (execute', StackProgram)
 import Helpers (headOr, orExitWith, exitWithErrorMessage, orelse, mapMToSnd, )
-import Data.Text (Text)
-import Control.Monad (forM)
 import Disassembly (disassembleFile)
 
 getProgram :: FilePath -> IO StackProgram
