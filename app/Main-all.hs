@@ -1,7 +1,7 @@
 module Main (main) where
 
 import System.Environment(getArgs)
-import VM(vm)
+import VM(vm, disassembler)
 import Compiler(compiler)
 import System.Exit (exitWith, ExitCode (ExitFailure))
 
@@ -9,8 +9,9 @@ type Module = (String, ([String] -> IO (), String))
 
 modules :: [Module]
 modules =
-    [ ("build", (compiler, "Produce an executable from source files"))
-    , ("exec",  (vm,       "Execute a previously built executable"))
+    [ ("build",       (compiler,     "Produce an executable from source files"))
+    , ("exec",        (vm,           "Execute a previously built executable"))
+    , ("disassemble", (disassembler, "Disassemble one or more executables"))
     ]
 
 helpMessage :: String

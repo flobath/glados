@@ -27,6 +27,7 @@ library
   exposed-modules:
       AlexToParsec
       ConvertASTtoInstructions
+      Disassembly
       GldsBytecode
       Helpers
       Lexer
@@ -55,6 +56,7 @@ library
     , bytestring
     , composition-prelude
     , containers
+    , ilist
     , megaparsec
     , monad-loops
     , text
@@ -82,6 +84,7 @@ executable GLaDOS
     , bytestring
     , composition-prelude
     , containers
+    , ilist
     , megaparsec
     , monad-loops
     , text
@@ -109,6 +112,7 @@ executable GLaDOS-cmp
     , bytestring
     , composition-prelude
     , containers
+    , ilist
     , megaparsec
     , monad-loops
     , text
@@ -136,6 +140,7 @@ executable GLaDOS-exe
     , bytestring
     , composition-prelude
     , containers
+    , ilist
     , megaparsec
     , monad-loops
     , text
@@ -168,6 +173,7 @@ test-suite GLaDOS-test
     , containers
     , hspec
     , hspec-megaparsec
+    , ilist
     , megaparsec
     , monad-loops
     , text
