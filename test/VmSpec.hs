@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module VmSpec (spec) where
 
 import Test.Hspec ( hspec, describe, it, shouldBe , shouldThrow, anyException, Spec)

@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module CompilerSpec (spec) where
 
@@ -46,12 +47,13 @@ programE = Program (MainFunction [] (BlockExpression [localDecl "a", setVar "a" 
 programF = Program (MainFunction [] (BlockExpression [localIntDecl "a" 5, localIntDecl "b" 5,
         StReturn $ ExprFunctionCall (varRef "f") [varRef "a", varRef "b"]
     ])) [
-            Function (pack "f") [VariableDeclaration (typeId "i32") $ varId "a", VariableDeclaration (typeId "i32") $ varId "b"] (Just $ typeId "i32")
-                (BlockExpression [StReturn $ sumExpr (varRef "a") (ExprFunctionCall (varRef "inc") [varRef "b"])]),
+            Function (pack "f") [VariableDeclaration (typeId "i32") $ varId "x", VariableDeclaration (typeId "i32") $ varId "y"] (Just $ typeId "i32")
+                (BlockExpression [StReturn $ sumExpr (varRef "x") (ExprFunctionCall (varRef "inc") [varRef "y"])]),
             Function (pack "inc") [VariableDeclaration (typeId "i32") $ varId "a"] (Just $ typeId "i32")
                 (BlockExpression [StReturn $ sumExpr (varRef "a") (intConstant 1)])
         ]
 programG = Program (MainFunction [] (BlockExpression [StReturn $ ExprFunctionCall (varRef "f") []])) []
+programH = Program (MainFunction [] (BlockExpression [])) [Function (pack "my_add") [VariableDeclaration (typeId "i32") (varId "a"), VariableDeclaration (typeId "i32") (varId "b")] (Just $ typeId "i32") (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") (varId "result")) (Just (intConstant 1)), StReturn (sumExpr (varRef "a") (varRef "z"))])]
 
 spec :: Spec
 spec = do
@@ -124,25 +126,30 @@ spec = do
                 ]
         it "Function call" $ do
             convertToStackInstructions programF `shouldBe` Right [
-                    PushValue (IntValue 5),
-                    StoreEnv "a",
-                    PushValue (IntValue 5),
-                    StoreEnv "b",
-                    NewEnv,
-                    PushEnv "a",
-                    PushEnv "b",
-                    Call 9,
-                    Return,
-                    NewEnv,
-                    PushEnv "b",
-                    Call 15,
-                    PushEnv "a",
-                    OpValue Add,
-                    Return,
-                    PushValue (IntValue 1),
-                    PushEnv "a",
-                    OpValue Add,
-                    Return
-                ]
+                PushValue (IntValue 5),
+                StoreEnv "a",
+                PushValue (IntValue 5),
+                StoreEnv "b",
+                NewEnv,
+                PushEnv "a",
+                PushEnv "b",
+                StoreEnv "y",
+                StoreEnv "x",
+                Call 11,
+                Return,
+                NewEnv,
+                PushEnv "y",
+                StoreEnv "a",
+                Call 18,
+                PushEnv "x",
+                OpValue Add,
+                Return,
+                PushValue (IntValue 1),
+                PushEnv "a",
+                OpValue Add,
+                Return
+              ]
         it "Missing function" $ do
-            convertToStackInstructions programG `shouldBe` Left "Function f not found"
+            convertToStackInstructions programG `shouldBe` Left "Function 'f' not defined"
+        it "Missing variable" $ do
+            convertToStackInstructions programH `shouldBe` Left "Variable 'z' not declared"

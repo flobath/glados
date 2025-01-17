@@ -10,6 +10,7 @@ module Helpers (
     exitWithErrorMessage,
     orExitWith,
     headOr,
+    mapMToSnd,
 ) where
 
 import Control.Applicative (Alternative((<|>)))
@@ -72,3 +73,10 @@ orExitWith f msg = f msg `orelse` exitWithErrorMessage
 headOr :: [a] -> b -> Either b a
 headOr [] b = Left b
 headOr (x:_) _ = Right x
+
+-- Alternate version of mapM which also returns the values to be mapped
+mapMToSnd :: Monad m => (a -> m b) -> [a] -> m [(a, b)]
+mapMToSnd f = foldr k (return [])
+    where
+        -- k :: a -> m [(a, b)] -> m [(a, b)]
+        k a r = do { x <- f a; xs <- r; return ((a, x):xs) }
