@@ -61,9 +61,38 @@ library
     , transformers
   default-language: Haskell2010
 
+executable GLaDOS
+  main-is: Main-all.hs
+  other-modules:
+      Compiler
+      VM
+      Paths_GLaDOS
+  autogen-modules:
+      Paths_GLaDOS
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-tools:
+      alex
+  build-depends:
+      GLaDOS
+    , array
+    , base >=4.7 && <5
+    , binary
+    , bytestring
+    , composition-prelude
+    , containers
+    , megaparsec
+    , monad-loops
+    , text
+    , transformers
+  default-language: Haskell2010
+
 executable GLaDOS-cmp
   main-is: Main-cmp.hs
   other-modules:
+      Compiler
+      VM
       Paths_GLaDOS
   autogen-modules:
       Paths_GLaDOS
@@ -89,6 +118,8 @@ executable GLaDOS-cmp
 executable GLaDOS-exe
   main-is: Main-exe.hs
   other-modules:
+      Compiler
+      VM
       Paths_GLaDOS
   autogen-modules:
       Paths_GLaDOS
