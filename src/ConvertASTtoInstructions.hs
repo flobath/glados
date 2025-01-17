@@ -97,8 +97,8 @@ convertExpression declaredVars (ExprAtomic (AtomIdentifier (VarIdentifier name))
     if Set.member name declaredVars
         then Right [PushEnv name]
         else Left $ "Variable '" ++ unpack name ++ "' not declared"
-convertExpression declaredVars (ExprAtomic (AtomIntLiteral n)) = Right [PushValue (IntValue n)]
-convertExpression declaredVars (ExprAtomic (AtomBooleanLiteral b)) = Right [PushValue (BoolValue b)]
+convertExpression _ (ExprAtomic (AtomIntLiteral n)) = Right [PushValue (IntValue n)]
+convertExpression _ (ExprAtomic (AtomBooleanLiteral b)) = Right [PushValue (BoolValue b)]
 
 convertExpression declaredVars (ExprOperation (OpInfix (InfixAdd e1 e2))) = convertInfixOperation declaredVars e2 e1 Add
 convertExpression declaredVars (ExprOperation (OpInfix (InfixSub e1 e2))) = convertInfixOperation declaredVars e2 e1 Sub

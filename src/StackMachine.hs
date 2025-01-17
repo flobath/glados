@@ -197,7 +197,7 @@ execute envStack args prog pc returnStack stack
             Left err -> Left err
         NewEnv -> execute ([]:envStack) args prog (pc + 1) returnStack stack
         Call n -> execute envStack args prog n (pc + 1 : returnStack) stack
-        CallFuncName name -> Left "Should not happen"
+        CallFuncName name -> Left $ "Call to " ++ show name ++ " Should not happen"
         OpValue op -> case applyOperator op stack of
             Left err -> Left err
             Right stack' -> execute envStack args prog (pc + 1) returnStack stack'
