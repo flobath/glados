@@ -16,8 +16,8 @@ data Token
     deriving (Show, Eq, Ord)
 
 -- we use 'newtype' instead of data because we only have one variant so far
-newtype Literal
-    = IntLiteral Int64
+data Literal
+    = IntLiteral Int64 | FloatLiteral Float
     deriving (Show, Eq, Ord)
 
 data Keyword

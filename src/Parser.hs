@@ -1,5 +1,6 @@
 module Parser (
     pIntLiteral,
+    pFloatLiteral,
     pVarIdentifier,
     pTypeIdentifier,
     pBoolean,
@@ -95,6 +96,7 @@ pBoolean = pKeyword KeyWTrue $> True
 pAtom :: Parser AtomicExpression
 pAtom = choice
     [ pIntLiteral       <&> AtomIntLiteral
+    , pFloatLiteral     <&> AtomFloatLiteral
     , pVarIdentifier    <&> AtomIdentifier
     , pBoolean          <&> AtomBooleanLiteral
     ]

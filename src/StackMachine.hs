@@ -32,12 +32,14 @@ module StackMachine (
 
 import Data.Int (Int64)
 import Data.Text (Text)
+import GHC.Float (Float)
 #ifdef DEBUG
 import Debug.Trace
 import Helpers(myShowList)
 #endif
 
-data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
+data Value = IntValue Int64 | BoolValue Bool | FloatValue Float
+            deriving (Show, Eq)
 
 data Operator
     = Add
@@ -122,23 +124,37 @@ applyOperator Or = orOperator
 
 addition :: Stack -> Either String Stack
 addition (IntValue x : IntValue y : xs) = Right (IntValue (x + y) : xs)
+addition (FloatValue x : FloatValue y : xs) = Right (FloatValue (x + y) : xs)
+addition (IntValue x : FloatValue y : xs) = Right (FloatValue (fromIntegral x + y) : xs)
+addition (FloatValue x : IntValue y : xs) = Right (FloatValue (x + fromIntegral y) : xs)
 addition _ = Left "Cannot apply addition"
 
 subtraction :: Stack -> Either String Stack
 subtraction (IntValue x : IntValue y : xs) = Right (IntValue (x - y) : xs)
+subtraction (FloatValue x : FloatValue y : xs) = Right (FloatValue (x - y) : xs)
+subtraction (IntValue x : FloatValue y : xs) = Right (FloatValue (fromIntegral x - y) : xs)
+subtraction (FloatValue x : IntValue y : xs) = Right (FloatValue (x - fromIntegral y) : xs)
 subtraction _ = Left "Cannot apply subtraction"
 
 multiplication :: Stack -> Either String Stack
 multiplication (IntValue x : IntValue y : xs) = Right (IntValue (x * y) : xs)
+multiplication (FloatValue x : FloatValue y : xs) = Right (FloatValue (x * y) : xs)
+multiplication (IntValue x : FloatValue y : xs) = Right (FloatValue (fromIntegral x * y) : xs)
+multiplication (FloatValue x : IntValue y : xs) = Right (FloatValue (x * fromIntegral y) : xs)
 multiplication _ = Left "Cannot apply multiplication"
 
 division :: Stack -> Either String Stack
-division (IntValue _ : IntValue 0 : _) = Left "Division by zero"
+division (_ : IntValue 0 : _) = Left "Division by zero"
+division (_ : FloatValue 0 : _) = Left "Division by zero"
 division (IntValue x : IntValue y : xs) = Right (IntValue (x `div` y) : xs)
+division (FloatValue x : FloatValue y : xs) = Right (FloatValue (x / y) : xs)
+division (IntValue x : FloatValue y : xs) = Right (FloatValue (fromIntegral x / y) : xs)
+division (FloatValue x : IntValue y : xs) = Right (FloatValue (x / fromIntegral y) : xs)
 division _ = Left "Cannot apply division"
 
 modulus :: Stack -> Either String Stack
-modulus (IntValue _ : IntValue 0 : _) = Left "Modulus by zero"
+modulus (_ : IntValue 0 : _) = Left "Modulus by zero"
+modulus (_ : FloatValue 0 : _) = Left "Modulus by zero"
 modulus (IntValue x : IntValue y : xs) = Right (IntValue (x `mod` y) : xs)
 modulus _ = Left "Cannot apply modulus"
 
@@ -147,27 +163,33 @@ modulus _ = Left "Cannot apply modulus"
 equal :: Stack -> Either String Stack
 equal (IntValue x : IntValue y : xs) = Right (BoolValue (x == y) : xs)
 equal (BoolValue x : BoolValue y : xs) = Right (BoolValue (x == y) : xs)
+equal (FloatValue x : FloatValue y : xs) = Right (BoolValue (x == y) : xs)
 equal _ = Left "Cannot apply equal"
 
 notEqual :: Stack -> Either String Stack
 notEqual (IntValue x : IntValue y : xs) = Right (BoolValue (x /= y) : xs)
 notEqual (BoolValue x : BoolValue y : xs) = Right (BoolValue (x /= y) : xs)
+notEqual (FloatValue x : FloatValue y : xs) = Right (BoolValue (x /= y) : xs)
 notEqual _ = Left "Cannot apply not equal"
 
 lessThan :: Stack -> Either String Stack
 lessThan (IntValue x : IntValue y : xs) = Right (BoolValue (x < y) : xs)
+lessThan (FloatValue x : FloatValue y : xs) = Right (BoolValue (x < y) : xs)
 lessThan _ = Left "Cannot apply less than"
 
 lessEqual :: Stack -> Either String Stack
 lessEqual (IntValue x : IntValue y : xs) = Right (BoolValue (x <= y) : xs)
+lessEqual (FloatValue x : FloatValue y : xs) = Right (BoolValue (x <= y) : xs)
 lessEqual _ = Left "Cannot apply less equal"
 
 greaterThan :: Stack -> Either String Stack
 greaterThan (IntValue x : IntValue y : xs) = Right (BoolValue (x > y) : xs)
+greaterThan (FloatValue x : FloatValue y : xs) = Right (BoolValue (x > y) : xs)
 greaterThan _ = Left "Cannot apply greater than"
 
 greaterEqual :: Stack -> Either String Stack
 greaterEqual (IntValue x : IntValue y : xs) = Right (BoolValue (x >= y) : xs)
+greaterEqual (FloatValue x : FloatValue y : xs) = Right (BoolValue (x >= y) : xs)
 greaterEqual _ = Left "Cannot apply greater equal"
 
 andOperator :: Stack -> Either String Stack
