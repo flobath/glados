@@ -1,99 +1,166 @@
 module ConvertASTtoInstructions (
-    convertToStackInstructions,
+    convertToStackInstructions
 ) where
 
 import Parser.AST
 import StackMachine
-import Data.Text (unpack)
+import Data.Text (unpack, Text)
+import Control.Monad (foldM)
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 
 
 convertToStackInstructions :: Program -> Either String [StackInstruction]
 convertToStackInstructions (Program mainFunc functions) = do
-    mainInstrs <- Right $ convertMainFunction mainFunc
-    funcInstrs <- concat <$> mapM (Right . convertFunction) functions
+    let declaredVars = Set.empty
+    mainInstrs <- convertMainFunction declaredVars mainFunc
+    funcInstrs <- concat <$> mapM (convertFunction declaredVars) functions
     let allInstrs = mainInstrs ++ funcInstrs
         funcLengths = generateFunctionMap functions
         mainLength = length allInstrs - sum (Map.elems funcLengths)
-    replaceCallFuncName allInstrs funcLengths mainLength
+    instrsWithCallFuncName <- replaceCallFuncName allInstrs funcLengths mainLength
+    replaceStoreArgsWithEnv instrsWithCallFuncName functions
 
-replaceCallFuncName :: [StackInstruction] -> Map.Map String Int -> Int -> Either String [StackInstruction]
+replaceStoreArgsWithEnv :: [StackInstruction] -> [Function] -> Either String [StackInstruction]
+replaceStoreArgsWithEnv instrs functions = mapM replace instrs
+  where
+    funcMap = Map.fromList [(name, params) | Function name params _ _ <- functions]
+
+    replace (StoreArgs funcName idx) = case Map.lookup funcName funcMap of
+      Just params -> if idx < length params
+                     then let (VariableDeclaration _ (VarIdentifier paramName)) = params !! idx
+                          in Right (StoreEnv paramName)
+                     else Left $ "Index " ++ show idx ++ " out of bounds for function '" ++ unpack funcName ++ "'"
+      Nothing -> Left $ "Function '" ++ unpack funcName ++ "' not defined"
+    replace instr = Right instr
+
+replaceCallFuncName :: [StackInstruction] -> Map.Map Text Int -> Int -> Either String [StackInstruction]
 replaceCallFuncName instrs funcLengths mainLength = mapM replace instrs
   where
     funcOffsets = scanl (+) mainLength (Map.elems funcLengths)
     funcMap = Map.fromList $ zip (Map.keys funcLengths) funcOffsets
 
-    replace (CallFuncName name) = case Map.lookup (unpack name) funcMap of
+    replace (CallFuncName name) = case Map.lookup name funcMap of
       Just idx -> Right (Call idx)
-      Nothing -> Left $ "Function " ++ unpack name ++ " not found"
+      Nothing -> Left $ "Function '" ++ unpack name ++ "' not defined"
     replace instr = Right instr
 
-generateFunctionMap :: [Function] -> Map.Map String Int
-generateFunctionMap functions = Map.fromList $ map getFunctionLength functions
-  where
-    getFunctionLength (Function name _ _ (BlockExpression stmts)) = (unpack name, length $ concatMap convertStatement stmts)
+getFunctionLength :: Set.Set Text -> Function -> (Text, Int)
+getFunctionLength declaredVars func@(Function name _ _ _) =
+  case convertFunction declaredVars func of
+    Right instrs -> (name, length instrs)
+    Left err -> (name, 0)
 
-convertFunction :: Function -> [StackInstruction]
-convertFunction (Function _ _ _ (BlockExpression stmts)) = concatMap convertStatement stmts
+generateFunctionMap :: [Function] -> Map.Map Text Int
+generateFunctionMap functions = Map.fromList $ map (getFunctionLength Set.empty) functions
 
-convertMainFunction :: MainFunction -> [StackInstruction] --TODO: take care of the arguments
-convertMainFunction (MainFunction _ (BlockExpression stmts)) = concatMap convertStatement stmts
+convertFunction :: Set.Set Text -> Function -> Either String [StackInstruction]
+convertFunction declaredVars (Function _ params _ (BlockExpression stmts)) = do
+    let paramNames = Set.fromList $ map (\(VariableDeclaration _ (VarIdentifier name)) -> name) params
+    let newDeclaredVars = Set.union declaredVars paramNames
+    (finalVars, instrs) <- foldM (\(vars, acc) stmt -> do
+        (newVars, stmtInstrs) <- convertStatement vars stmt
+        return (newVars, acc ++ stmtInstrs)) (newDeclaredVars, []) stmts
+    return instrs
 
-convertStatement :: Statement -> [StackInstruction]
-convertStatement (StExpression expr) = convertExpression expr
-convertStatement (StVariableDecl (VariableDeclaration _ (VarIdentifier name)) (Just expr)) =
-    convertExpression expr ++ [StoreEnv (unpack name)] -- TODO: take care of the type
-convertStatement (StVariableDecl (VariableDeclaration _ (VarIdentifier name)) Nothing) = [PushValue (IntValue 0), StoreEnv (unpack name)] -- TODO: have a default null value and take care of the type
-convertStatement (StAssignment (VarIdentifier name) expr) = convertExpression expr ++ [StoreEnv (unpack name)]
-convertStatement (StReturn expr) = convertExpression expr ++ [Return]
+convertMainFunction :: Set.Set Text -> MainFunction -> Either String [StackInstruction]
+convertMainFunction declaredVars (MainFunction params (BlockExpression stmts)) = do
+    let paramNames = Set.fromList $ map (\(VariableDeclaration _ (VarIdentifier name)) -> name) params
+    let newDeclaredVars = Set.union declaredVars paramNames
+    (_, instrs) <- foldM (\(vars, acc) stmt -> do
+        (newVars, stmtInstrs) <- convertStatement vars stmt
+        return (newVars, acc ++ stmtInstrs)) (newDeclaredVars, []) stmts
+    return instrs
 
-convertExpression :: Expression -> [StackInstruction]
-convertExpression (ExprAtomic (AtomIntLiteral n)) = [PushValue (IntValue n)]
-convertExpression (ExprAtomic (AtomBooleanLiteral b)) = [PushValue (BoolValue b)]
-convertExpression (ExprAtomic (AtomIdentifier (VarIdentifier name))) = [PushEnv (unpack name)]
+convertStatement :: Set.Set Text -> Statement -> Either String (Set.Set Text, [StackInstruction])
+convertStatement declaredVars (StExpression expr) = do
+    exprInstrs <- convertExpression declaredVars expr
+    return (declaredVars, exprInstrs)
+convertStatement declaredVars (StVariableDecl (VariableDeclaration _ (VarIdentifier name)) (Just expr)) = do
+    exprInstrs <- convertExpression declaredVars expr
+    let newDeclaredVars = Set.insert name declaredVars
+    return (newDeclaredVars, exprInstrs ++ [StoreEnv name])
+convertStatement declaredVars (StVariableDecl (VariableDeclaration _ (VarIdentifier name)) Nothing) = do
+    let newDeclaredVars = Set.insert name declaredVars
+    return (newDeclaredVars, [PushValue (IntValue 0), StoreEnv name])
+convertStatement declaredVars (StAssignment (VarIdentifier name) expr) = if Set.member name declaredVars
+    then do
+        exprInstrs <- convertExpression declaredVars expr
+        return (declaredVars, exprInstrs ++ [StoreEnv name])
+    else Left $ "Variable '" ++ unpack name ++ "' not declared"
+convertStatement declaredVars (StReturn expr) = do
+    exprInstrs <- convertExpression declaredVars expr
+    return (declaredVars, exprInstrs ++ [Return])
 
-convertExpression (ExprOperation (OpInfix (InfixAdd e1 e2))) = convertExpression e2 ++ convertExpression e1 ++ [OpValue Add]
-convertExpression (ExprOperation (OpInfix (InfixSub e1 e2))) = convertExpression e2 ++ convertExpression e1 ++ [OpValue Sub]
-convertExpression (ExprOperation (OpInfix (InfixMul e1 e2))) = convertExpression e2 ++ convertExpression e1 ++ [OpValue Mul]
-convertExpression (ExprOperation (OpInfix (InfixDiv e1 e2))) = convertExpression e2 ++ convertExpression e1 ++ [OpValue Div]
-convertExpression (ExprOperation (OpInfix (InfixMod e1 e2))) = convertExpression e2 ++ convertExpression e1 ++ [OpValue Mod]
-convertExpression (ExprOperation (OpInfix (InfixEq e1 e2))) = convertExpression e2 ++ convertExpression e1 ++ [OpValue Eq]
-convertExpression (ExprOperation (OpInfix (InfixNeq e1 e2))) = convertExpression e2 ++ convertExpression e1 ++ [OpValue Ne]
-convertExpression (ExprOperation (OpInfix (InfixGt e1 e2))) = convertExpression e2 ++ convertExpression e1 ++ [OpValue Gt]
-convertExpression (ExprOperation (OpInfix (InfixGe e1 e2))) = convertExpression e2 ++ convertExpression e1 ++ [OpValue Ge]
-convertExpression (ExprOperation (OpInfix (InfixLt e1 e2))) = convertExpression e2 ++ convertExpression e1 ++ [OpValue Lt]
-convertExpression (ExprOperation (OpInfix (InfixLe e1 e2))) = convertExpression e2 ++ convertExpression e1 ++ [OpValue Le]
-convertExpression (ExprOperation (OpInfix (InfixAnd e1 e2))) = convertExpression e2 ++ convertExpression e1 ++ [OpValue And]
-convertExpression (ExprOperation (OpInfix (InfixOr e1 e2))) = convertExpression e2 ++ convertExpression e1 ++ [OpValue Or]
+convertExpression :: Set.Set Text -> Expression -> Either String [StackInstruction]
+convertExpression declaredVars (ExprAtomic (AtomIdentifier (VarIdentifier name))) =
+    if Set.member name declaredVars
+        then Right [PushEnv name]
+        else Left $ "Variable '" ++ unpack name ++ "' not declared"
+convertExpression _ (ExprAtomic (AtomIntLiteral n)) = Right [PushValue (IntValue n)]
+convertExpression _ (ExprAtomic (AtomBooleanLiteral b)) = Right [PushValue (BoolValue b)]
 
-convertExpression (ExprOperation (OpPrefix (PreNot e))) = convertExpression e ++ [PushValue (BoolValue False), OpValue Eq]
-convertExpression (ExprOperation (OpPrefix (PrePlus e))) = convertExpression e ++ [PushValue (IntValue 1), OpValue Add]
-convertExpression (ExprOperation (OpPrefix (PreNeg e))) = convertExpression e ++ [PushValue (IntValue 1), OpValue Sub]
+convertExpression declaredVars (ExprOperation (OpInfix (InfixAdd e1 e2))) = convertInfixOperation declaredVars e2 e1 Add
+convertExpression declaredVars (ExprOperation (OpInfix (InfixSub e1 e2))) = convertInfixOperation declaredVars e2 e1 Sub
+convertExpression declaredVars (ExprOperation (OpInfix (InfixMul e1 e2))) = convertInfixOperation declaredVars e2 e1 Mul
+convertExpression declaredVars (ExprOperation (OpInfix (InfixDiv e1 e2))) = convertInfixOperation declaredVars e2 e1 Div
+convertExpression declaredVars (ExprOperation (OpInfix (InfixMod e1 e2))) = convertInfixOperation declaredVars e2 e1 Mod
+convertExpression declaredVars (ExprOperation (OpInfix (InfixEq e1 e2))) = convertInfixOperation declaredVars e2 e1 Eq
+convertExpression declaredVars (ExprOperation (OpInfix (InfixNeq e1 e2))) = convertInfixOperation declaredVars e2 e1 Ne
+convertExpression declaredVars (ExprOperation (OpInfix (InfixGt e1 e2))) = convertInfixOperation declaredVars e2 e1 Gt
+convertExpression declaredVars (ExprOperation (OpInfix (InfixGe e1 e2))) = convertInfixOperation declaredVars e2 e1 Ge
+convertExpression declaredVars (ExprOperation (OpInfix (InfixLt e1 e2))) = convertInfixOperation declaredVars e2 e1 Lt
+convertExpression declaredVars (ExprOperation (OpInfix (InfixLe e1 e2))) = convertInfixOperation declaredVars e2 e1 Le
+convertExpression declaredVars (ExprOperation (OpInfix (InfixAnd e1 e2))) = convertInfixOperation declaredVars e2 e1 And
+convertExpression declaredVars (ExprOperation (OpInfix (InfixOr e1 e2))) = convertInfixOperation declaredVars e2 e1 Or
 
-convertExpression (ExprBlock (BlockExpression stmts)) = concatMap convertStatement stmts
+convertExpression declaredVars (ExprOperation (OpPrefix (PreNot e))) = do
+    eInstrs <- convertExpression declaredVars e
+    return $ eInstrs ++ [PushValue (BoolValue False), OpValue Eq]
+convertExpression declaredVars (ExprOperation (OpPrefix (PrePlus e))) = do
+    eInstrs <- convertExpression declaredVars e
+    return $ eInstrs ++ [PushValue (IntValue 1), OpValue Add]
+convertExpression declaredVars (ExprOperation (OpPrefix (PreNeg e))) = do
+    eInstrs <- convertExpression declaredVars e
+    return $ eInstrs ++ [PushValue (IntValue 1), OpValue Sub]
 
-convertExpression (ExprIfConditional cond trueBranch falseBranch) =
-    let condInstrs = convertExpression cond
-        trueInstrs = convertExpression trueBranch
-        falseInstrs = maybe [] convertExpression falseBranch
-        jumpFalse = JumpIfFalse (length trueInstrs + 2)
+convertExpression declaredVars (ExprBlock (BlockExpression stmts)) = do
+    (_, instrs) <- foldM (\(vars, acc) stmt -> do
+        (newVars, stmtInstrs) <- convertStatement vars stmt
+        return (newVars, acc ++ stmtInstrs)) (declaredVars, []) stmts
+    return instrs
+
+convertExpression declaredVars (ExprIfConditional cond trueBranch falseBranch) = do
+    condInstrs <- convertExpression declaredVars cond
+    trueInstrs <- convertExpression declaredVars trueBranch
+    falseInstrs <- maybe (Right []) (convertExpression declaredVars) falseBranch
+    let jumpFalse = JumpIfFalse (length trueInstrs + 2)
         jumpEnd = Jump (length falseInstrs + 1)
-    in condInstrs ++ [jumpFalse] ++ trueInstrs ++ [jumpEnd] ++ falseInstrs
+    return $ condInstrs ++ [jumpFalse] ++ trueInstrs ++ [jumpEnd] ++ falseInstrs
 
-convertExpression (ExprWhileLoop cond body) =
-    let condInstrs = convertExpression cond
-        bodyInstrs = convertExpression body
-        jumpFalse = JumpIfFalse (length bodyInstrs + 2)
-        jumpBack = Jump (-length bodyInstrs - length condInstrs - 1)
-    in condInstrs ++ [jumpFalse] ++ bodyInstrs ++ [jumpBack]
+-- convertExpression (ExprWhileLoop cond body) =
+--     let condInstrs = convertExpression cond
+--         bodyInstrs = convertExpression body
+--         jumpFalse = JumpIfFalse (length bodyInstrs + 2)
+--         jumpBack = Jump (-length bodyInstrs - length condInstrs - 1)
+--     in condInstrs ++ [jumpFalse] ++ bodyInstrs ++ [jumpBack]
 
-convertExpression (ExprDoWhileLoop body cond) =
-    let bodyInstrs = convertExpression body
-        condInstrs = convertExpression cond
-        jumpFalse = JumpIfFalse 2
-        jumpBack = Jump (-length bodyInstrs - length condInstrs - 1)
-    in bodyInstrs ++ condInstrs ++ [jumpFalse] ++ [jumpBack]
+-- convertExpression (ExprDoWhileLoop body cond) =
+--     let bodyInstrs = convertExpression body
+--         condInstrs = convertExpression cond
+--         jumpFalse = JumpIfFalse 2
+--         jumpBack = Jump (-length bodyInstrs - length condInstrs - 1)
+--     in bodyInstrs ++ condInstrs ++ [jumpFalse] ++ [jumpBack]
 
-convertExpression (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) args) = [NewEnv] ++ concatMap convertExpression args ++ [CallFuncName name]
+convertExpression declaredVars (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) args) = do
+    argsInstrs <- concat <$> mapM (convertExpression declaredVars) args
+    return $ [NewEnv] ++ argsInstrs ++ zipWith (\i _ -> StoreArgs name (length args - i - 1)) [0..] args ++ [CallFuncName name]
 
-convertExpression _ = []
+convertExpression _ _ = Right []
+
+convertInfixOperation :: Set.Set Text -> Expression -> Expression -> Operator -> Either String [StackInstruction]
+convertInfixOperation declaredVars e1 e2 op = do
+    e1Instrs <- convertExpression declaredVars e1
+    e2Instrs <- convertExpression declaredVars e2
+    return $ e1Instrs ++ e2Instrs ++ [OpValue op]
+

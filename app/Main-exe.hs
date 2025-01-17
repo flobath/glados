@@ -1,8 +1,9 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
 
+import System.Environment (getArgs)
+import VM(vm)
+
 main :: IO ()
-main = do
-    return ()
+main = vm =<< getArgs
