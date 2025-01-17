@@ -58,9 +58,12 @@ serializeInstruction (JumpIfFalse n) = do
 serializeInstruction (OpValue op) = do
     putWord8 8
     serializeOperator op
+serializeInstruction NewEnv = putWord8 9
 serializeInstruction (Print value) = do
-    putWord8 9
+    putWord8 10
     serializeValue value
+serializeInstruction instr = error $
+    "Instruction not implemented: " ++ show instr
 serializeInstruction _ = error "Not implemented"
 
 serializeProgram :: StackProgram -> Put
@@ -112,7 +115,8 @@ deserializeInstruction = do
         6 -> Right . Jump . fromIntegral <$> getInt32le
         7 -> Right . JumpIfFalse . fromIntegral <$> getInt32le
         8 -> fmap OpValue <$> deserializeOperator
-        9 -> fmap Print <$> deserializeValue
+        9 -> return $ Right NewEnv
+        10 -> fmap Print <$> deserializeValue
         _ -> return $ Left "Unknown Instruction tag"
 
 deserializeProgram :: Get (Either String StackProgram)

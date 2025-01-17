@@ -165,7 +165,7 @@ printFunc _ = Left "Cannot print"
 -- Execution
 
 execute' :: StackProgram -> Either String (String, Value)
-execute' prog = execute [] [] prog 0 [] []
+execute' prog = execute [[]] [] prog 0 [] []
 
 execute :: [Environment] -> Args -> StackProgram -> ProgramCounter -> ReturnStack -> Stack -> Either String (String, Value)
 execute _ _ [] _ _ stack = case pop stack of

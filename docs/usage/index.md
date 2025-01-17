@@ -38,62 +38,10 @@ If you just want to run the project to test it out, you don't need to bother usi
 
 To run the project, follow these steps:
 
-1. Open a terminal in the folder where the project binary (`glados`) is located.
-2. Run the following command to execute the project with an input file:
-    ```bash
-    ./glados < file.scm
-    ```
-    Replace `file.scm` with the path to your input file.
-
-3. Alternatively, you can run the project and enter your LISP code directly on the command line:
-    ```bash
-    ./glados
-    ```
-    This will start an interactive session where you can input your LISP code.
-
 ### Running with nix
 
 If you're working with [nix](https://nixos.org/) and nix flakes, you can run our program from anywhere, by simply running `nix run github:flobath/glados` in your shell. You can even run any specific version by specifying a branch name, for example `nix run github:flobath/glados/Release-1.0`.
 
 ## Examples
 
-Here are some examples to demonstrate how to use the GLaDOS interpreter.
-Some example files containing LISP code can be found in the `examples` directory under the root of the project repository.
-
-### Example 1: Running a Script from a File
-
-You can run a Scheme script from a file using the following command:
-
-```bash
-./glados < ./examples/example1.scm
-```
-
-**Content of `example1.scm`:**
-```scheme
-(define foo 21)
-(* foo 2)
-```
-
-**Expected Output:**
-```
-42
-```
-
-### Example 2: Interactive Session
-
-You can also start an interactive session to input your LISP code directly:
-
-```bash
-./glados
-```
-
-This will start an interactive session where you can input your LISP code. For example:
-
-```
-=================
-  Glados scheme
-=================
-> (define foo 21)
-> (* foo 2)
-42
-```
+Here are some examples to demonstrate how to use the GLaDOS.

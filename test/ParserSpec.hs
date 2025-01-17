@@ -12,18 +12,27 @@ import Test.Hspec (
     Spec,
     describe,
     it,
-    shouldBe
+    shouldBe,
+    context,
     )
 import Text.Megaparsec (ShowErrorComponent, VisualStream, TraversableStream, ParseErrorBundle, errorBundlePretty, parse, Parsec)
-import Parser2 (
+import Parser (
     pExpression,
     pExpression,
     pTypeIdentifier,
-    pVariableDecl, pReturnStatement, pVariableDeclStatement, pBlockExpression, pFunction, pMainFunction, pProgram
+    pVariableDecl,
+    pStatement,
+    pBlockExpression,
+    pFunction,
+    pMainFunction,
+    pProgram,
     )
 import Parser.WithPos(withPos)
 import Lexer (showLexError, alexScanTokens)
-import Lexer.Tokens(Token(Control))
+import Lexer.Tokens (
+    Token(..),
+    ControlSequence(..),
+    )
 import Parser.ParseAndLex (
     ParseLexError(..),
     parseAndLex,
@@ -32,8 +41,7 @@ import Parser.ParseAndLex (
 import Parser.Shorthands
 import Parser.AST (BlockExpression(BlockExpression), Function (Function), MainFunction (MainFunction), Program (Program))
 import Test.Hspec.Megaparsec (etok, err, utok, shouldFailWith, elabel)
-import Lexer.Tokens (ControlSequence(..), Token (Identifier))
-import Parser.Internal2 (liftMyToken)
+import Parser.Internal (liftMyToken)
 import AlexToParsec (TokenStream(..))
 import Data.Text (Text)
 
@@ -146,11 +154,23 @@ spec = do
         it "parenthesised expressions" $
             parseAndLex pExpression "(1 + 9) / abc"
             `shouldLexParse` eoDiv (eoAdd (eaInt 1) (eaInt 9)) (eaId "abc")
+        it "a - b - c = (a - b) - c" $
+            parseAndLex pExpression "a - b - c"
+            `shouldLexParse` eoSub (eoSub (eaId "a") (eaId "b")) (eaId "c")
 
     describe "conditionals" $ do
         it "if conditional without else arm" $
             parseAndLex pExpression "if (a) b"
             `shouldLexParse` eIf (eaId "a") (eaId "b") Nothing
+        it "if conditional without else arm (multiline)" $
+            parseAndLex pExpression "if\n(a)\nb"
+            `shouldLexParse` eIf (eaId "a") (eaId "b") Nothing
+        it "if conditional with an else arm (multiline)" $
+            parseAndLex pExpression "if\n(myvar > 8 * 4)\n8 + 3\nelse\nfalsecondition"
+            `shouldLexParse` eIf
+                (eoGt (eaId "myvar") (eoMul (eaInt 8) (eaInt 4)))
+                (eoAdd (eaInt 8) (eaInt 3))
+                (Just (eaId "falsecondition"))
         it "if conditional with an else arm" $
             parseAndLex pExpression "if (myvar > 8 * 4) 8 + 3 else falsecondition"
             `shouldLexParse` eIf
@@ -195,17 +215,37 @@ spec = do
 
     describe "basic statements" $ do
         it "return statement" $
-            parseAndLex pReturnStatement "return a"
+            parseAndLex pStatement "return a;"
             `shouldLexParse` sRet (eaId "a")
         it "var decl statement (no value)" $
-            parseAndLex pVariableDeclStatement "i32 myint"
+            parseAndLex pStatement "i32 myint;"
             `shouldLexParse` sDecl (tId "i32") (vId "myint") Nothing
         it "var decl statement with initialiser" $
-            parseAndLex pVariableDeclStatement "i32 myint = 42"
+            parseAndLex pStatement "i32 myint = 42\n"
             `shouldLexParse` sDecl
                 (tId "i32")
                 (vId "myint")
                 (Just $ eaInt 42)
+        it "if statement" $
+            parseAndLex pStatement "if (a)\nb\n"
+            `shouldLexParse` sExpr (eIf (eaId "a") (eaId "b") Nothing)
+        it "if else statement" $
+            parseAndLex pStatement "if (a)\nb\nelse\nc\n"
+            `shouldLexParse` sExpr (eIf (eaId "a") (eaId "b") (Just (eaId "c")))
+        context "assignment statement" $ do
+            it "basic succes" $
+                parseAndLex pStatement "abc = 4;"
+                `shouldLexParse` sAssi "abc" (eaInt 4)
+            it "assign to function call" $
+                parseAndLex pStatement "x = f(a, b)\n"
+                `shouldLexParse` sAssi "x" (eCall (eaId "f") [eaId "a", eaId "b"])
+            it "missing expression" $
+                lexParse pStatement "myvar =;"
+                `shouldFailWith` err 2 (
+                    utok (withPos 1 8 1 9 1 (Control Semicolon))
+                    <> elabel "expression"
+                )
+
 
     describe "block expressions" $ do
         it "empty block" $
