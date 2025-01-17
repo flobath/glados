@@ -7,8 +7,13 @@ import StackMachine (Value(..), Operator(..), StackInstruction(..), StackProgram
 import Data.Binary.Put
 import Data.Binary.Get
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import Control.Monad (replicateM)
 import Data.Word (Word8)
+import Helpers((?:), (>&<), ffmap)
+import qualified Data.Text.Encoding
+import qualified Data.Text.Lazy.Encoding
 
 -- Serialize
 
@@ -35,16 +40,21 @@ serializeOperator Ge = putWord8 10
 serializeOperator And = putWord8 11
 serializeOperator Or = putWord8 12
 
+putText :: T.Text -> Put
+putText t
+    = putByteString (Data.Text.Encoding.encodeUtf8 t)
+    >> putWord8 0
+
 serializeInstruction :: StackInstruction -> Put
 serializeInstruction (PushValue value) = do
     putWord8 0
     serializeValue value
 serializeInstruction (PushEnv name) = do
     putWord8 2
-    putByteString (BL.toStrict (BL.pack (map (fromIntegral . fromEnum) name ++ [0])))
+    putText name
 serializeInstruction (StoreEnv name) = do
     putWord8 3
-    putByteString (BL.toStrict (BL.pack (map (fromIntegral . fromEnum) name ++ [0])))
+    putText name
 serializeInstruction (Call n) = do
     putWord8 4
     putInt32le (fromIntegral n)
@@ -104,8 +114,8 @@ deserializeInstruction = do
     tag <- getWord8
     case tag of
         0 -> fmap PushValue <$> deserializeValue
-        2 -> fmap PushEnv <$> getNullTerminatedString
-        3 -> fmap StoreEnv <$> getNullTerminatedString
+        2 -> fmap PushEnv <$> getNullTerminatedText
+        3 -> fmap StoreEnv <$> getNullTerminatedText
         4 -> Right . Call . fromIntegral <$> getInt32le
         5 -> return $ Right Return
         6 -> Right . Jump . fromIntegral <$> getInt32le
@@ -129,19 +139,25 @@ deserializeProgram = do
                         Left err -> return $ Left err
                         Right r -> return $ Right (i : r)
 
-getNullTerminatedString :: Get (Either String String)
-getNullTerminatedString = do
+getNullTerminatedLazyText :: Get (Either String TL.Text)
+getNullTerminatedLazyText = do
     bytes <- getBytesUntilNull
-    return $ Right $ map (toEnum . fromIntegral) bytes
+    let lbs = BL.pack bytes
+    let eitherT = Data.Text.Lazy.Encoding.decodeUtf8' lbs
+    return $ eitherT >&< show
+
+getNullTerminatedText :: Get (Either String T.Text)
+getNullTerminatedText = ffmap TL.toStrict getNullTerminatedLazyText
+
+getNullTerminatedString :: Get String
+getNullTerminatedString = map (toEnum . fromIntegral) <$> getBytesUntilNull
 
 getBytesUntilNull :: Get [Word8]
 getBytesUntilNull = do
     byte <- getWord8
     if byte == 0
         then return []
-        else do
-            rest <- getBytesUntilNull
-            return (byte : rest)
+        else byte ?: getBytesUntilNull
 
 readProgramFromFile :: FilePath -> IO (Either String StackProgram)
 readProgramFromFile path = do
