@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module CompilerSpec (spec) where
 
