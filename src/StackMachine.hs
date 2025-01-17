@@ -206,7 +206,7 @@ execute envStack args prog pc returnStack stack
             Right stack' -> execute envStack args prog (pc + 1) returnStack stack'
             Left err -> Left err
         StoreEnv name -> case storeEnv name (head envStack) stack of
-            Right env' -> execute (env':tail envStack) args prog (pc + 1) returnStack stack
+            Right env' -> execute (env':tail envStack) args prog (pc + 1) returnStack (tail stack)
             Left err -> Left err
         NewEnv -> execute ([]:envStack) args prog (pc + 1) returnStack stack
         Call n -> execute envStack args prog n (pc + 1 : returnStack) stack
