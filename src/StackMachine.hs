@@ -32,8 +32,10 @@ module StackMachine (
 
 import Data.Int (Int64)
 import Data.Text (Text)
+#ifdef DEBUG
 import Debug.Trace
 import Helpers(myShowList)
+#endif
 
 data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
 
