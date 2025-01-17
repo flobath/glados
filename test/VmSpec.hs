@@ -187,7 +187,7 @@ spec = do
             applyOperator Or [BoolValue True, BoolValue False] `shouldBe` Right [BoolValue True]
     describe "execute" $ do
         it "execute" $ do
-            execute' [PushValue (IntValue 1), PushValue (IntValue 2), OpValue Add, Return] `shouldBe` Right (IntValue 3)
+            execute' [PushValue (IntValue 1), PushValue (IntValue 2), OpValue Add, Return] `shouldBe` Right ("", IntValue 3)
         it "execute addition error" $ do
             execute' [PushValue (IntValue 1), OpValue Add, Return] `shouldBe` Left "Cannot apply addition"
         it "execute subtraction error" $ do
