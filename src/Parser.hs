@@ -30,6 +30,7 @@ module Parser (
     pWhileLoop,
     pUntilLoop,
     pDoConditionalLoop,
+    pForLoopRange,
     pForLoopBody,
     pForLoop,
     pExpression,
@@ -261,6 +262,12 @@ pDoConditionalLoop = do
         , pUntilLoopCondition
         ]
 
+pForLoopRange :: [Expression] -> (Expression, Expression, Expression)
+pForLoopRange range = case range of
+    [start, end] -> (start, end, ExprAtomic $ AtomIntLiteral 1)
+    [start, end, step] -> (start, end, step)
+    _ -> error "Invalid range in for loop"
+
 pForLoopBody :: Expression -> Statement -> Expression
 pForLoopBody body increment = ExprBlock $ BlockExpression $ case body of
     ExprBlock (BlockExpression stmts) -> stmts ++ [increment]
@@ -279,11 +286,10 @@ pForLoop = do
     body <- pExpression
 
     let VariableDeclaration (TypeIdentifier varType) varName = varDecl
-        rangeStart = head range
-        rangeEnd = last range
-        assignment = StVariableDecl varDecl (Just rangeStart)
-        condition = ExprOperation $ OpInfix (InfixLt (ExprAtomic $ AtomIdentifier varName) rangeEnd)
-        increment = StAssignment varName (ExprOperation $ OpInfix (InfixAdd (ExprAtomic $ AtomIdentifier varName) (ExprAtomic $ AtomIntLiteral 1)))
+        (start, end, step) = pForLoopRange range
+        assignment = StVariableDecl varDecl (Just start)
+        condition = ExprOperation $ OpInfix (InfixLt (ExprAtomic $ AtomIdentifier varName) end)
+        increment = StAssignment varName (ExprOperation $ OpInfix (InfixAdd (ExprAtomic $ AtomIdentifier varName) step))
         body' = pForLoopBody body increment
 
         in case unpack varType of
