@@ -14,7 +14,7 @@ data ParseLexError = LexingError LexerError | ParsingError ParserError
 
 instance Show ParseLexError where
     show (LexingError err) = showLexError err
-    show (ParsingError err) = errorBundlePretty err
+    show (ParsingError err) = "parse error:\n" ++ errorBundlePretty err
 
 parseAndLex :: Parser a -> Text -> Either ParseLexError a
 parseAndLex parser input = do
