@@ -90,7 +90,7 @@ tokens :-
 
 -- Each right-hand side has type :: AlexPosn -> Text -> WithPos Token
 type Lexer = (AlexPosn -> Text -> WithPos Token)
-type LexerError = String
+type LexerError = AlexInput
 
 -- Some action helpers:
 tok :: (Text -> Token) -> Lexer
@@ -127,17 +127,18 @@ myScanTokens str = go (alexStartPos,'\n',[],str)
     where go inp__@(pos,_,_bs,s) =
             case alexScan inp__ 0 of
                 AlexEOF -> Right []
-                AlexError ((AlexPn _ line column),c,pending,current) -> Left $
-                    "lexical error at line " ++ (show line) ++ ", column " ++ (show column) ++ ", previous character: " ++ show c ++ " pending: " ++ show pending ++ ", current: " ++ show current
+                AlexError e -> Left e
                 AlexSkip  inp__' _len  -> go inp__'
                 AlexToken inp__' len act -> act pos (Data.Text.take len s) ?: go inp__'
 
 -- More concise version of myScanTok which only outputs
 -- the tokens, without their position.
-myScanTok :: Text -> Either String [Token]
+myScanTok :: Text -> Either LexerError [Token]
 myScanTok = ffmap tokenVal . myScanTokens
 
 showLexError :: LexerError -> String
-showLexError = show
+showLexError ((AlexPn _ line column),_,_,current)
+  = "lexical error at line " ++ (show line) ++ ", column " ++ (show column)
+  ++ ".\nContent of the line from the offending character: " ++ Text.unpack (Text.takeWhile (/= '\n') current)
 
 }
