@@ -26,9 +26,11 @@ module Parser (
     pIfConditional,
     pUnlessConditional,
     pWhileLoopCondition,
+    pUntilLoopCondition,
     pWhileLoop,
     pUntilLoop,
-    pDoWhileLoop,
+    pDoConditionalLoop,
+    pForLoopBody,
     pForLoop,
     pExpression,
     pGroupedExpression,
@@ -229,6 +231,12 @@ pWhileLoopCondition = do
     void manyEol
     pGroupedExpression
 
+pUntilLoopCondition :: Parser Expression
+pUntilLoopCondition = do
+    void (pKeyword KeyWUntil)
+    void manyEol
+    ExprOperation . OpPrefix . PreNot <$> pGroupedExpression
+
 pWhileLoop :: Parser Expression
 pWhileLoop = do
     condition <- pWhileLoopCondition
@@ -237,22 +245,20 @@ pWhileLoop = do
 
 pUntilLoop :: Parser Expression
 pUntilLoop = do
-    void (pKeyword KeyWUntil)
+    condition <- pUntilLoopCondition
     void manyEol
-    condition <- pGroupedExpression
-    void manyEol
+    ExprWhileLoop condition <$> pExpression
 
-    let condition' = ExprOperation $ OpPrefix $ PreNot condition
-    ExprWhileLoop condition' <$> pExpression
-
-
-pDoWhileLoop :: Parser Expression
-pDoWhileLoop = do
+pDoConditionalLoop :: Parser Expression
+pDoConditionalLoop = do
     void (pKeyword KeyWDo)
     void manyEol
     body <- pExpression
     void manyEol
-    ExprDoWhileLoop body <$> pWhileLoopCondition
+    ExprDoWhileLoop body <$> choice
+        [ pWhileLoopCondition
+        , pUntilLoopCondition
+        ]
 
 pForLoopBody :: Expression -> Statement -> Expression
 pForLoopBody body increment = ExprBlock $ BlockExpression $ case body of
@@ -288,7 +294,7 @@ pExpression = choice
     , pUnlessConditional
     , pWhileLoop
     , pUntilLoop
-    , pDoWhileLoop
+    , pDoConditionalLoop
     , pForLoop
     ] <?> "expression"
 

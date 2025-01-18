@@ -233,6 +233,33 @@ spec = do
                     PushEnv "a",
                     Return
                 ]
+        it "Simple do until return" $ do
+            convertToStackInstructions (Program (fnMain [] [
+                        sDecl (tId "i32") (vId "a") (Just $ eaInt 10),
+                        sExpr $ eDoWhile
+                            (eBlk [
+                                sAssi "a" (eoSub (eaId "a") (eaInt 1))
+                            ])
+                            (eoNot $ eoLt (eaId "a") (eaInt 7)),
+                        sRet $ eaId "a"
+                ]) [])
+            `shouldBe` Right [
+                    PushValue (IntValue 10),
+                    StoreEnv "a",
+                    PushValue (IntValue 1),
+                    PushEnv "a",
+                    OpValue Sub,
+                    StoreEnv "a",
+                    PushValue (IntValue 7),
+                    PushEnv "a",
+                    OpValue Lt,
+                    PushValue (BoolValue False),
+                    OpValue Eq,
+                    JumpIfFalse 2,
+                    Jump (-10),
+                    PushEnv "a",
+                    Return
+                ]
         it "Simple for return" $ do
             convertToStackInstructions (Program (fnMain [] [
                     sDecl (tId "i32") (vId "a") (Just $ eaInt 0),
