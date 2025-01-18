@@ -1,5 +1,6 @@
 module Parser.ParseAndLex (
     ParseLexError(..),
+    parseAndLexFile,
     parseAndLex,
 ) where
 
@@ -16,9 +17,12 @@ instance Show ParseLexError where
     show (LexingError err) = showLexError err
     show (ParsingError err) = "parse error:\n" ++ errorBundlePretty err
 
-parseAndLex :: Parser a -> Text -> Either ParseLexError a
-parseAndLex parser input = do
+parseAndLexFile :: FilePath -> Parser a -> Text -> Either ParseLexError a
+parseAndLexFile file parser input = do
     tokens <- myScanTokens input >&< LexingError
     let tokStream = TokenStream{ myStreamInput = input, unTokenStream = tokens}
 
-    runParser parser "" tokStream >&< ParsingError
+    runParser parser file tokStream >&< ParsingError
+
+parseAndLex :: Parser a -> Text -> Either ParseLexError a
+parseAndLex = parseAndLexFile ""
