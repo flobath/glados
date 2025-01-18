@@ -262,11 +262,28 @@ pDoConditionalLoop = do
         , pUntilLoopCondition
         ]
 
-pForLoopRange :: [Expression] -> (Expression, Expression, Expression)
-pForLoopRange range = case range of
-    [start, end] -> (start, end, ExprAtomic $ AtomIntLiteral 1)
-    [start, end, step] -> (start, end, step)
-    _ -> error "Invalid range in for loop"
+pCorrectForLoopStep :: (VarIdentifier, Expression, Expression, Expression) -> (Expression, Expression, Expression, Expression)
+pCorrectForLoopStep (varName, ExprAtomic (AtomIntLiteral start), ExprAtomic (AtomIntLiteral end), ExprAtomic (AtomIntLiteral step)) =
+    case compare start end of
+        LT -> (
+                ExprAtomic (AtomIntLiteral start),
+                ExprAtomic (AtomIntLiteral end),
+                ExprAtomic (AtomIntLiteral step),
+                ExprOperation $ OpInfix (InfixLt (ExprAtomic $ AtomIdentifier varName) (ExprAtomic (AtomIntLiteral end)))
+            )
+        _ -> (
+                ExprAtomic (AtomIntLiteral start),
+                ExprAtomic (AtomIntLiteral end),
+                ExprAtomic (AtomIntLiteral (-step)),
+                ExprOperation $ OpInfix (InfixGt (ExprAtomic $ AtomIdentifier varName) (ExprAtomic (AtomIntLiteral end)))
+            )
+pCorrectForLoopStep _ = error "Invalid range in for loop"
+
+pForLoopRange :: VarIdentifier -> [Expression] -> (Expression, Expression, Expression, Expression)
+pForLoopRange varName range = case range of
+        [start, end] -> pCorrectForLoopStep (varName, start, end, ExprAtomic $ AtomIntLiteral 1)
+        [start, end, step] -> pCorrectForLoopStep (varName, start, end, step)
+        _ -> error "Invalid range in for loop"
 
 pForLoopBody :: Expression -> Statement -> Expression
 pForLoopBody body increment = ExprBlock $ BlockExpression $ case body of
@@ -286,9 +303,8 @@ pForLoop = do
     body <- pExpression
 
     let VariableDeclaration (TypeIdentifier varType) varName = varDecl
-        (start, end, step) = pForLoopRange range
+        (start, _, step, condition) = pForLoopRange varName range
         assignment = StVariableDecl varDecl (Just start)
-        condition = ExprOperation $ OpInfix (InfixLt (ExprAtomic $ AtomIdentifier varName) end)
         increment = StAssignment varName (ExprOperation $ OpInfix (InfixAdd (ExprAtomic $ AtomIdentifier varName) step))
         body' = pForLoopBody body increment
 

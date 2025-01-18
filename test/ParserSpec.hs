@@ -213,6 +213,17 @@ spec = do
                             sAssi "a" (eoAdd (eaId "a") (eaInt 1))
                         ])
                 ]
+        it "for loop with reverse range" $
+            parseAndLex pExpression "for i32 a in (5, 0) 8 + 3"
+            `shouldLexParse` eFor [
+                    sDecl (tId "i32") (vId "a") (Just $ eaInt 5),
+                    sExpr $ eWhile
+                        (eoGt (eaId "a") (eaInt 0))
+                        (eBlk [
+                            sExpr $ eoAdd (eaInt 8) (eaInt 3),
+                            sAssi "a" (eoAdd (eaId "a") (eaInt (-1)))
+                        ])
+                ]
 
     describe "function calls" $ do
         it "call with no arguments" $

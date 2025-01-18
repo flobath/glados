@@ -310,3 +310,26 @@ spec = do
                     Return
                 ]
             `shouldBe` Right (IntValue 10)
+        it "execute for loop with reversed range" $ do
+            execute' [
+                    PushValue (IntValue 0),
+                    StoreEnv "a",
+                    PushValue (IntValue 5),
+                    StoreEnv "i",
+                    PushValue (IntValue 0),
+                    PushEnv "i",
+                    OpValue Gt,
+                    JumpIfFalse 10,
+                    PushEnv "i",
+                    PushEnv "a",
+                    OpValue Add,
+                    StoreEnv "a",
+                    PushValue (IntValue (-1)),
+                    PushEnv "i",
+                    OpValue Add,
+                    StoreEnv "i",
+                    Jump (-12),
+                    PushEnv "a",
+                    Return
+                ]
+            `shouldBe` Right (IntValue 15)
