@@ -11,15 +11,15 @@ import Text.Megaparsec (runParser, errorBundlePretty)
 import AlexToParsec (TokenStream(TokenStream, myStreamInput, unTokenStream))
 import Helpers((>&<))
 
-data ParseLexError = LexingError LexerError | ParsingError ParserError
+data ParseLexError = LexingError FilePath LexerError | ParsingError ParserError
 
 instance Show ParseLexError where
-    show (LexingError err) = showLexError err
+    show (LexingError path err) = path ++ ": " ++ showLexError err
     show (ParsingError err) = "parse error:\n" ++ errorBundlePretty err
 
 parseAndLexFile :: FilePath -> Parser a -> Text -> Either ParseLexError a
 parseAndLexFile file parser input = do
-    tokens <- myScanTokens input >&< LexingError
+    tokens <- myScanTokens input >&< LexingError file
     let tokStream = TokenStream{ myStreamInput = input, unTokenStream = tokens}
 
     runParser parser file tokStream >&< ParsingError
