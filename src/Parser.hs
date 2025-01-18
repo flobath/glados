@@ -283,7 +283,7 @@ pVariableDecl = try (VariableDeclaration
 pVariableDeclStatement :: Parser Statement
 pVariableDeclStatement = do
     decl <- pVariableDecl
-    value <- maybeParse (pControl OperAssign *> pExpression)
+    value <- maybeParse (pControl OperAssign *> manyEol *> pExpression)
     return $ StVariableDecl decl value
 
 pAssignStatement :: Parser Statement
