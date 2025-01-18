@@ -58,6 +58,7 @@ import Text.Megaparsec (
 
 import Data.Functor((<&>), ($>), void)
 import Control.Applicative((<|>), Alternative (many))
+import Data.Text (unpack)
 
 import Parser.Internal
 
@@ -277,15 +278,18 @@ pForLoop = do
     void manyEol
     body <- pExpression
 
-    let VariableDeclaration _ var = varDecl
+    let VariableDeclaration (TypeIdentifier varType) varName = varDecl
         rangeStart = head range
         rangeEnd = last range
         assignment = StVariableDecl varDecl (Just rangeStart)
-        condition = ExprOperation $ OpInfix (InfixLt (ExprAtomic $ AtomIdentifier var) rangeEnd)
-        increment = StAssignment var (ExprOperation $ OpInfix (InfixAdd (ExprAtomic $ AtomIdentifier var) (ExprAtomic $ AtomIntLiteral 1)))
+        condition = ExprOperation $ OpInfix (InfixLt (ExprAtomic $ AtomIdentifier varName) rangeEnd)
+        increment = StAssignment varName (ExprOperation $ OpInfix (InfixAdd (ExprAtomic $ AtomIdentifier varName) (ExprAtomic $ AtomIntLiteral 1)))
         body' = pForLoopBody body increment
 
-    return $ ExprForLoop $ BlockExpression [assignment, StExpression $ ExprWhileLoop condition body']
+        in case unpack varType of
+            varType' | varType' `elem` ["i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64"] -> return $
+                ExprForLoop $ BlockExpression [assignment, StExpression $ ExprWhileLoop condition body']
+            _ -> fail ("Invalid type in for loop variable: " ++ unpack varType)
 
 pExpression :: Parser Expression
 pExpression = choice
