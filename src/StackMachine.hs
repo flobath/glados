@@ -1,5 +1,6 @@
 module StackMachine (
     Value(..),
+    Type(..),
     Operator(..),
     StackInstruction(..),
     Args,
@@ -32,6 +33,13 @@ import Data.Text (Text)
 
 data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
 
+data Type = IntType | BoolType | UnknownType | ToBeDefType deriving (Eq, Ord)
+instance Show Type where
+    show IntType = "i32"
+    show BoolType = "bool"
+    show UnknownType = "unknown"
+    show ToBeDefType = "#"
+
 data Operator
     = Add
     | Sub
@@ -54,7 +62,7 @@ data StackInstruction
     | StoreEnv Text
     | Call Int
     | NewEnv
-    | StoreArgs Text Int
+    | StoreArgs Text Type Int
     | CallFuncName Text
     | Return
     | Jump Int
@@ -197,7 +205,6 @@ execute envStack args prog pc returnStack stack
             Left err -> Left err
         NewEnv -> execute ([]:envStack) args prog (pc + 1) returnStack stack
         Call n -> execute envStack args prog n (pc + 1 : returnStack) stack
-        CallFuncName name -> Left $ "Call to " ++ show name ++ " Should not happen"
         OpValue op -> case applyOperator op stack of
             Left err -> Left err
             Right stack' -> execute envStack args prog (pc + 1) returnStack stack'

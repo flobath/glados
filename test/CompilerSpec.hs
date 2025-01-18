@@ -57,6 +57,7 @@ errorProgramA = Program (MainFunction [] (BlockExpression [StReturn $ ExprFuncti
 errorProgramB = Program (MainFunction [] (BlockExpression [])) [Function (pack "my_add") [VariableDeclaration (typeId "i32") (varId "a"), VariableDeclaration (typeId "i32") (varId "b")] (Just $ typeId "i32") (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") (varId "result")) (Just (intConstant 1)), StReturn (sumExpr (varRef "a") (varRef "z"))])]
 errorProgramC = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ boolConstant True])) []
 errorProgramD = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ intConstant 5, StAssignment (varId "a") (boolConstant True)])) []
+errorProgramE = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ intConstant 5, StAssignment (varId "a") $ ExprFunctionCall (varRef "f") [varRef "a"]])) [Function (pack "f") [VariableDeclaration (typeId "bool") $ varId "x"] (Just $ typeId "i32") (BlockExpression [StReturn $ intConstant 5])]
 
 spec :: Spec
 spec = do
@@ -160,6 +161,8 @@ spec = do
             convertToStackInstructions errorProgramC `shouldBe` Left "Type mismatch in variable declaration for 'a' expected 'i32' but got 'bool'"
         it "Invalide type assignment" $ do
             convertToStackInstructions errorProgramD `shouldBe` Left "Type mismatch in assignment for 'a' expected 'i32' but got 'bool'"
+        it "Invalid type function call" $ do
+            convertToStackInstructions errorProgramE `shouldBe` Left "Type mismatch for argument 1 in function 'f' expected 'bool' but got 'i32'"
         it "Simple while return" $ do
             convertToStackInstructions (Program (fnMain [] [
                         sDecl (tId "i32") (vId "a") (Just $ eaInt 5),

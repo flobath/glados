@@ -9,12 +9,6 @@ import Control.Monad (foldM)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
-data Type = IntType | BoolType | UnknownType deriving (Eq, Ord)
-instance Show Type where
-    show IntType = "i32"
-    show BoolType = "bool"
-    show UnknownType = "unknown"
-
 
 convertToStackInstructions :: Program -> Either String [StackInstruction]
 convertToStackInstructions (Program mainFunc functions) = do
@@ -32,10 +26,13 @@ replaceStoreArgsWithEnv instrs functions = mapM replace instrs
   where
     funcMap = Map.fromList [(name, params) | Function name params _ _ <- functions]
 
-    replace (StoreArgs funcName idx) = case Map.lookup funcName funcMap of
+    replace (StoreArgs funcName argType idx) = case Map.lookup funcName funcMap of
       Just params -> if idx < length params
-                     then let (VariableDeclaration _ (VarIdentifier paramName)) = params !! idx
-                          in Right (StoreEnv paramName)
+                     then let (VariableDeclaration declaredType (VarIdentifier paramName)) = params !! idx
+                              declaredType' = getTypeOfTypeIdentifier declaredType
+                          in if argType == declaredType'
+                             then Right (StoreEnv paramName)
+                             else Left $ "Type mismatch for argument " ++ show (idx + 1) ++ " in function '" ++ unpack funcName ++ "' expected '" ++ show declaredType' ++ "' but got '" ++ show argType ++ "'"
                      else Left $ "Index " ++ show idx ++ " out of bounds for function '" ++ unpack funcName ++ "'"
       Nothing -> Left $ "Function '" ++ unpack funcName ++ "' not defined"
     replace instr = Right instr
@@ -83,8 +80,8 @@ convertStatement declaredVars (StExpression expr) = do
     exprInstrs <- convertExpression declaredVars expr
     return (declaredVars, exprInstrs)
 convertStatement declaredVars (StVariableDecl (VariableDeclaration declaredType@(TypeIdentifier delaredTypeName) (VarIdentifier name)) (Just expr)) = do
-    let exprType = getTypeOfExpression expr
-    if exprType == getTypeOfTypeIdentifier declaredType
+    let exprType = getTypeOfExpression declaredVars expr
+    if exprType == getTypeOfTypeIdentifier declaredType || exprType == ToBeDefType
         then do
             exprInstrs <- convertExpression declaredVars expr
             let newDeclaredVars = Set.insert (name, getTypeOfTypeIdentifier declaredType) declaredVars
@@ -96,8 +93,8 @@ convertStatement declaredVars (StVariableDecl (VariableDeclaration declaredType 
 convertStatement declaredVars (StAssignment (VarIdentifier name) expr) =
     case findVariableType declaredVars name of
         Just varType -> do
-            let exprType = getTypeOfExpression expr
-            if varType == exprType
+            let exprType = getTypeOfExpression declaredVars expr
+            if varType == exprType || exprType == ToBeDefType
                 then do
                     exprInstrs <- convertExpression declaredVars expr
                     return (declaredVars, exprInstrs ++ [StoreEnv name])
@@ -169,7 +166,8 @@ convertExpression declaredVars (ExprDoWhileLoop body cond) = do
 
 convertExpression declaredVars (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) args) = do
     argsInstrs <- concat <$> mapM (convertExpression declaredVars) args
-    return $ [NewEnv] ++ argsInstrs ++ zipWith (\i _ -> StoreArgs name (length args - i - 1)) [0..] args ++ [CallFuncName name]
+    let argTypes = map (getTypeOfExpression declaredVars) args
+    return $ [NewEnv] ++ argsInstrs ++ zipWith (\i argType -> StoreArgs name argType (length args - i - 1)) [0..] argTypes ++ [CallFuncName name]
 
 convertExpression _ _ = Right []
 
@@ -198,34 +196,38 @@ getTypeOfTypeIdentifier (TypeIdentifier typename) = case unpack typename of
     "bool" -> BoolType
     _ -> UnknownType
 
-getTypeOfExpression :: Expression -> Type
-getTypeOfExpression (ExprAtomic (AtomIntLiteral _)) = IntType
-getTypeOfExpression (ExprAtomic (AtomBooleanLiteral _)) = BoolType
-getTypeOfExpression (ExprOperation (OpInfix (InfixAdd _ _))) = IntType
-getTypeOfExpression (ExprOperation (OpInfix (InfixSub _ _))) = IntType
-getTypeOfExpression (ExprOperation (OpInfix (InfixMul _ _))) = IntType
-getTypeOfExpression (ExprOperation (OpInfix (InfixDiv _ _))) = IntType
-getTypeOfExpression (ExprOperation (OpInfix (InfixMod _ _))) = IntType
-getTypeOfExpression (ExprOperation (OpInfix (InfixEq _ _))) = BoolType
-getTypeOfExpression (ExprOperation (OpInfix (InfixNeq _ _))) = BoolType
-getTypeOfExpression (ExprOperation (OpInfix (InfixGt _ _))) = BoolType
-getTypeOfExpression (ExprOperation (OpInfix (InfixGe _ _))) = BoolType
-getTypeOfExpression (ExprOperation (OpInfix (InfixLt _ _))) = BoolType
-getTypeOfExpression (ExprOperation (OpInfix (InfixLe _ _))) = BoolType
-getTypeOfExpression (ExprOperation (OpInfix (InfixAnd _ _))) = BoolType
-getTypeOfExpression (ExprOperation (OpInfix (InfixOr _ _))) = BoolType
-getTypeOfExpression (ExprOperation (OpPrefix (PreNot _))) = BoolType
-getTypeOfExpression (ExprOperation (OpPrefix (PrePlus _))) = IntType
-getTypeOfExpression (ExprOperation (OpPrefix (PreNeg _))) = IntType
-getTypeOfExpression (ExprBlock _) = UnknownType
-getTypeOfExpression (ExprIfConditional _ trueBranch (Just falseBranch)) =
-    let trueType = getTypeOfExpression trueBranch
-        falseType = getTypeOfExpression falseBranch
+getTypeOfExpression :: Set.Set (Text, Type) -> Expression -> Type
+getTypeOfExpression _ (ExprAtomic (AtomIntLiteral _)) = IntType
+getTypeOfExpression _ (ExprAtomic (AtomBooleanLiteral _)) = BoolType
+getTypeOfExpression declaredVars (ExprAtomic (AtomIdentifier (VarIdentifier name))) = do
+    case findVariableType declaredVars name of
+        Just t -> t
+        Nothing -> UnknownType
+getTypeOfExpression _ (ExprOperation (OpInfix (InfixAdd _ _))) = IntType
+getTypeOfExpression _ (ExprOperation (OpInfix (InfixSub _ _))) = IntType
+getTypeOfExpression _ (ExprOperation (OpInfix (InfixMul _ _))) = IntType
+getTypeOfExpression _ (ExprOperation (OpInfix (InfixDiv _ _))) = IntType
+getTypeOfExpression _ (ExprOperation (OpInfix (InfixMod _ _))) = IntType
+getTypeOfExpression _ (ExprOperation (OpInfix (InfixEq _ _))) = BoolType
+getTypeOfExpression _ (ExprOperation (OpInfix (InfixNeq _ _))) = BoolType
+getTypeOfExpression _ (ExprOperation (OpInfix (InfixGt _ _))) = BoolType
+getTypeOfExpression _ (ExprOperation (OpInfix (InfixGe _ _))) = BoolType
+getTypeOfExpression _ (ExprOperation (OpInfix (InfixLt _ _))) = BoolType
+getTypeOfExpression _ (ExprOperation (OpInfix (InfixLe _ _))) = BoolType
+getTypeOfExpression _ (ExprOperation (OpInfix (InfixAnd _ _))) = BoolType
+getTypeOfExpression _ (ExprOperation (OpInfix (InfixOr _ _))) = BoolType
+getTypeOfExpression _ (ExprOperation (OpPrefix (PreNot _))) = BoolType
+getTypeOfExpression _ (ExprOperation (OpPrefix (PrePlus _))) = IntType
+getTypeOfExpression _ (ExprOperation (OpPrefix (PreNeg _))) = IntType
+getTypeOfExpression _ (ExprBlock _) = UnknownType
+getTypeOfExpression declaredVars (ExprIfConditional _ trueBranch (Just falseBranch)) =
+    let trueType = getTypeOfExpression declaredVars trueBranch
+        falseType = getTypeOfExpression declaredVars falseBranch
     in if trueType == falseType then trueType else UnknownType
-getTypeOfExpression (ExprIfConditional _ trueBranch Nothing) =
-    getTypeOfExpression trueBranch
-getTypeOfExpression (ExprWhileLoop _ _) = UnknownType
-getTypeOfExpression (ExprDoWhileLoop _ _) = UnknownType
-getTypeOfExpression (ExprFunctionCall _ _) = UnknownType
-getTypeOfExpression _ = UnknownType
+getTypeOfExpression declaredVars (ExprIfConditional _ trueBranch Nothing) =
+    getTypeOfExpression declaredVars trueBranch
+getTypeOfExpression _ (ExprWhileLoop _ _) = UnknownType
+getTypeOfExpression _ (ExprDoWhileLoop _ _) = UnknownType
+getTypeOfExpression _ (ExprFunctionCall _ _) = ToBeDefType
+getTypeOfExpression _ _ = UnknownType
 
