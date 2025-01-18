@@ -197,6 +197,18 @@ spec = do
             `shouldLexParse` eDoWhile
                 (eoAdd (eaInt 8) (eaInt 3))
                 (eoGt (eaId "myvar") (eoMul (eaInt 8) (eaInt 4)))
+        it "for loop" $
+            parseAndLex pExpression "for i32 a in (0, 5) 8 + 3"
+            `shouldLexParse` eFor
+                (BlockExpression [
+                    sDecl (tId "i32") (vId "a") (Just $ eaInt 0),
+                    sExpr $ eWhile
+                        (eoLt (eaId "a") (eaInt 5))
+                        (eBlk [
+                            sExpr $ (eoAdd (eaInt 8) (eaInt 3)),
+                            (sAssi "a" (eoAdd (eaId "a") (eaInt 1)))
+                        ])
+                ])
 
     describe "function calls" $ do
         it "call with no arguments" $
@@ -335,6 +347,29 @@ spec = do
                         sAssi "a" (eoAdd (eaId "a") (eaInt 1))
                     ])
                     (eoLt (eaId "a") (eaInt 7))
+                , sRet $ eaId "a"
+                ]
+        it "block containing var assignement and for loop" $
+            parseAndLex pExpression "\
+            \{\n\
+            \   i32 a = 0\n\
+            \   for i32 i in (0, 5) {\n\
+            \       a = a + i\n\
+            \   }\n\
+            \   return a\n\
+            \}"
+            `shouldLexParse` eBlk
+                [ sDecl (tId "i32") (vId "a") (Just $ eaInt 0)
+                , sExpr $ eFor
+                    (BlockExpression [
+                        sDecl (tId "i32") (vId "i") (Just $ eaInt 0),
+                        sExpr $ eWhile
+                            (eoLt (eaId "i") (eaInt 5))
+                            (eBlk [
+                                (sAssi "a" (eoAdd (eaId "a") (eaId "i"))),
+                                (sAssi "i" (eoAdd (eaId "i") (eaInt 1)))
+                            ])
+                    ])
                 , sRet $ eaId "a"
                 ]
         it "fail with missing end of statement" $

@@ -268,3 +268,26 @@ spec = do
                     Return
                 ]
             `shouldBe` Right (IntValue 7)
+        it "execute for loop" $ do
+            execute' [
+                    PushValue (IntValue 0),
+                    StoreEnv "a",
+                    PushValue (IntValue 0),
+                    StoreEnv "i",
+                    PushValue (IntValue 5),
+                    PushEnv "i",
+                    OpValue Lt,
+                    JumpIfFalse 10,
+                    PushEnv "i",
+                    PushEnv "a",
+                    OpValue Add,
+                    StoreEnv "a",
+                    PushValue (IntValue 1),
+                    PushEnv "i",
+                    OpValue Add,
+                    StoreEnv "i",
+                    Jump (-12),
+                    PushEnv "a",
+                    Return
+                ]
+            `shouldBe` Right (IntValue 10)

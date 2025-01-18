@@ -233,3 +233,39 @@ spec = do
                     PushEnv "a",
                     Return
                 ]
+        it "Simple for return" $ do
+            convertToStackInstructions (Program (fnMain [] [
+                    sDecl (tId "i32") (vId "a") (Just $ eaInt 0),
+                    sExpr $ eFor
+                        (BlockExpression [
+                            sDecl (tId "i32") (vId "i") (Just $ eaInt 0),
+                            sExpr $ eWhile
+                                (eoLt (eaId "i") (eaInt 5))
+                                (eBlk [
+                                    (sAssi "a" (eoAdd (eaId "a") (eaId "i"))),
+                                    (sAssi "i" (eoAdd (eaId "i") (eaInt 1)))
+                                ])
+                        ]),
+                    sRet $ eaId "a"
+                ]) [])
+            `shouldBe` Right [
+                    PushValue (IntValue 0),
+                    StoreEnv "a",
+                    PushValue (IntValue 0),
+                    StoreEnv "i",
+                    PushValue (IntValue 5),
+                    PushEnv "i",
+                    OpValue Lt,
+                    JumpIfFalse 10,
+                    PushEnv "i",
+                    PushEnv "a",
+                    OpValue Add,
+                    StoreEnv "a",
+                    PushValue (IntValue 1),
+                    PushEnv "i",
+                    OpValue Add,
+                    StoreEnv "i",
+                    Jump (-12),
+                    PushEnv "a",
+                    Return
+                ]

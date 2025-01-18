@@ -29,6 +29,7 @@ module Parser (
     pWhileLoop,
     pUntilLoop,
     pDoWhileLoop,
+    pForLoop,
     pExpression,
     pGroupedExpression,
     pExprList,
@@ -253,6 +254,31 @@ pDoWhileLoop = do
     void manyEol
     ExprDoWhileLoop body <$> pWhileLoopCondition
 
+pForLoopBody :: Expression -> Statement -> Expression
+pForLoopBody body increment = case body of
+    ExprBlock (BlockExpression stmts) -> ExprBlock $ BlockExpression (stmts ++ [increment])
+    _ -> ExprBlock $ BlockExpression [StExpression body, increment]
+
+pForLoop :: Parser Expression
+pForLoop = do
+    void (pKeyword KeyWFor)
+    void manyEol
+    varType <- pTypeIdentifier
+    var <- pVarIdentifier
+    void manyEol
+    void (pKeyword KeyWIn)
+    void manyEol
+    range <- pExprList
+    void manyEol
+    body <- pExpression
+    let rangeStart = head range
+        rangeEnd = last range
+        assignment = StVariableDecl (VariableDeclaration varType var) (Just rangeStart)
+        condition = ExprOperation $ OpInfix (InfixLt (ExprAtomic $ AtomIdentifier var) rangeEnd)
+        increment = StAssignment var (ExprOperation $ OpInfix (InfixAdd (ExprAtomic $ AtomIdentifier var) (ExprAtomic $ AtomIntLiteral 1)))
+        body' = pForLoopBody body increment
+    return $ ExprForLoop $ BlockExpression [assignment, StExpression $ ExprWhileLoop condition body']
+
 pExpression :: Parser Expression
 pExpression = choice
     [ pOpExpr
@@ -261,6 +287,7 @@ pExpression = choice
     , pWhileLoop
     , pUntilLoop
     , pDoWhileLoop
+    , pForLoop
     ] <?> "expression"
 
 pGroupedExpression :: Parser Expression
