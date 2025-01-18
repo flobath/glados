@@ -19,7 +19,7 @@ instance Show ParseLexError where
 
 parseAndLexFile :: FilePath -> Parser a -> Text -> Either ParseLexError a
 parseAndLexFile file parser input = do
-    tokens <- myScanTokens input >&< LexingError file
+    tokens <- myScanTokens file input >&< LexingError file
     let tokStream = TokenStream{ myStreamInput = input, unTokenStream = tokens}
 
     runParser parser file tokStream >&< ParsingError

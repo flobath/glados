@@ -120,10 +120,21 @@ mkSourcePos (AlexPn _ l c) = SourcePos
   , sourceColumn = mkPos c
   }
 
+assignSourceNameInWithPos :: FilePath -> WithPos a -> WithPos a
+assignSourceNameInWithPos filepath (WithPos start end len val)
+  = WithPos
+    (assignSourceName filepath start)
+    (assignSourceName filepath end)
+    len
+    val
+
+assignSourceName :: FilePath -> SourcePos -> SourcePos
+assignSourceName name (SourcePos _ l c) = SourcePos name l c
+
 -- Patched version of the generated `alexScanTokens`
 -- which returns `Left` instead of `error`ing horrendously
-myScanTokens :: Text -> Either LexerError [WithPos Token]
-myScanTokens str = go (alexStartPos,'\n',[],str)
+myScanTokens :: FilePath -> Text -> Either LexerError [WithPos Token]
+myScanTokens name str = ffmap (assignSourceNameInWithPos name) (go (alexStartPos,'\n',[],str))
     where go inp__@(pos,_,_bs,s) =
             case alexScan inp__ 0 of
                 AlexEOF -> Right []
@@ -134,7 +145,7 @@ myScanTokens str = go (alexStartPos,'\n',[],str)
 -- More concise version of myScanTok which only outputs
 -- the tokens, without their position.
 myScanTok :: Text -> Either LexerError [Token]
-myScanTok = ffmap tokenVal . myScanTokens
+myScanTok = ffmap tokenVal . myScanTokens ""
 
 showLexError :: LexerError -> String
 showLexError ((AlexPn _ line column),_,_,current)
