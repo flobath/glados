@@ -263,8 +263,7 @@ spec = do
         it "Simple for return" $ do
             convertToStackInstructions (Program (fnMain [] [
                     sDecl (tId "i32") (vId "a") (Just $ eaInt 0),
-                    sExpr $ eFor
-                        (BlockExpression [
+                    sExpr $ eFor [
                             sDecl (tId "i32") (vId "i") (Just $ eaInt 0),
                             sExpr $ eWhile
                                 (eoLt (eaId "i") (eaInt 5))
@@ -272,7 +271,7 @@ spec = do
                                     (sAssi "a" (eoAdd (eaId "a") (eaId "i"))),
                                     (sAssi "i" (eoAdd (eaId "i") (eaInt 1)))
                                 ])
-                        ]),
+                        ],
                     sRet $ eaId "a"
                 ]) [])
             `shouldBe` Right [

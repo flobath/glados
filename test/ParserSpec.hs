@@ -204,8 +204,7 @@ spec = do
                 (eoNot $ eoGt (eaId "myvar") (eoMul (eaInt 8) (eaInt 4)))
         it "for loop" $
             parseAndLex pExpression "for i32 a in (0, 5) 8 + 3"
-            `shouldLexParse` eFor
-                (BlockExpression [
+            `shouldLexParse` eFor [
                     sDecl (tId "i32") (vId "a") (Just $ eaInt 0),
                     sExpr $ eWhile
                         (eoLt (eaId "a") (eaInt 5))
@@ -213,7 +212,7 @@ spec = do
                             sExpr $ (eoAdd (eaInt 8) (eaInt 3)),
                             (sAssi "a" (eoAdd (eaId "a") (eaInt 1)))
                         ])
-                ])
+                ]
 
     describe "function calls" $ do
         it "call with no arguments" $
@@ -383,8 +382,7 @@ spec = do
             \}"
             `shouldLexParse` eBlk
                 [ sDecl (tId "i32") (vId "a") (Just $ eaInt 0)
-                , sExpr $ eFor
-                    (BlockExpression [
+                , sExpr $ eFor [
                         sDecl (tId "i32") (vId "i") (Just $ eaInt 0),
                         sExpr $ eWhile
                             (eoLt (eaId "i") (eaInt 5))
@@ -392,7 +390,7 @@ spec = do
                                 (sAssi "a" (eoAdd (eaId "a") (eaId "i"))),
                                 (sAssi "i" (eoAdd (eaId "i") (eaInt 1)))
                             ])
-                    ])
+                    ]
                 , sRet $ eaId "a"
                 ]
         it "fail with missing end of statement" $
