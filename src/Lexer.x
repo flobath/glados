@@ -91,6 +91,7 @@ tokens :-
 -- Each right-hand side has type :: AlexPosn -> Text -> WithPos Token
 type Lexer = (AlexPosn -> Text -> WithPos Token)
 data LexerError = LexerError FilePath AlexInput
+  deriving (Show, Eq)
 
 -- Some action helpers:
 tok :: (Text -> Token) -> Lexer
