@@ -255,28 +255,30 @@ pDoWhileLoop = do
     ExprDoWhileLoop body <$> pWhileLoopCondition
 
 pForLoopBody :: Expression -> Statement -> Expression
-pForLoopBody body increment = case body of
-    ExprBlock (BlockExpression stmts) -> ExprBlock $ BlockExpression (stmts ++ [increment])
-    _ -> ExprBlock $ BlockExpression [StExpression body, increment]
+pForLoopBody body increment = ExprBlock $ BlockExpression $ case body of
+    ExprBlock (BlockExpression stmts) -> stmts ++ [increment]
+    _ -> [StExpression body, increment]
 
 pForLoop :: Parser Expression
 pForLoop = do
     void (pKeyword KeyWFor)
     void manyEol
-    varType <- pTypeIdentifier
-    var <- pVarIdentifier
+    varDecl <- pVariableDecl
     void manyEol
     void (pKeyword KeyWIn)
     void manyEol
     range <- pExprList
     void manyEol
     body <- pExpression
-    let rangeStart = head range
+
+    let VariableDeclaration _ var = varDecl
+        rangeStart = head range
         rangeEnd = last range
-        assignment = StVariableDecl (VariableDeclaration varType var) (Just rangeStart)
+        assignment = StVariableDecl varDecl (Just rangeStart)
         condition = ExprOperation $ OpInfix (InfixLt (ExprAtomic $ AtomIdentifier var) rangeEnd)
         increment = StAssignment var (ExprOperation $ OpInfix (InfixAdd (ExprAtomic $ AtomIdentifier var) (ExprAtomic $ AtomIntLiteral 1)))
         body' = pForLoopBody body increment
+
     return $ ExprForLoop $ BlockExpression [assignment, StExpression $ ExprWhileLoop condition body']
 
 pExpression :: Parser Expression
