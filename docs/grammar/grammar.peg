@@ -62,6 +62,11 @@ DoWhileExpr <- KeyW_do      DoWhileBody
 # do                body                  condition
 DoWhileBody     <- Expression  AnySpacing KeyW_while GroupedExpr
 
+ForExpr     <- KeyW_for     ForBody
+
+# for          declaration                 range                     body
+ForBody     <- VariableDeclaration KeyW_in ExpressionList AnySpacing GroupedExpr
+
 # OR is the least precedent operator, so an "operation"
 # (combination of any number of operators) is a LogicalOrExpr
 OperationExpr <- LogicalOrExpr
@@ -136,6 +141,8 @@ Keyword
     /  KeyW_while
     /  KeyW_until
     /  KeyW_do
+    /  KeyW_for
+    /  KeyW_in
     /  KeyW_return
     /  KeyW_true
     /  KeyW_false
@@ -148,6 +155,8 @@ KeyW_else   <- 'else'   EndOfWord AnySpacing
 KeyW_while  <- 'while'  EndOfWord AnySpacing
 KeyW_until  <- 'until'  EndOfWord AnySpacing
 KeyW_do     <- 'do'     EndOfWord AnySpacing
+KeyW_for    <- 'for'    EndOfWord AnySpacing
+KeyW_in     <- 'in'     EndOfWord AnySpacing
 KeyW_return <- 'return' EndOfWord InlineSpacing # 'return' can be a statement on its own
 KeyW_true   <- 'true'   EndOfWord InlineSpacing
 KeyW_false  <- 'false'  EndOfWord InlineSpacing
