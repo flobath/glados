@@ -209,8 +209,8 @@ spec = do
                     sExpr $ eWhile
                         (eoLt (eaId "a") (eaInt 5))
                         (eBlk [
-                            sExpr $ (eoAdd (eaInt 8) (eaInt 3)),
-                            (sAssi "a" (eoAdd (eaId "a") (eaInt 1)))
+                            sExpr $ eoAdd (eaInt 8) (eaInt 3),
+                            sAssi "a" (eoAdd (eaId "a") (eaInt 1))
                         ])
                 ]
 
@@ -387,8 +387,8 @@ spec = do
                         sExpr $ eWhile
                             (eoLt (eaId "i") (eaInt 5))
                             (eBlk [
-                                (sAssi "a" (eoAdd (eaId "a") (eaId "i"))),
-                                (sAssi "i" (eoAdd (eaId "i") (eaInt 1)))
+                                sAssi "a" (eoAdd (eaId "a") (eaId "i")),
+                                sAssi "i" (eoAdd (eaId "i") (eaInt 1))
                             ])
                     ]
                 , sRet $ eaId "a"
