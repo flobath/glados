@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-{-# OPTIONS_GHC -DDEBUG #-} -- Uncomment to activate tracing
+-- {-# OPTIONS_GHC -DDEBUG #-} -- Uncomment to activate tracing
 
 module StackMachine (
     Value(..),
@@ -38,15 +38,17 @@ import GHC.Float (Float)
 import Debug.Trace
 import Helpers(myShowList)
 #endif
+import Helpers (safeTail)
 
 data Value = IntValue Int64 | BoolValue Bool | FloatValue Float
             deriving (Show, Eq)
 
-data Type = IntType | BoolType | UnknownType deriving (Eq, Ord)
+data Type = IntType | BoolType | UnknownType | VoidType deriving (Eq, Ord)
 instance Show Type where
     show IntType = "i32"
     show BoolType = "bool"
     show UnknownType = "unknown"
+    show VoidType = "()"
 
 data Operator
     = Add
@@ -248,6 +250,6 @@ execute envStack args prog pc returnStack stack
             Right stack' -> execute envStack args prog (pc + 1) returnStack stack'
         Jump n -> execute envStack args prog (pc + n) returnStack stack
         JumpIfFalse n -> case stack of
-            (BoolValue False : _) -> execute envStack args prog (pc + n) returnStack stack
-            _ -> execute envStack args prog (pc + 1) returnStack stack
+            (BoolValue False : stack') -> execute envStack args prog (pc + n) returnStack stack'
+            _                          -> execute envStack args prog (pc + 1) returnStack (safeTail stack)
         _ -> Left "Execution error"

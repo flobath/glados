@@ -1,0 +1,22 @@
+fun is_prime(i32 n): bool {
+    i32 i = 2
+    if (n < 2) {
+        return false
+    }
+    while (i * i <= n) {
+        if (n % i == 0) {
+            return false
+        }
+        i = i + 1
+    }
+    return true
+}
+
+main {
+    i32 num = 17
+    bool result = is_prime(num)
+    if (result) {
+        return 0
+    }
+    return 1
+}
