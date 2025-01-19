@@ -54,12 +54,13 @@ programF = Program (MainFunction [] (BlockExpression [localIntDecl "a" 5, localI
                 (BlockExpression [StReturn $ sumExpr (varRef "a") (intConstant 1)])
         ]
 errorProgramA = Program (MainFunction [] (BlockExpression [StReturn $ ExprFunctionCall (varRef "f") []])) []
-errorProgramB = Program (MainFunction [] (BlockExpression [])) [Function (pack "my_add") [VariableDeclaration (typeId "i32") (varId "a"), VariableDeclaration (typeId "i32") (varId "b")] (Just $ typeId "i32") (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") (varId "result")) (Just (intConstant 1)), StReturn (sumExpr (varRef "a") (varRef "z"))])]
-errorProgramC = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ boolConstant True])) []
-errorProgramD = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ intConstant 5, StAssignment (varId "a") (boolConstant True)])) []
-errorProgramE = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ intConstant 5, StAssignment (varId "a") $ ExprFunctionCall (varRef "f") [varRef "a"]])) [Function (pack "f") [VariableDeclaration (typeId "bool") $ varId "x"] (Just $ typeId "i32") (BlockExpression [StReturn $ intConstant 5])]
-errorProgramF = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ intConstant 5, StAssignment (varId "a") $ ExprFunctionCall (varRef "f") [varRef "a"]])) [Function (pack "f") [VariableDeclaration (typeId "i32") $ varId "x"] (Just $ typeId "bool") (BlockExpression [StReturn $ boolConstant False])]
-errorProgramG = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ intConstant 5, StAssignment (varId "a") $ ExprFunctionCall (varRef "f") [varRef "a"]])) [Function (pack "f") [VariableDeclaration (typeId "i32") $ varId "x"] (Just $ typeId "i32") (BlockExpression [StReturn $ boolConstant False])]
+errorProgramB = Program (MainFunction [] (BlockExpression [StReturn $ intConstant 0])) [Function (pack "my_add") [VariableDeclaration (typeId "i32") (varId "a"), VariableDeclaration (typeId "i32") (varId "b")] (Just $ typeId "i32") (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") (varId "result")) (Just (intConstant 1)), StReturn (sumExpr (varRef "a") (varRef "z"))])]
+errorProgramC = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ boolConstant True, StReturn $ intConstant 0])) []
+errorProgramD = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ intConstant 5, StAssignment (varId "a") (boolConstant True), StReturn $ intConstant 0])) []
+errorProgramE = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ intConstant 5, StAssignment (varId "a") $ ExprFunctionCall (varRef "f") [varRef "a"], StReturn $ intConstant 0])) [Function (pack "f") [VariableDeclaration (typeId "bool") $ varId "x"] (Just $ typeId "i32") (BlockExpression [StReturn $ intConstant 5])]
+errorProgramF = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ intConstant 5, StAssignment (varId "a") $ ExprFunctionCall (varRef "f") [varRef "a"], StReturn $ intConstant 0])) [Function (pack "f") [VariableDeclaration (typeId "i32") $ varId "x"] (Just $ typeId "bool") (BlockExpression [StReturn $ boolConstant False])]
+errorProgramG = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ intConstant 5, StAssignment (varId "a") $ ExprFunctionCall (varRef "f") [varRef "a"], StReturn $ intConstant 0])) [Function (pack "f") [VariableDeclaration (typeId "i32") $ varId "x"] (Just $ typeId "i32") (BlockExpression [StReturn $ boolConstant False])]
+errorProgramH = Program (MainFunction [] (BlockExpression [StExpression $ intConstant 0])) []
 
 spec :: Spec
 spec = do
@@ -169,6 +170,8 @@ spec = do
             convertToStackInstructions errorProgramF `shouldBe` Left "Type mismatch in assignment for 'a' expected 'i32' but got 'bool'"
         it "Invalid return type function definition" $ do
             convertToStackInstructions errorProgramG `shouldBe` Left "Type mismatch in return for function 'f' expected 'i32' but got 'bool'"
+        it "No return main function" $ do
+            convertToStackInstructions errorProgramH `shouldBe` Left "Main function does not end with a return statement"
         it "Simple while return" $ do
             convertToStackInstructions (Program (fnMain [] [
                         sDecl (tId "i32") (vId "a") (Just $ eaInt 5),

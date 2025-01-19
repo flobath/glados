@@ -66,14 +66,21 @@ getFunctionLength declaredVars functions func@(Function name _ _ _) =
 generateFunctionMap :: [Function] -> Map.Map Text Int
 generateFunctionMap functions = Map.fromList $ map (getFunctionLength Set.empty functions) functions
 
+isReturnStatement :: Statement -> Bool
+isReturnStatement (StReturn _) = True
+isReturnStatement _ = False
+
 convertFunction :: Set.Set (Text, Type) -> [Function] -> Function -> Either String [StackInstruction]
+convertFunction declaredVars functions (Function funcName params Nothing expr) = convertFunction declaredVars functions (Function funcName params (Just (TypeIdentifier (pack "i32"))) expr) --TODO: implement void type
 convertFunction declaredVars functions (Function funcName params (Just funcType) (BlockExpression stmts)) = do
     let paramNames = Set.fromList $ map (\(VariableDeclaration declaredType (VarIdentifier name)) -> (name, getTypeOfTypeIdentifier declaredType)) params
     let newDeclaredVars = Set.union declaredVars paramNames
     (finalVars, instrs) <- foldM (\(vars, acc) stmt -> do
         (newVars, stmtInstrs) <- convertStatement vars functions stmt
         return (newVars, acc ++ stmtInstrs)) (newDeclaredVars, []) stmts
-    replaceReturnType instrs funcName (getTypeOfTypeIdentifier funcType)
+    if null stmts || not (isReturnStatement (last stmts))
+        then Left $ "Function '" ++ unpack funcName ++ "' does not end with a return statement"
+        else replaceReturnType instrs funcName (getTypeOfTypeIdentifier funcType)
 
 convertMainFunction :: Set.Set (Text, Type) -> [Function] -> MainFunction -> Either String [StackInstruction]
 convertMainFunction declaredVars functions (MainFunction params (BlockExpression stmts)) = do
@@ -82,7 +89,9 @@ convertMainFunction declaredVars functions (MainFunction params (BlockExpression
     (_, instrs) <- foldM (\(vars, acc) stmt -> do
         (newVars, stmtInstrs) <- convertStatement vars functions stmt
         return (newVars, acc ++ stmtInstrs)) (newDeclaredVars, []) stmts
-    replaceReturnType instrs (pack "main") IntType
+    if null stmts || not (isReturnStatement (last stmts))
+        then Left "Main function does not end with a return statement"
+        else replaceReturnType instrs (pack "main") IntType
 
 convertStatement :: Set.Set (Text, Type) -> [Function] -> Statement -> Either String (Set.Set (Text, Type), [StackInstruction])
 convertStatement declaredVars functions (StExpression expr) = do
