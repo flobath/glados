@@ -1,0 +1,11 @@
+fun my_fac(i32 x): i32 {
+    if (x < 0) {
+        return -1
+    }
+    if (x == 0) {
+        return 1
+    }
+    return x * my_fac(x - 1)
+}
+
+main { return my_fac(6); }
