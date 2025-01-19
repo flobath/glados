@@ -58,6 +58,7 @@ errorProgramB = Program (MainFunction [] (BlockExpression [])) [Function (pack "
 errorProgramC = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ boolConstant True])) []
 errorProgramD = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ intConstant 5, StAssignment (varId "a") (boolConstant True)])) []
 errorProgramE = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ intConstant 5, StAssignment (varId "a") $ ExprFunctionCall (varRef "f") [varRef "a"]])) [Function (pack "f") [VariableDeclaration (typeId "bool") $ varId "x"] (Just $ typeId "i32") (BlockExpression [StReturn $ intConstant 5])]
+errorProgramF = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ intConstant 5, StAssignment (varId "a") $ ExprFunctionCall (varRef "f") [varRef "a"]])) [Function (pack "f") [VariableDeclaration (typeId "i32") $ varId "x"] (Just $ typeId "bool") (BlockExpression [StReturn $ boolConstant False])]
 
 spec :: Spec
 spec = do
@@ -161,8 +162,10 @@ spec = do
             convertToStackInstructions errorProgramC `shouldBe` Left "Type mismatch in variable declaration for 'a' expected 'i32' but got 'bool'"
         it "Invalide type assignment" $ do
             convertToStackInstructions errorProgramD `shouldBe` Left "Type mismatch in assignment for 'a' expected 'i32' but got 'bool'"
-        it "Invalid type function call" $ do
+        it "Invalid type function arguments" $ do
             convertToStackInstructions errorProgramE `shouldBe` Left "Type mismatch for argument 1 in function 'f' expected 'bool' but got 'i32'"
+        it "Invalid type function call" $ do
+            convertToStackInstructions errorProgramF `shouldBe` Left "Type mismatch in assignment for 'a' expected 'i32' but got 'bool'"
         it "Simple while return" $ do
             convertToStackInstructions (Program (fnMain [] [
                         sDecl (tId "i32") (vId "a") (Just $ eaInt 5),

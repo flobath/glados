@@ -29,16 +29,15 @@ module StackMachine (
 ) where
 
 import Data.Int (Int64)
-import Data.Text (Text)
+import Data.Text (Text, unpack)
 
 data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
 
-data Type = IntType | BoolType | UnknownType | ToBeDefType deriving (Eq, Ord)
+data Type = IntType | BoolType | UnknownType deriving (Eq, Ord)
 instance Show Type where
     show IntType = "i32"
     show BoolType = "bool"
     show UnknownType = "unknown"
-    show ToBeDefType = "#"
 
 data Operator
     = Add
@@ -62,12 +61,13 @@ data StackInstruction
     | StoreEnv Text
     | Call Int
     | NewEnv
-    | StoreArgs Text Type Int
-    | CallFuncName Text
     | Return
     | Jump Int
     | JumpIfFalse Int
     | OpValue Operator
+    --Temporary Instructions during compilation
+    | StoreArgs Text Type Int
+    | CallFuncName Text
     deriving (Show, Eq)
 
 type Args = [Value]
