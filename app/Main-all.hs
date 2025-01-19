@@ -4,6 +4,7 @@ import System.Environment(getArgs)
 import VM(vm, disassembler)
 import Compiler(compiler)
 import System.Exit (exitWith, ExitCode (ExitFailure))
+import Run (run)
 
 type Module = (String, ([String] -> IO (), String))
 
@@ -11,6 +12,7 @@ modules :: [Module]
 modules =
     [ ("build",       (compiler,     "Produce an executable from source files"))
     , ("exec",        (vm,           "Execute a previously built executable"))
+    , ("run",         (run,          "Compile and execute without producing an object file"))
     , ("disassemble", (disassembler, "Disassemble one or more executables"))
     ]
 
