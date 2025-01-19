@@ -145,6 +145,10 @@ spec = do
             push (IntValue 1) [] `shouldBe` [IntValue 1]
         it "push 1, 2" $ do
             push (IntValue 1) [IntValue 2] `shouldBe` [IntValue 1, IntValue 2]
+        it "push true" $ do
+            push (BoolValue True) [] `shouldBe` [BoolValue True]
+        it "push false" $ do
+            push (BoolValue False) [] `shouldBe` [BoolValue False]
     describe "pop" $ do
         it "pop 1" $ do
             pop [IntValue 1] `shouldBe` Right (IntValue 1, [])
@@ -188,6 +192,88 @@ spec = do
     describe "execute" $ do
         it "execute" $ do
             execute' [PushValue (IntValue 1), PushValue (IntValue 2), OpValue Add, Return] `shouldBe` Right (IntValue 3)
+        it "execute subtraction" $ do
+            execute' [PushValue (IntValue 1), PushValue (IntValue 2), OpValue Sub, Return] `shouldBe` Right (IntValue 1)
+        it "execute multiplication" $ do
+            execute' [PushValue (IntValue 2), PushValue (IntValue 3), OpValue Mul, Return] `shouldBe` Right (IntValue 6)
+        it "execute division" $ do
+            execute' [PushValue (IntValue 3), PushValue (IntValue 6), OpValue Div, Return] `shouldBe` Right (IntValue 2)
+        it "execute modulus" $ do
+            execute' [PushValue (IntValue 3), PushValue (IntValue 6), OpValue Mod, Return] `shouldBe` Right (IntValue 0)
+        it "execute equal" $ do
+            execute' [PushValue (IntValue 1), PushValue (IntValue 1), OpValue Eq, Return] `shouldBe` Right (BoolValue True)
+        it "execute equal bool" $ do
+            execute' [PushValue (BoolValue True), PushValue (BoolValue True), OpValue Eq, Return] `shouldBe` Right (BoolValue True)
+        it "execute equal int false" $ do
+            execute' [PushValue (IntValue 1), PushValue (IntValue 2), OpValue Eq, Return] `shouldBe` Right (BoolValue False)
+        it "execute equal bool false" $ do
+            execute' [PushValue (BoolValue True), PushValue (BoolValue False), OpValue Eq, Return] `shouldBe` Right (BoolValue False)
+        it "execute notEqual" $ do
+            execute' [PushValue (IntValue 1), PushValue (IntValue 2), OpValue Ne, Return] `shouldBe` Right (BoolValue True)
+        it "execute notEqual bool" $ do
+            execute' [PushValue (BoolValue True), PushValue (BoolValue False), OpValue Ne, Return] `shouldBe` Right (BoolValue True)
+        it "execute notEqual int false" $ do
+            execute' [PushValue (IntValue 1), PushValue (IntValue 1), OpValue Ne, Return] `shouldBe` Right (BoolValue False)
+        it "execute notEqual bool false" $ do
+            execute' [PushValue (BoolValue True), PushValue (BoolValue True), OpValue Ne, Return] `shouldBe` Right (BoolValue False)
+        it "execute lessThan" $ do
+            execute' [PushValue (IntValue 3), PushValue (IntValue 2), OpValue Lt, Return] `shouldBe` Right (BoolValue True)
+        it "execute lessThan bool error" $ do
+            execute' [PushValue (BoolValue True), PushValue (BoolValue True), OpValue Lt, Return] `shouldBe` Left "Cannot apply less than"
+        it "execute lessThan int equal" $ do
+            execute' [PushValue (IntValue 1), PushValue (IntValue 1), OpValue Lt, Return] `shouldBe` Right (BoolValue False)
+        it "execute lessThan int false" $ do
+            execute' [PushValue (IntValue 2), PushValue (IntValue 3), OpValue Lt, Return] `shouldBe` Right (BoolValue False)
+        it "execute lessEqual" $ do
+            execute' [PushValue (IntValue 3), PushValue (IntValue 2), OpValue Le, Return] `shouldBe` Right (BoolValue True)
+        it "execute lessEqual bool error" $ do
+            execute' [PushValue (BoolValue True), PushValue (BoolValue True), OpValue Le, Return] `shouldBe` Left "Cannot apply less equal"
+        it "execute lessEqual int equal" $ do
+            execute' [PushValue (IntValue 1), PushValue (IntValue 1), OpValue Le, Return] `shouldBe` Right (BoolValue True)
+        it "execute lessEqual int false" $ do
+            execute' [PushValue (IntValue 2), PushValue (IntValue 3), OpValue Le, Return] `shouldBe` Right (BoolValue False)
+        it "execute greaterThan" $ do
+            execute' [PushValue (IntValue 1), PushValue (IntValue 2), OpValue Gt, Return] `shouldBe` Right (BoolValue True)
+        it "execute greaterThan bool error" $ do
+            execute' [PushValue (BoolValue True), PushValue (BoolValue True), OpValue Gt, Return] `shouldBe` Left "Cannot apply greater than"
+        it "execute greaterThan int equal" $ do
+            execute' [PushValue (IntValue 1), PushValue (IntValue 1), OpValue Gt, Return] `shouldBe` Right (BoolValue False)
+        it "execute greaterThan int false" $ do
+            execute' [PushValue (IntValue 2), PushValue (IntValue 1), OpValue Gt, Return] `shouldBe` Right (BoolValue False)
+        it "execute greaterEqual" $ do
+            execute' [PushValue (IntValue 1), PushValue (IntValue 2), OpValue Ge, Return] `shouldBe` Right (BoolValue True)
+        it "execute greaterEqual bool error" $ do
+            execute' [PushValue (BoolValue True), PushValue (BoolValue True), OpValue Ge, Return] `shouldBe` Left "Cannot apply greater equal"
+        it "execute greaterEqual int equal" $ do
+            execute' [PushValue (IntValue 1), PushValue (IntValue 1), OpValue Ge, Return] `shouldBe` Right (BoolValue True)
+        it "execute greaterEqual int false" $ do
+            execute' [PushValue (IntValue 2), PushValue (IntValue 1), OpValue Ge, Return] `shouldBe` Right (BoolValue False)
+        it "execute and" $ do
+            execute' [PushValue (BoolValue True), PushValue (BoolValue True), OpValue And, Return] `shouldBe` Right (BoolValue True)
+        it "execute and one false" $ do
+            execute' [PushValue (BoolValue True), PushValue (BoolValue False), OpValue And, Return] `shouldBe` Right (BoolValue False)
+        it "execute and both false" $ do
+            execute' [PushValue (BoolValue False), PushValue (BoolValue False), OpValue And, Return] `shouldBe` Right (BoolValue False)
+        it "execute and int error" $ do
+            execute' [PushValue (BoolValue True), PushValue (IntValue 1), OpValue And, Return] `shouldBe` Left "Cannot apply and"
+        it "execute or" $ do
+            execute' [PushValue (BoolValue True), PushValue (BoolValue False), OpValue Or, Return] `shouldBe` Right (BoolValue True)
+        it "execut or one false" $ do
+            execute' [PushValue (BoolValue True), PushValue (BoolValue True), OpValue Or, Return] `shouldBe` Right (BoolValue True)
+        it "execute or both false" $ do
+            execute' [PushValue (BoolValue False), PushValue (BoolValue False), OpValue Or, Return] `shouldBe` Right (BoolValue False)
+        it "execute addition bool error" $ do
+            execute' [PushValue (BoolValue True), PushValue (IntValue 1), OpValue Add, Return] `shouldBe` Left "Cannot apply addition"
+        it "execute subtraction bool error" $ do
+            execute' [PushValue (BoolValue True), PushValue (IntValue 1), OpValue Sub, Return] `shouldBe` Left "Cannot apply subtraction"
+        it "execute multiplication bool error" $ do
+            execute' [PushValue (BoolValue True), PushValue (IntValue 1), OpValue Mul, Return] `shouldBe` Left "Cannot apply multiplication"
+        it "execute division bool error" $ do
+            execute' [PushValue (BoolValue True), PushValue (IntValue 1), OpValue Div, Return] `shouldBe` Left "Cannot apply division"
+        it "execute modulus bool error" $ do
+            execute' [PushValue (BoolValue True), PushValue (IntValue 1), OpValue Mod, Return] `shouldBe` Left "Cannot apply modulus"
+        it "execute equal bool error" $ do
+            execute' [PushValue (BoolValue True), PushValue (IntValue 1), OpValue Eq, Return] `shouldBe` Left "Cannot apply equal"
         it "execute addition error" $ do
             execute' [PushValue (IntValue 1), OpValue Add, Return] `shouldBe` Left "Cannot apply addition"
         it "execute subtraction error" $ do
