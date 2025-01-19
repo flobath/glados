@@ -14,3 +14,4 @@ This document provides the table of contents of the GLaDOS project.
 5. [CI/CD](ci-cd/index.md)
     1. [Continuous Integration (CI)](ci-cd/ci.md)
     2. [Continuous Delivery (CD)](ci-cd/cd.md)
+6. [Compilation process](compilation/index.md)
