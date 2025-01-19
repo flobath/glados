@@ -34,7 +34,7 @@ tests_functional_run: $(TARGET)
 	@echo
 	@echo 'Running functional tests'
 	@echo
-	@GLaDOS_EXEC_PATH="$$(realpath '$(TARGET)-exe')" \
+	@GLaDOS_EXEC_PATH="$$(realpath '$(TARGET)') run -" \
 	 TEST_CASES_DIRECTORY=./test/functional_tests/cases \
 	 ./test/functional_tests/tester.sh
 

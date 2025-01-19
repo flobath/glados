@@ -54,7 +54,7 @@ import Helpers ((<:>))
 import Text.Megaparsec (
     (<?>),
     choice,
-    MonadParsec (hidden, try),
+    MonadParsec (hidden, try, eof),
     )
 
 import Data.Functor((<&>), ($>), void)
@@ -416,5 +416,6 @@ pProgram = do
     preMain <- hidden $ many pFunction
     mainFunc <- pMainFunction
     postMain <- hidden $ many pFunction
+    _ <- eof
 
     return $ Program mainFunc (preMain ++ postMain)
