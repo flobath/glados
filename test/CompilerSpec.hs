@@ -248,3 +248,100 @@ spec = do
                     PushEnv "a",
                     Return
                 ]
+        it "Simple do until return" $ do
+            convertToStackInstructions (Program (fnMain [] [
+                        sDecl (tId "i32") (vId "a") (Just $ eaInt 10),
+                        sExpr $ eDoWhile
+                            (eBlk [
+                                sAssi "a" (eoSub (eaId "a") (eaInt 1))
+                            ])
+                            (eoNot $ eoLt (eaId "a") (eaInt 7)),
+                        sRet $ eaId "a"
+                ]) [])
+            `shouldBe` Right [
+                    PushValue (IntValue 10),
+                    StoreEnv "a",
+                    PushValue (IntValue 1),
+                    PushEnv "a",
+                    OpValue Sub,
+                    StoreEnv "a",
+                    PushValue (IntValue 7),
+                    PushEnv "a",
+                    OpValue Lt,
+                    PushValue (BoolValue False),
+                    OpValue Eq,
+                    JumpIfFalse 2,
+                    Jump (-10),
+                    PushEnv "a",
+                    Return
+                ]
+        it "Simple for return" $ do
+            convertToStackInstructions (Program (fnMain [] [
+                    sDecl (tId "i32") (vId "a") (Just $ eaInt 0),
+                    sExpr $ eFor [
+                            sDecl (tId "i32") (vId "i") (Just $ eaInt 0),
+                            sExpr $ eWhile
+                                (eoLt (eaId "i") (eaInt 5))
+                                (eBlk [
+                                    sAssi "a" (eoAdd (eaId "a") (eaId "i")),
+                                    sAssi "i" (eoAdd (eaId "i") (eaInt 1))
+                                ])
+                        ],
+                    sRet $ eaId "a"
+                ]) [])
+            `shouldBe` Right [
+                    PushValue (IntValue 0),
+                    StoreEnv "a",
+                    PushValue (IntValue 0),
+                    StoreEnv "i",
+                    PushValue (IntValue 5),
+                    PushEnv "i",
+                    OpValue Lt,
+                    JumpIfFalse 10,
+                    PushEnv "i",
+                    PushEnv "a",
+                    OpValue Add,
+                    StoreEnv "a",
+                    PushValue (IntValue 1),
+                    PushEnv "i",
+                    OpValue Add,
+                    StoreEnv "i",
+                    Jump (-12),
+                    PushEnv "a",
+                    Return
+                ]
+        it "Simple for return with reverse range" $ do
+            convertToStackInstructions (Program (fnMain [] [
+                    sDecl (tId "i32") (vId "a") (Just $ eaInt 0),
+                    sExpr $ eFor [
+                            sDecl (tId "i32") (vId "i") (Just $ eaInt 5),
+                            sExpr $ eWhile
+                                (eoGt (eaId "i") (eaInt 0))
+                                (eBlk [
+                                    sAssi "a" (eoAdd (eaId "a") (eaId "i")),
+                                    sAssi "i" (eoAdd (eaId "i") (eaInt (-1)))
+                                ])
+                    ],
+                    sRet $ eaId "a"
+                ]) [])
+            `shouldBe` Right [
+                    PushValue (IntValue 0),
+                    StoreEnv "a",
+                    PushValue (IntValue 5),
+                    StoreEnv "i",
+                    PushValue (IntValue 0),
+                    PushEnv "i",
+                    OpValue Gt,
+                    JumpIfFalse 10,
+                    PushEnv "i",
+                    PushEnv "a",
+                    OpValue Add,
+                    StoreEnv "a",
+                    PushValue (IntValue (-1)),
+                    PushEnv "i",
+                    OpValue Add,
+                    StoreEnv "i",
+                    Jump (-12),
+                    PushEnv "a",
+                    Return
+                ]

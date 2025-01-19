@@ -76,6 +76,8 @@ tokens :-
     while   { ctokKeyW KeyWWhile }
     until   { ctokKeyW KeyWUntil }
     do      { ctokKeyW KeyWDo }
+    for     { ctokKeyW KeyWFor }
+    in      { ctokKeyW KeyWIn }
     fun     { ctokKeyW KeyWFun }
     true    { ctokKeyW KeyWTrue }
     false   { ctokKeyW KeyWFalse }

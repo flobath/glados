@@ -8,7 +8,7 @@ import Data.Text (pack, unpack, Text)
 import Control.Monad (foldM)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
-
+import Debug.Trace (trace)
 
 convertToStackInstructions :: Program -> Either String [StackInstruction]
 convertToStackInstructions (Program mainFunc functions) = do
@@ -172,6 +172,9 @@ convertExpression declaredVars functions (ExprDoWhileLoop body cond) = do
     let jumpFalse = JumpIfFalse 2
         jumpBack = Jump (-length bodyInstrs - length condInstrs - 1)
     return $ bodyInstrs ++ condInstrs ++ [jumpFalse] ++ [jumpBack]
+
+convertExpression declaredVars functions (ExprForLoop block) = do
+    convertExpression declaredVars functions $ ExprBlock block
 
 convertExpression declaredVars functions (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) args) = do
     argsInstrs <- concat <$> mapM (convertExpression declaredVars functions) args

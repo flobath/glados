@@ -10,6 +10,7 @@ vdecl t1 t2 = VariableDeclaration (TypeIdentifier t1) (VarIdentifier t2)
 eIf = ExprIfConditional
 eWhile = ExprWhileLoop
 eDoWhile = ExprDoWhileLoop
+eFor = ExprForLoop . BlockExpression
 eCall = ExprFunctionCall
 eOp = ExprOperation
 eBlk = ExprBlock . BlockExpression

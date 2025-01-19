@@ -26,9 +26,13 @@ module Parser (
     pIfConditional,
     pUnlessConditional,
     pWhileLoopCondition,
+    pUntilLoopCondition,
     pWhileLoop,
     pUntilLoop,
-    pDoWhileLoop,
+    pDoConditionalLoop,
+    pForLoopRange,
+    pForLoopBody,
+    pForLoop,
     pExpression,
     pGroupedExpression,
     pExprList,
@@ -55,6 +59,7 @@ import Text.Megaparsec (
 
 import Data.Functor((<&>), ($>), void)
 import Control.Applicative((<|>), Alternative (many))
+import Data.Text (unpack)
 
 import Parser.Internal
 
@@ -228,6 +233,12 @@ pWhileLoopCondition = do
     void manyEol
     pGroupedExpression
 
+pUntilLoopCondition :: Parser Expression
+pUntilLoopCondition = do
+    void (pKeyword KeyWUntil)
+    void manyEol
+    ExprOperation . OpPrefix . PreNot <$> pGroupedExpression
+
 pWhileLoop :: Parser Expression
 pWhileLoop = do
     condition <- pWhileLoopCondition
@@ -236,22 +247,71 @@ pWhileLoop = do
 
 pUntilLoop :: Parser Expression
 pUntilLoop = do
-    void (pKeyword KeyWUntil)
+    condition <- pUntilLoopCondition
     void manyEol
-    condition <- pGroupedExpression
-    void manyEol
+    ExprWhileLoop condition <$> pExpression
 
-    let condition' = ExprOperation $ OpPrefix $ PreNot condition
-    ExprWhileLoop condition' <$> pExpression
-
-
-pDoWhileLoop :: Parser Expression
-pDoWhileLoop = do
+pDoConditionalLoop :: Parser Expression
+pDoConditionalLoop = do
     void (pKeyword KeyWDo)
     void manyEol
     body <- pExpression
     void manyEol
-    ExprDoWhileLoop body <$> pWhileLoopCondition
+    ExprDoWhileLoop body <$> choice
+        [ pWhileLoopCondition
+        , pUntilLoopCondition
+        ]
+
+pCorrectForLoopStep :: (VarIdentifier, Expression, Expression, Expression) -> (Expression, Expression, Expression, Expression)
+pCorrectForLoopStep (varName, ExprAtomic (AtomIntLiteral start), ExprAtomic (AtomIntLiteral end), ExprAtomic (AtomIntLiteral step)) =
+    case compare start end of
+        LT -> (
+                ExprAtomic (AtomIntLiteral start),
+                ExprAtomic (AtomIntLiteral end),
+                ExprAtomic (AtomIntLiteral step),
+                ExprOperation $ OpInfix (InfixLt (ExprAtomic $ AtomIdentifier varName) (ExprAtomic (AtomIntLiteral end)))
+            )
+        _ -> (
+                ExprAtomic (AtomIntLiteral start),
+                ExprAtomic (AtomIntLiteral end),
+                ExprAtomic (AtomIntLiteral (-step)),
+                ExprOperation $ OpInfix (InfixGt (ExprAtomic $ AtomIdentifier varName) (ExprAtomic (AtomIntLiteral end)))
+            )
+pCorrectForLoopStep _ = error "Invalid range in for loop"
+
+pForLoopRange :: VarIdentifier -> [Expression] -> (Expression, Expression, Expression, Expression)
+pForLoopRange varName range = case range of
+        [start, end] -> pCorrectForLoopStep (varName, start, end, ExprAtomic $ AtomIntLiteral 1)
+        [start, end, step] -> pCorrectForLoopStep (varName, start, end, step)
+        _ -> error "Invalid range in for loop"
+
+pForLoopBody :: Expression -> Statement -> Expression
+pForLoopBody body increment = ExprBlock $ BlockExpression $ case body of
+    ExprBlock (BlockExpression stmts) -> stmts ++ [increment]
+    _ -> [StExpression body, increment]
+
+pForLoop :: Parser Expression
+pForLoop = do
+    void (pKeyword KeyWFor)
+    void manyEol
+    varDecl <- pVariableDecl
+    void manyEol
+    void (pKeyword KeyWIn)
+    void manyEol
+    range <- pExprList
+    void manyEol
+    body <- pExpression
+
+    let VariableDeclaration (TypeIdentifier varType) varName = varDecl
+        (start, _, step, condition) = pForLoopRange varName range
+        assignment = StVariableDecl varDecl (Just start)
+        increment = StAssignment varName (ExprOperation $ OpInfix (InfixAdd (ExprAtomic $ AtomIdentifier varName) step))
+        body' = pForLoopBody body increment
+
+        in case unpack varType of
+            varType' | varType' `elem` ["i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64"] -> return $
+                ExprForLoop $ BlockExpression [assignment, StExpression $ ExprWhileLoop condition body']
+            _ -> fail ("Invalid type in for loop variable: " ++ unpack varType)
 
 pExpression :: Parser Expression
 pExpression = choice
@@ -260,7 +320,8 @@ pExpression = choice
     , pUnlessConditional
     , pWhileLoop
     , pUntilLoop
-    , pDoWhileLoop
+    , pDoConditionalLoop
+    , pForLoop
     ] <?> "expression"
 
 pGroupedExpression :: Parser Expression
