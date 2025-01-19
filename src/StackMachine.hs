@@ -1,8 +1,9 @@
 {-# LANGUAGE CPP #-}
--- {-# OPTIONS_GHC -DDEBUG #-} -- Uncomment to activate tracing
+{-# OPTIONS_GHC -DDEBUG #-} -- Uncomment to activate tracing
 
 module StackMachine (
     Value(..),
+    Type(..),
     Operator(..),
     StackInstruction(..),
     Args,
@@ -31,13 +32,19 @@ module StackMachine (
 ) where
 
 import Data.Int (Int64)
-import Data.Text (Text)
+import Data.Text (Text, unpack)
 #ifdef DEBUG
 import Debug.Trace
 import Helpers(myShowList)
 #endif
 
 data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
+
+data Type = IntType | BoolType | UnknownType deriving (Eq, Ord)
+instance Show Type where
+    show IntType = "i32"
+    show BoolType = "bool"
+    show UnknownType = "unknown"
 
 data Operator
     = Add
@@ -61,12 +68,14 @@ data StackInstruction
     | StoreEnv Text
     | Call Int
     | NewEnv
-    | StoreArgs Text Int
-    | CallFuncName Text
     | Return
     | Jump Int
     | JumpIfFalse Int
     | OpValue Operator
+    --Temporary Instructions during compilation
+    | StoreArgs Text Type Int
+    | CallFuncName Text
+    | ReturnType Type
     deriving (Show, Eq)
 
 type Args = [Value]
@@ -93,7 +102,7 @@ pop [] = Left "Cannot pop empty stack"
 pushEnv :: Text -> Environment -> Stack -> Either String Stack
 pushEnv name env stack = case lookup name env of
     Just value -> Right (push value stack)
-    Nothing -> Left "Cannot find value in environment"
+    Nothing -> Left $ "Cannot find value " ++ show name ++ " in environment"
 
 storeEnv :: Text -> Environment -> Stack -> Either String Environment
 storeEnv name env (value : stack) =
@@ -212,7 +221,6 @@ execute envStack args prog pc returnStack stack
             Left err -> Left err
         NewEnv -> execute ([]:envStack) args prog (pc + 1) returnStack stack
         Call n -> execute envStack args prog n (pc + 1 : returnStack) stack
-        CallFuncName name -> Left $ "Call to " ++ show name ++ " Should not happen"
         OpValue op -> case applyOperator op stack of
             Left err -> Left err
             Right stack' -> execute envStack args prog (pc + 1) returnStack stack'
