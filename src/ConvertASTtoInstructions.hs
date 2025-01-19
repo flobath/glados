@@ -8,7 +8,7 @@ import Data.Text (pack, unpack, Text)
 import Control.Monad (foldM)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
-import Debug.Trace (trace)
+import Data.Maybe (fromMaybe)
 
 convertToStackInstructions :: Program -> Either String [StackInstruction]
 convertToStackInstructions (Program mainFunc functions) = do
@@ -66,6 +66,10 @@ getFunctionLength declaredVars functions func@(Function name _ _ _) =
 generateFunctionMap :: [Function] -> Map.Map Text Int
 generateFunctionMap functions = Map.fromList $ map (getFunctionLength Set.empty functions) functions
 
+isReturnStatement :: Statement -> Bool
+isReturnStatement (StReturn _) = True
+isReturnStatement _ = False
+
 convertFunction :: Set.Set (Text, Type) -> [Function] -> Function -> Either String [StackInstruction]
 convertFunction declaredVars functions (Function funcName params (Just funcType) (BlockExpression stmts)) = do
     let paramNames = Set.fromList $ map (\(VariableDeclaration declaredType (VarIdentifier name)) -> (name, getTypeOfTypeIdentifier declaredType)) params
@@ -73,7 +77,13 @@ convertFunction declaredVars functions (Function funcName params (Just funcType)
     (finalVars, instrs) <- foldM (\(vars, acc) stmt -> do
         (newVars, stmtInstrs) <- convertStatement vars functions stmt
         return (newVars, acc ++ stmtInstrs)) (newDeclaredVars, []) stmts
-    replaceReturnType instrs funcName (getTypeOfTypeIdentifier funcType)
+    if null stmts || not (isReturnStatement (last stmts))
+        then if getTypeOfTypeIdentifier funcType == VoidType
+             then replaceReturnType (instrs ++ [ReturnType VoidType]) funcName VoidType
+             else Left $ "Function '" ++ unpack funcName ++ "' must end with a return of type '" ++ show funcType ++ "'"
+        else replaceReturnType instrs funcName (getTypeOfTypeIdentifier funcType)
+convertFunction declaredVars functions (Function funcName params Nothing (BlockExpression stmts))
+    = convertFunction declaredVars functions (Function funcName params (Just (TypeIdentifier (pack "()"))) (BlockExpression stmts))
 
 convertMainFunction :: Set.Set (Text, Type) -> [Function] -> MainFunction -> Either String [StackInstruction]
 convertMainFunction declaredVars functions (MainFunction params (BlockExpression stmts)) = do
@@ -82,7 +92,9 @@ convertMainFunction declaredVars functions (MainFunction params (BlockExpression
     (_, instrs) <- foldM (\(vars, acc) stmt -> do
         (newVars, stmtInstrs) <- convertStatement vars functions stmt
         return (newVars, acc ++ stmtInstrs)) (newDeclaredVars, []) stmts
-    replaceReturnType instrs (pack "main") IntType
+    if null stmts || not (isReturnStatement (last stmts))
+        then Left "Main function must end with a return of type 'i32'"
+        else replaceReturnType instrs (pack "main") IntType
 
 convertStatement :: Set.Set (Text, Type) -> [Function] -> Statement -> Either String (Set.Set (Text, Type), [StackInstruction])
 convertStatement declaredVars functions (StExpression expr) = do
@@ -140,10 +152,10 @@ convertExpression declaredVars functions (ExprOperation (OpPrefix (PreNot e))) =
     return $ eInstrs ++ [PushValue (BoolValue False), OpValue Eq]
 convertExpression declaredVars functions (ExprOperation (OpPrefix (PrePlus e))) = do
     eInstrs <- convertExpression declaredVars functions e
-    return $ eInstrs ++ [PushValue (IntValue 1), OpValue Add]
+    return $ eInstrs
 convertExpression declaredVars functions (ExprOperation (OpPrefix (PreNeg e))) = do
     eInstrs <- convertExpression declaredVars functions e
-    return $ eInstrs ++ [PushValue (IntValue 1), OpValue Sub]
+    return $ eInstrs ++ [PushValue (IntValue (-1)), OpValue Mul]
 
 convertExpression declaredVars functions (ExprBlock (BlockExpression stmts)) = do
     (_, instrs) <- foldM (\(vars, acc) stmt -> do
@@ -179,7 +191,7 @@ convertExpression declaredVars functions (ExprForLoop block) = do
 convertExpression declaredVars functions (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) args) = do
     argsInstrs <- concat <$> mapM (convertExpression declaredVars functions) args
     let argTypes = map (getTypeOfExpression declaredVars functions) args
-    return $ [NewEnv] ++ argsInstrs ++ zipWith (\i argType -> StoreArgs name argType (length args - i - 1)) [0..] argTypes ++ [CallFuncName name]
+    return $ argsInstrs ++ [NewEnv] ++ zipWith (\i argType -> StoreArgs name argType (length args - i - 1)) [0..] argTypes ++ [CallFuncName name]
 
 convertExpression _ _ _ = Right []
 
@@ -194,27 +206,23 @@ convertInfixOperation declaredVars functions e1 e2 op = do
 findVariableType :: Set.Set (Text, Type) -> Text -> Maybe Type
 findVariableType declaredVars name =
     let filteredVars = Set.filter (\(varName, _) -> varName == name) declaredVars
-        in if Set.null(filteredVars) then Nothing else Just (snd $ Set.elemAt 0 filteredVars)
+        in if Set.null filteredVars then Nothing else Just (snd $ Set.elemAt 0 filteredVars)
 
 getTypeOfVariable :: Set.Set (Text, Type) -> Text -> Type
-getTypeOfVariable declaredVars name =
-    case findVariableType declaredVars name of
-        Just t -> t
-        Nothing -> UnknownType
+getTypeOfVariable declaredVars name = fromMaybe UnknownType (findVariableType declaredVars name)
 
 getTypeOfTypeIdentifier :: TypeIdentifier -> Type
 getTypeOfTypeIdentifier (TypeIdentifier typename) = case unpack typename of
     "i32" -> IntType
     "bool" -> BoolType
+    "()" -> VoidType
     _ -> UnknownType
 
 getTypeOfExpression :: Set.Set (Text, Type) -> [Function] -> Expression -> Type
 getTypeOfExpression _ _ (ExprAtomic (AtomIntLiteral _)) = IntType
 getTypeOfExpression _ _ (ExprAtomic (AtomBooleanLiteral _)) = BoolType
 getTypeOfExpression declaredVars _ (ExprAtomic (AtomIdentifier (VarIdentifier name))) = do
-    case findVariableType declaredVars name of
-        Just t -> t
-        Nothing -> UnknownType
+    fromMaybe UnknownType (findVariableType declaredVars name)
 getTypeOfExpression _ _ (ExprOperation (OpInfix (InfixAdd _ _))) = IntType
 getTypeOfExpression _ _ (ExprOperation (OpInfix (InfixSub _ _))) = IntType
 getTypeOfExpression _ _ (ExprOperation (OpInfix (InfixMul _ _))) = IntType
@@ -241,9 +249,10 @@ getTypeOfExpression declaredVars functions (ExprIfConditional _ trueBranch Nothi
 getTypeOfExpression _ _ (ExprWhileLoop _ _) = UnknownType
 getTypeOfExpression _ _ (ExprDoWhileLoop _ _) = UnknownType
 getTypeOfExpression _ functions (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) _) =
-    case lookup name [(name, type_) | Function name _ (Just type_) _ <- functions] of
-        Just type_ -> getTypeOfTypeIdentifier type_
-        Nothing -> UnknownType
+    maybe
+        UnknownType getTypeOfTypeIdentifier
+        (lookup
+            name [(name', type_) | Function name' _ (Just type_) _ <- functions])
 
 getTypeOfExpression _ _ _ = UnknownType
 
