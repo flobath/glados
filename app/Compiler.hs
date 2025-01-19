@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Compiler (compiler) where
+module Compiler (compiler, compileFile) where
 
 import Parser.ParseAndLex (parseAndLexFile)
 import Parser (pProgram)
