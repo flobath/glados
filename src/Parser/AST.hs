@@ -80,6 +80,7 @@ type InfixOperator = (Expression -> Expression -> InfixOperation)
 data AtomicExpression
     = AtomIntLiteral Int64
     | AtomBooleanLiteral Bool
+    | AtomFloatLiteral Float
     | AtomIdentifier VarIdentifier
     deriving (Eq, Show)
 

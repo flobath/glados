@@ -13,13 +13,14 @@ module Parser.Internal (
     pBetweenBrace,
     manyEol,
     pIntLiteral,
+    pFloatLiteral,
     pIdentifier,
     ParserError,
     liftMyToken,
 ) where
 
 import Data.Void (Void)
-import Lexer.Tokens (Token (..), Keyword, ControlSequence (..), Literal (IntLiteral))
+import Lexer.Tokens (Token (..), Keyword, ControlSequence (..), Literal (IntLiteral, FloatLiteral))
 import Parser.WithPos (WithPos(..))
 import Text.Megaparsec (Parsec, initialPos, MonadParsec (token, hidden), ErrorItem (Tokens), many, between, (<?>), ParseErrorBundle, try)
 import AlexToParsec (TokenStream)
@@ -99,6 +100,12 @@ pIntLiteral :: Parser Int64
 pIntLiteral = token test Set.empty <?> "integer literal"
     where
         test (WithPos _ _ _ (Literal (IntLiteral n))) = Just n
+        test _ = Nothing
+
+pFloatLiteral :: Parser Float
+pFloatLiteral = token test Set.empty <?> "float literal"
+    where
+        test (WithPos _ _ _ (Literal (FloatLiteral n))) = Just n
         test _ = Nothing
 
 pIdentifier :: Parser Text

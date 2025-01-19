@@ -86,6 +86,9 @@ spec = do
         it "single number" $
             parseAndLex pExpression "789"
             `shouldLexParse` eaInt 789
+        it "single float" $
+            parseAndLex pExpression "3.14"
+            `shouldLexParse` eaFloat 3.14
         it "single identifier" $
             parseAndLex pExpression "myidentifier"
             `shouldLexParse` eaId "myidentifier"

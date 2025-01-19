@@ -84,6 +84,7 @@ tokens :-
     main    { ctokKeyW KeyWMain }
 
     -- Literals
+    $digit+ "." $digit+     { tok (\s -> Literal $ FloatLiteral (tRead s)) }
     $digit+     { tok (\s -> Literal $ IntLiteral (tRead s)) }
 
     -- Identifiers

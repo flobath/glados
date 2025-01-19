@@ -17,6 +17,7 @@ eBlk = ExprBlock . BlockExpression
 eAtom = ExprAtomic
 
 eaInt = ExprAtomic . AtomIntLiteral
+eaFloat = ExprAtomic . AtomFloatLiteral
 eaBool = ExprAtomic . AtomBooleanLiteral
 eaId = ExprAtomic . AtomIdentifier . VarIdentifier
 
