@@ -245,6 +245,11 @@ DoWhileExpr &lt;- KeyW_do      DoWhileBody
 # do                body                  condition
 DoWhileBody     &lt;- Expression  AnySpacing KeyW_while GroupedExpr
 
+ForExpr     &lt;- KeyW_for     ForBody
+
+# for          declaration                 range                     body
+ForBody     &lt;- VariableDeclaration KeyW_in ExpressionList AnySpacing GroupedExpr
+
 # OR is the least precedent operator, so an &quot;operation&quot;
 # (combination of any number of operators) is a LogicalOrExpr
 OperationExpr &lt;- LogicalOrExpr
@@ -319,6 +324,8 @@ Keyword
     /  KeyW_while
     /  KeyW_until
     /  KeyW_do
+    /  KeyW_for
+    /  KeyW_in
     /  KeyW_return
     /  KeyW_true
     /  KeyW_false
@@ -331,6 +338,8 @@ KeyW_else   &lt;- 'else'   EndOfWord AnySpacing
 KeyW_while  &lt;- 'while'  EndOfWord AnySpacing
 KeyW_until  &lt;- 'until'  EndOfWord AnySpacing
 KeyW_do     &lt;- 'do'     EndOfWord AnySpacing
+KeyW_for    &lt;- 'for'    EndOfWord AnySpacing
+KeyW_in     &lt;- 'in'     EndOfWord AnySpacing
 KeyW_return &lt;- 'return' EndOfWord InlineSpacing # 'return' can be a statement on its own
 KeyW_true   &lt;- 'true'   EndOfWord InlineSpacing
 KeyW_false  &lt;- 'false'  EndOfWord InlineSpacing

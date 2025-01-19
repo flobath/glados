@@ -182,6 +182,10 @@
                 
             <li class="second-level"><a href="#conditional-expressions">Conditional expressions</a></li>
                 
+            <li class="second-level"><a href="#conditional-loops">Conditional loops</a></li>
+                
+            <li class="second-level"><a href="#iterative-loops">Iterative loops</a></li>
+                
             <li class="second-level"><a href="#general-expressions">General expressions</a></li>
                 
     </ul>
@@ -224,13 +228,36 @@ An application of zero operators on a primary expression also counts as a valid 
 <li><code>unless</code></li>
 <li><code>unless ... else</code></li>
 </ul>
-<p>The expressions <code>if</code> and <code>unless</code> with no <code>else</code> are formed of 2 sub -expressions. <code>if ... else</code> and <code>unless ... else</code> are formed of 3 sub expressions.<br />
+<p>The expressions <code>if</code> and <code>unless</code> with no <code>else</code> are formed of 2 sub-expressions. <code>if ... else</code> and <code>unless ... else</code> are formed of 3 sub-expressions.<br />
 All sub-expressions part of conditional expressions can be <a href="#general-expressions">any type of expression</a>.</p>
 <p>The expression <code>unless (A) ...</code> is just syntactic sugar for <code>if (!A) ...</code>. The condition is considered satisfied when it evaluates to <code>true</code> in the case of <code>if</code>, and when it evaluates to <code>false</code> in the case of <code>unless</code>.</p>
 <p>All four conditional expressions expect their condition as a parenthesised expression of type 
 <code>bool</code>.<br />
 In the case of <code>if</code> / <code>unless</code> without an <code>else</code> arm, an expression of type <code>()</code> is expected after the condition. If and only if the condition is satisfied, then the expression will be evaluated (and may produce side effects), then the control flow will continue right after, no matter whether the condition has been satisfied. These conditionals will always evaluate to <code>()</code>.<br />
 In the case of <code>if ... else</code> and <code>unless ... else</code>, a second expression is expected after the <code>else</code> block. Both expressions before and after the <code>else</code> must be of the same type. If the condition is satisfied, the first expression will be evaluated and the whole conditional will evaluate to its first arm. Otherwise, the second expression will be evaluted and the whole conditional will evaluate to its second arm.</p>
+<h2 id="conditional-loops">Conditional loops</h2>
+<p>Conditional loops are a simple control flow structure in FunChill, some of them are someway similar to conditional expressions. In total, 4 conditional loops exist:</p>
+<ul>
+<li><code>while</code></li>
+<li><code>until</code></li>
+<li><code>do ... while</code></li>
+<li><code>do ... until</code></li>
+</ul>
+<p>The expressions <code>while</code> and <code>until</code> with no <code>do</code> are formed of 2 sub-expressions. <code>do ... while</code> and <code>do ... until</code> are also formed of 2 sub-expressions but they evaluate them in the reverse order.
+All sub-expressions part of conditional loops can be <a href="#general-expressions">any type of expression</a>.</p>
+<p>The expression <code>until (A) ...</code> is just syntactic sugar for <code>while (!A) ...</code>. The condition is considered satisfied when it evaluates to <code>true</code> in the case of <code>while</code>, and when it evaluates to <code>false</code> in the case of <code>until</code>.</p>
+<p>All four conditional loops expect their condition as a parenthesised expression of type <code>bool</code>.
+In the case of <code>while</code> / <code>until</code>, an expression of type <code>()</code> is expected after the condition. If and only if the condition is satisfied, then the expression will be evaluated (and may produce side effects), then the control flow will re-evaluate the whole loop until the condition is no longer satisfied.
+In the case of <code>do ... while</code> and <code>do ... until</code>, a <code>do</code> keyword followed by an expression of type <code>()</code> is expected before the condition. The expression is evaluated before the control flow evaluates the condition. As for <code>while</code> / <code>until</code> loops, if the condition is evaluated to <code>true</code> / <code>false</code>, the whole loop is re-evaluated.
+After a conditional loop ends, the control flow continue to evaluate the next instructions.</p>
+<h2 id="iterative-loops">Iterative loops</h2>
+<p>Iterative loops are a complex control flow structure in FunChill with a behavior similar to conditional loops. Only one iterative loops exists:</p>
+<ul>
+<li><code>for ... in</code></li>
+</ul>
+<p>The expression <code>for ... in</code> is formed of 2 <a href="../statements/#list-of-statements">statements</a> and 1 sub-expression: a variable declaration, a range definition (defined as <code>(a,b)</code>), an <a href="#general-expressions">expression of any type</a>.</p>
+<p>The <code>for ... in</code> loop first declares a locally scoped integer variable and assigns it to the first value of the range. The control flow then evaluates the sub-expression and increment the local variable of <code>1</code>. The control flow re-evaluate the loop (except the variable declaration) until the variable becomes equal to or greater than the last value of the range.
+After an iterative loop ends, the control flow continue as for conditional loops.</p>
 <h2 id="general-expressions">General expressions</h2>
 <p>"General" expressions are what is commonly referred to as "expressions" in the rest of this documentation. They can be either <a href="#operation-expressions">operation expressions</a> or <a href="#conditional-expressions">conditional expressions</a>.</p>
 <p>Note that since operations expressions are made of <strong>zero</strong> or more operations, an atomic expression such as <code>3</code> will indeed qualify as a "general" expression.</p>
