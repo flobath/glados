@@ -37,6 +37,7 @@ import Data.Text (Text, unpack)
 import Debug.Trace
 import Helpers(myShowList)
 #endif
+import Helpers (safeTail)
 
 data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
 
@@ -226,6 +227,6 @@ execute envStack args prog pc returnStack stack
             Right stack' -> execute envStack args prog (pc + 1) returnStack stack'
         Jump n -> execute envStack args prog (pc + n) returnStack stack
         JumpIfFalse n -> case stack of
-            (BoolValue False : _) -> execute envStack args prog (pc + n) returnStack stack
-            _ -> execute envStack args prog (pc + 1) returnStack stack
+            (BoolValue False : stack') -> execute envStack args prog (pc + n) returnStack stack'
+            _                          -> execute envStack args prog (pc + 1) returnStack (safeTail stack)
         _ -> Left "Execution error"

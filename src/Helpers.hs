@@ -12,6 +12,7 @@ module Helpers (
     headOr,
     mapMToSnd,
     myShowList,
+    safeTail,
 ) where
 
 import Control.Applicative (Alternative((<|>)))
@@ -58,6 +59,10 @@ infixr 5 <:>
 -- Helper which maps over the error variant of an 'Either'
 (>&<) :: Bifunctor p => p a c -> (a -> b) -> p b c
 (>&<) = flip first
+
+safeTail :: [a] -> [a]
+safeTail [] = []
+safeTail (_:xs) = xs
 
 ffmap :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
 ffmap = fmap . fmap
