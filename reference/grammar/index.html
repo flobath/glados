@@ -234,6 +234,17 @@ UnlessExpr  &lt;- KeyW_unless  ConditionalBody
 # if/unless         condition             first arm              optional second arm
 ConditionalBody &lt;- GroupedExpr AnySpacing Expression (AnySpacing KeyW_else Expression)?
 
+WhileExpr   &lt;- KeyW_while   WhileBody
+UntilExpr   &lt;- KeyW_until   WhileBody
+
+# while/until       condition             body
+WhileBody       &lt;- GroupedExpr AnySpacing Expression
+
+DoWhileExpr &lt;- KeyW_do      DoWhileBody
+
+# do                body                  condition
+DoWhileBody     &lt;- Expression  AnySpacing KeyW_while GroupedExpr
+
 # OR is the least precedent operator, so an &quot;operation&quot;
 # (combination of any number of operators) is a LogicalOrExpr
 OperationExpr &lt;- LogicalOrExpr
@@ -305,6 +316,9 @@ Keyword
     /  KeyW_if
     /  keyW_unless
     /  KeyW_else
+    /  KeyW_while
+    /  KeyW_until
+    /  KeyW_do
     /  KeyW_return
     /  KeyW_true
     /  KeyW_false
@@ -314,6 +328,9 @@ KeyW_fun    &lt;- 'fun'    EndOfWord AnySpacing
 KeyW_if     &lt;- 'if'     EndOfWord AnySpacing
 KeyW_unless &lt;- 'unless' EndOfWord AnySpacing
 KeyW_else   &lt;- 'else'   EndOfWord AnySpacing
+KeyW_while  &lt;- 'while'  EndOfWord AnySpacing
+KeyW_until  &lt;- 'until'  EndOfWord AnySpacing
+KeyW_do     &lt;- 'do'     EndOfWord AnySpacing
 KeyW_return &lt;- 'return' EndOfWord InlineSpacing # 'return' can be a statement on its own
 KeyW_true   &lt;- 'true'   EndOfWord InlineSpacing
 KeyW_false  &lt;- 'false'  EndOfWord InlineSpacing
