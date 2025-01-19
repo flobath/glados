@@ -3,7 +3,7 @@
 failed_tests=0
 passed_tests=0
 
-if [ ! -x "$GLaDOS_EXEC_PATH" ]; then
+if [ -z "$GLaDOS_EXEC_PATH" ]; then
     echo 1>&2 "$GLaDOS_EXEC_PATH: invalid executable"
     exit 1
 fi
@@ -27,7 +27,7 @@ for test_dir in "$TEST_CASES_DIRECTORY"/*; do
     echo -n "$test_name: "
 
     # weird trick described in https://unix.stackexchange.com/questions/383217/shell-keep-trailing-newlines-n-in-command-substitution
-    result="$("$GLaDOS_EXEC_PATH" < "$test_dir/in" 2> /dev/null; ret=$?; echo .; exit $ret)"
+    result="$($GLaDOS_EXEC_PATH < "$test_dir/in" 2> /dev/null; ret=$?; echo .; exit $ret)"
     exit_status=$?
     result=${result%.}
 
