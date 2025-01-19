@@ -11,8 +11,8 @@ This project was developed by the following team members:
 
 ## Project Description
 
-This project purpose is to create a [LISP (Lots of Irritating Superfluous Parentheses)](https://en.wikipedia.org/wiki/Lisp_(programming_language)) interpreter using [Haskell](https://www.haskell.org/).
-The implemented LISP language must behave like [Chez Scheme](https://github.com/cisco/ChezScheme/).
+The purpose of this project is to create a new [programming language](https://en.wikipedia.org/wiki/Programming_language), along with its own compiler and interpreter.
+The compiler and the interpreter are developed using [Haskell](https://www.haskell.org/) language.
 
 ## Project Documentation
 

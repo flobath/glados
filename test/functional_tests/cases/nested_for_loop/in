@@ -1,0 +1,9 @@
+main {
+    i32 sum = 0
+    for i32 i in (0,5,1) {
+        for i32 j in (0,5,1) {
+            sum = sum + i * j
+        }
+    }
+    return sum
+}
