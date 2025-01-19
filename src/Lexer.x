@@ -92,7 +92,8 @@ tokens :-
 
 -- Each right-hand side has type :: AlexPosn -> Text -> WithPos Token
 type Lexer = (AlexPosn -> Text -> WithPos Token)
-type LexerError = String
+data LexerError = LexerError FilePath AlexInput
+  deriving (Show, Eq)
 
 -- Some action helpers:
 tok :: (Text -> Token) -> Lexer
@@ -122,24 +123,36 @@ mkSourcePos (AlexPn _ l c) = SourcePos
   , sourceColumn = mkPos c
   }
 
+assignSourceNameInWithPos :: FilePath -> WithPos a -> WithPos a
+assignSourceNameInWithPos filepath (WithPos start end len val)
+  = WithPos
+    (assignSourceName filepath start)
+    (assignSourceName filepath end)
+    len
+    val
+
+assignSourceName :: FilePath -> SourcePos -> SourcePos
+assignSourceName name (SourcePos _ l c) = SourcePos name l c
+
 -- Patched version of the generated `alexScanTokens`
 -- which returns `Left` instead of `error`ing horrendously
-myScanTokens :: Text -> Either LexerError [WithPos Token]
-myScanTokens str = go (alexStartPos,'\n',[],str)
+myScanTokens :: FilePath -> Text -> Either LexerError [WithPos Token]
+myScanTokens name str = ffmap (assignSourceNameInWithPos name) (go (alexStartPos,'\n',[],str))
     where go inp__@(pos,_,_bs,s) =
             case alexScan inp__ 0 of
                 AlexEOF -> Right []
-                AlexError ((AlexPn _ line column),c,pending,current) -> Left $
-                    "lexical error at line " ++ (show line) ++ ", column " ++ (show column) ++ ", previous character: " ++ show c ++ " pending: " ++ show pending ++ ", current: " ++ show current
+                AlexError e -> Left $ LexerError name e
                 AlexSkip  inp__' _len  -> go inp__'
                 AlexToken inp__' len act -> act pos (Data.Text.take len s) ?: go inp__'
 
 -- More concise version of myScanTok which only outputs
 -- the tokens, without their position.
-myScanTok :: Text -> Either String [Token]
-myScanTok = ffmap tokenVal . myScanTokens
+myScanTok :: Text -> Either LexerError [Token]
+myScanTok = ffmap tokenVal . myScanTokens ""
 
 showLexError :: LexerError -> String
-showLexError = show
+showLexError (LexerError filepath ((AlexPn _ line column),_,_,current))
+  = filepath ++ ": lexical error at line " ++ (show line) ++ ", column " ++ (show column)
+  ++ ".\nContent of the line from the offending character: " ++ Text.unpack (Text.takeWhile (/= '\n') current)
 
 }

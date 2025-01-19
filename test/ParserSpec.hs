@@ -36,8 +36,10 @@ import Lexer.Tokens (
 import Parser.ParseAndLex (
     ParseLexError(..),
     parseAndLex,
-    parseAndLex
+    parseAndLex,
+    parseAndLexFile,
     )
+import Helpers ((>&<))
 import Parser.Shorthands
 import Parser.AST (BlockExpression(BlockExpression), Function (Function), MainFunction (MainFunction), Program (Program))
 import Test.Hspec.Megaparsec (etok, err, utok, shouldFailWith, elabel)
@@ -486,3 +488,16 @@ spec = do
                 , fn "otherfunc" [vdecl "bool" "a"] Nothing []
                 , fn "lastfunc" [] Nothing []
                 ]
+        it "parseProgram error" $ do
+            let res = parseAndLexFile "file.cl" pProgram
+                    "fun a {\n    my_func(1, 2\n}"
+            let e = res >&< show
+            e `shouldBe` Left "\
+            \parse error:\n\
+            \file.cl:2:17:\n\
+            \  |\n\
+            \2 |     my_func(1, 2\n\
+            \  |                 ^\n\
+            \unexpected linebreak\n\
+            \expecting ) or ,\n\
+            \"

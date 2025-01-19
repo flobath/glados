@@ -344,7 +344,7 @@ pVariableDecl = try (VariableDeclaration
 pVariableDeclStatement :: Parser Statement
 pVariableDeclStatement = do
     decl <- pVariableDecl
-    value <- maybeParse (pControl OperAssign *> pExpression)
+    value <- maybeParse (pControl OperAssign *> manyEol *> pExpression)
     return $ StVariableDecl decl value
 
 pAssignStatement :: Parser Statement
@@ -357,12 +357,12 @@ pAssignStatement = try (StAssignment
     )
 
 pStatement :: Parser Statement
-pStatement = choice $ map (<* pEndOfStatement)
+pStatement = choice (map (<* pEndOfStatement)
     [ pReturnStatement
     , pVariableDeclStatement
     , pAssignStatement
     , pExpression <&> StExpression
-    ]
+    ]) <?> "statement"
 
 pEndOfStatement :: Parser [Token]
 pEndOfStatement = do
@@ -400,6 +400,7 @@ pFunction = do
     body <- pBlockExpression <* manyEol <?> "function body"
 
     return $ Function name paramList retType body
+    <?> "function declaration"
 
 pMainFunction :: Parser MainFunction
 pMainFunction = do
@@ -408,11 +409,12 @@ pMainFunction = do
     body <- pBlockExpression <* manyEol
 
     return $ MainFunction paramList body
+    <?> "main function"
 
 pProgram :: Parser Program
 pProgram = do
-    preMain <- many pFunction
+    preMain <- hidden $ many pFunction
     mainFunc <- pMainFunction
-    postMain <- many pFunction
+    postMain <- hidden $ many pFunction
 
     return $ Program mainFunc (preMain ++ postMain)
