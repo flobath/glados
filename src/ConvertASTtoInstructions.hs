@@ -8,6 +8,7 @@ import Data.Text (pack, unpack, Text)
 import Control.Monad (foldM)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+import Data.Maybe (fromMaybe)
 
 
 convertToStackInstructions :: Program -> Either String [StackInstruction]
@@ -74,6 +75,8 @@ convertFunction declaredVars functions (Function funcName params (Just funcType)
         (newVars, stmtInstrs) <- convertStatement vars functions stmt
         return (newVars, acc ++ stmtInstrs)) (newDeclaredVars, []) stmts
     replaceReturnType instrs funcName (getTypeOfTypeIdentifier funcType)
+convertFunction declaredVars functions (Function funcName params Nothing (BlockExpression stmts))
+    = Left "Cannot yet convert function with no return type"
 
 convertMainFunction :: Set.Set (Text, Type) -> [Function] -> MainFunction -> Either String [StackInstruction]
 convertMainFunction declaredVars functions (MainFunction params (BlockExpression stmts)) = do
@@ -191,13 +194,10 @@ convertInfixOperation declaredVars functions e1 e2 op = do
 findVariableType :: Set.Set (Text, Type) -> Text -> Maybe Type
 findVariableType declaredVars name =
     let filteredVars = Set.filter (\(varName, _) -> varName == name) declaredVars
-        in if Set.null(filteredVars) then Nothing else Just (snd $ Set.elemAt 0 filteredVars)
+        in if Set.null filteredVars then Nothing else Just (snd $ Set.elemAt 0 filteredVars)
 
 getTypeOfVariable :: Set.Set (Text, Type) -> Text -> Type
-getTypeOfVariable declaredVars name =
-    case findVariableType declaredVars name of
-        Just t -> t
-        Nothing -> UnknownType
+getTypeOfVariable declaredVars name = fromMaybe UnknownType (findVariableType declaredVars name)
 
 getTypeOfTypeIdentifier :: TypeIdentifier -> Type
 getTypeOfTypeIdentifier (TypeIdentifier typename) = case unpack typename of
@@ -209,9 +209,7 @@ getTypeOfExpression :: Set.Set (Text, Type) -> [Function] -> Expression -> Type
 getTypeOfExpression _ _ (ExprAtomic (AtomIntLiteral _)) = IntType
 getTypeOfExpression _ _ (ExprAtomic (AtomBooleanLiteral _)) = BoolType
 getTypeOfExpression declaredVars _ (ExprAtomic (AtomIdentifier (VarIdentifier name))) = do
-    case findVariableType declaredVars name of
-        Just t -> t
-        Nothing -> UnknownType
+    fromMaybe UnknownType (findVariableType declaredVars name)
 getTypeOfExpression _ _ (ExprOperation (OpInfix (InfixAdd _ _))) = IntType
 getTypeOfExpression _ _ (ExprOperation (OpInfix (InfixSub _ _))) = IntType
 getTypeOfExpression _ _ (ExprOperation (OpInfix (InfixMul _ _))) = IntType
@@ -238,9 +236,10 @@ getTypeOfExpression declaredVars functions (ExprIfConditional _ trueBranch Nothi
 getTypeOfExpression _ _ (ExprWhileLoop _ _) = UnknownType
 getTypeOfExpression _ _ (ExprDoWhileLoop _ _) = UnknownType
 getTypeOfExpression _ functions (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) _) =
-    case lookup name [(name, type_) | Function name _ (Just type_) _ <- functions] of
-        Just type_ -> getTypeOfTypeIdentifier type_
-        Nothing -> UnknownType
+    maybe
+        UnknownType getTypeOfTypeIdentifier
+        (lookup
+            name [(name', type_) | Function name' _ (Just type_) _ <- functions])
 
 getTypeOfExpression _ _ _ = UnknownType
 
