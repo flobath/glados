@@ -11,12 +11,14 @@ module Helpers (
     orExitWith,
     headOr,
     mapMToSnd,
+    myShowList,
 ) where
 
 import Control.Applicative (Alternative((<|>)))
 import Data.Bifunctor (Bifunctor(first))
 import System.Exit (exitWith, ExitCode (ExitFailure))
 import System.IO (stderr, hPutStrLn)
+import Control.Arrow((>>>))
 
 -- Helper function used to create combinator operators
 -- See defintion of (<||>) and (<<|>>) for example uses
@@ -80,3 +82,10 @@ mapMToSnd f = foldr k (return [])
     where
         -- k :: a -> m [(a, b)] -> m [(a, b)]
         k a r = do { x <- f a; xs <- r; return ((a, x):xs) }
+
+myShowList :: Show a => [a] -> String
+myShowList [] = "[]\n"
+myShowList xs = "[\n" ++ showList' xs ++ "  ]\n"
+    where
+        showList' :: Show a => [a] -> String
+        showList' = map (show >>> (++ ",") >>> ("    " ++)) >>> unlines
