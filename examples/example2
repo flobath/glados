@@ -1,0 +1,15 @@
+fun function_a(bool b): i32
+{
+    if (b) {
+        return 5
+    }
+    return -5
+}
+
+main
+{
+    bool b = true
+    i32 a = function_a(b)
+
+    return a
+}

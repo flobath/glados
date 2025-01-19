@@ -36,7 +36,28 @@ If you just want to run the project to test it out, you don't need to bother usi
 
 ## Run the Project
 
-To run the project, follow these steps:
+To run the project, open a terminal in the folder where the project binary (glados) is located. Then you can run one of the available commands based on your needs:
+
+- **Get help about available commands:**
+```bash
+./glados
+```
+- **Build an executable from source files**
+```bash
+./glados build source_file
+```
+- **Execute a previously built executable**
+```bash
+./glados exec executable
+```
+- **Disassemble one or more executables**
+```bash
+./glados disassemble executable
+```
+- **Compile and execute directly without producing an executable file**
+```bash
+./glados run source_file
+```
 
 ### Running with nix
 
@@ -44,4 +65,4 @@ If you're working with [nix](https://nixos.org/) and nix flakes, you can run our
 
 ## Examples
 
-Here are some examples to demonstrate how to use the GLaDOS.
+Some example files containing FunChill code can be found in the examples directory under the root of the project repository.

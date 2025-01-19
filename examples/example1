@@ -1,0 +1,9 @@
+main
+{
+    i32 a = 45
+
+    if (a < 90) {
+        a = a * 2
+    }
+    return a
+}

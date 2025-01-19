@@ -11,7 +11,8 @@ This project was developed by the following team members:
 
 ## Project Description
 
-This project purpose is 
+The purpose of this project is to create a new [programming language](https://en.wikipedia.org/wiki/Programming_language), along with its own compiler and interpreter.
+The compiler and the interpreter are developed using [Haskell](https://www.haskell.org/) language.
 
 ## Project Documentation
 
