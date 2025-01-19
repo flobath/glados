@@ -11,9 +11,9 @@ runHelpMessage  = "Usage: run {filename | -}\n\n"
                 ++ "Run a FunChill program directly from source code\n"
                 ++ "Input can be a file, or stdin with \"-\" as filename\n"
 
-runFromContent :: Text -> IO ()
-runFromContent contents = do
-    program <- compileFile contents `orelse` exitWithErrorMessage
+runFromContent :: FilePath -> Text -> IO ()
+runFromContent filename contents = do
+    program <- compileFile filename contents `orelse` exitWithErrorMessage
     result <- execute' program `orelse` exitWithErrorMessage
     print result
 
@@ -22,8 +22,8 @@ run ["--help"] = putStrLn runHelpMessage >> exitSuccess
 run ["-h"] = run ["--help"]
 run ["-"] = do
     contents <- T.IO.getContents
-    runFromContent contents
+    runFromContent "<stdin>" contents
 run [inputFile] = do
     contents <- T.IO.readFile inputFile
-    runFromContent contents
+    runFromContent inputFile contents
 run _ = exitWithErrorMessage runHelpMessage
