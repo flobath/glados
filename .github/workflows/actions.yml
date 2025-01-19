@@ -92,7 +92,7 @@ jobs:
           fi
 
   create_release:
-    if: ${{ github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'Release') == true }}
+    if: ${{ startsWith(github.event.pull_request.head.ref, 'Release') == true }}
     needs: can-merge-pr
     runs-on: ubuntu-latest
     env:
