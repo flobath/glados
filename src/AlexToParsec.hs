@@ -6,7 +6,7 @@ module AlexToParsec (
 ) where
 
 import Parser.WithPos(WithPos (tokenVal, tokenLength, endPos, startPos))
-import Lexer.Tokens (Token(..), ControlSequence (LineBreak, Semicolon))
+import Lexer.Tokens (Token(..), ControlSequence (..), Literal (..), Keyword(..))
 import Data.Text (Text)
 import Text.Megaparsec (PosState(..))
 import Data.Proxy (Proxy(..))
@@ -100,7 +100,51 @@ instance MP.TraversableStream TokenStream where
 pxy :: Proxy TokenStream
 pxy = Proxy
 
+-- Custom token display functions
+
 showMyToken :: Token -> String
-showMyToken (Control LineBreak) = "linebreak"
-showMyToken (Control Semicolon) = "';'"
-showMyToken t = show t-- TODO: replace this by some pretty-print of tokens
+showMyToken (Keyword kw) = "keyword '" ++ showKeyword kw ++ "'"
+showMyToken (Literal lit) = "literal '" ++ showLiteral lit ++ "'"
+showMyToken (Identifier iden) = "identifier '" ++ show iden ++ "'"
+showMyToken (Control c) = showControl c
+
+showLiteral :: Literal -> String
+showLiteral (IntLiteral x) = show x
+
+showKeyword :: Keyword -> String
+showKeyword KeyWReturn = "return"
+showKeyword KeyWIf = "if"
+showKeyword KeyWUnless = "unless"
+showKeyword KeyWElse = "else"
+showKeyword KeyWWhile = "while"
+showKeyword KeyWUntil = "until"
+showKeyword KeyWDo = "do"
+showKeyword KeyWFun = "fun"
+showKeyword KeyWTrue = "true"
+showKeyword KeyWFalse = "false"
+showKeyword KeyWMain = "main"
+
+showControl :: ControlSequence -> String
+showControl LineBreak = "linebreak"
+showControl Semicolon = ";"
+showControl Colon = ":"
+showControl Comma = ","
+showControl OpenParen = "("
+showControl CloseParen = ")"
+showControl OpenBrace = "{"
+showControl CloseBrace = "}"
+showControl OperAssign = "="
+showControl OperAdd = "+"
+showControl OperSub = "-"
+showControl OperMul = "*"
+showControl OperDiv = "/"
+showControl OperMod = "%"
+showControl OperEquals = "=="
+showControl OperDiffer = "!="
+showControl OperNot = "!"
+showControl OperAnd = "&&"
+showControl OperOr = "||"
+showControl OperGt = ">"
+showControl OperLt = "<"
+showControl OperGe = ">="
+showControl OperLe = "<="

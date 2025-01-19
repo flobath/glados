@@ -36,8 +36,10 @@ import Lexer.Tokens (
 import Parser.ParseAndLex (
     ParseLexError(..),
     parseAndLex,
-    parseAndLex
+    parseAndLex,
+    parseAndLexFile,
     )
+import Helpers ((>&<))
 import Parser.Shorthands
 import Parser.AST (BlockExpression(BlockExpression), Function (Function), MainFunction (MainFunction), Program (Program))
 import Test.Hspec.Megaparsec (etok, err, utok, shouldFailWith, elabel)
@@ -200,6 +202,33 @@ spec = do
             `shouldLexParse` eDoWhile
                 (eoAdd (eaInt 8) (eaInt 3))
                 (eoGt (eaId "myvar") (eoMul (eaInt 8) (eaInt 4)))
+        it "do until loop" $
+            parseAndLex pExpression "do 8 + 3 until (myvar > 8 * 4)"
+            `shouldLexParse` eDoWhile
+                (eoAdd (eaInt 8) (eaInt 3))
+                (eoNot $ eoGt (eaId "myvar") (eoMul (eaInt 8) (eaInt 4)))
+        it "for loop" $
+            parseAndLex pExpression "for i32 a in (0, 5) 8 + 3"
+            `shouldLexParse` eFor [
+                    sDecl (tId "i32") (vId "a") (Just $ eaInt 0),
+                    sExpr $ eWhile
+                        (eoLt (eaId "a") (eaInt 5))
+                        (eBlk [
+                            sExpr $ eoAdd (eaInt 8) (eaInt 3),
+                            sAssi "a" (eoAdd (eaId "a") (eaInt 1))
+                        ])
+                ]
+        it "for loop with reverse range" $
+            parseAndLex pExpression "for i32 a in (5, 0) 8 + 3"
+            `shouldLexParse` eFor [
+                    sDecl (tId "i32") (vId "a") (Just $ eaInt 5),
+                    sExpr $ eWhile
+                        (eoGt (eaId "a") (eaInt 0))
+                        (eBlk [
+                            sExpr $ eoAdd (eaInt 8) (eaInt 3),
+                            sAssi "a" (eoAdd (eaId "a") (eaInt (-1)))
+                        ])
+                ]
 
     describe "function calls" $ do
         it "call with no arguments" $
@@ -340,6 +369,46 @@ spec = do
                     (eoLt (eaId "a") (eaInt 7))
                 , sRet $ eaId "a"
                 ]
+        it "block containing var assignement and do until loop" $
+            parseAndLex pExpression "\
+                \{\n\
+                \   i32 a = 10\n\
+                \   do {\n\
+                \       a = a - 1\n\
+                \   } until (a < 7)\n\
+                \   return a\n\
+                \}"
+            `shouldLexParse` eBlk
+                [ sDecl (tId "i32") (vId "a") (Just $ eaInt 10)
+                , sExpr $ eDoWhile
+                    (eBlk [
+                        sAssi "a" (eoSub (eaId "a") (eaInt 1))
+                    ])
+                    (eoNot $ eoLt (eaId "a") (eaInt 7))
+                , sRet $ eaId "a"
+                ]
+        it "block containing var assignement and for loop" $
+            parseAndLex pExpression "\
+            \{\n\
+            \   i32 a = 0\n\
+            \   for i32 i in (0, 5) {\n\
+            \       a = a + i\n\
+            \   }\n\
+            \   return a\n\
+            \}"
+            `shouldLexParse` eBlk
+                [ sDecl (tId "i32") (vId "a") (Just $ eaInt 0)
+                , sExpr $ eFor [
+                        sDecl (tId "i32") (vId "i") (Just $ eaInt 0),
+                        sExpr $ eWhile
+                            (eoLt (eaId "i") (eaInt 5))
+                            (eBlk [
+                                sAssi "a" (eoAdd (eaId "a") (eaId "i")),
+                                sAssi "i" (eoAdd (eaId "i") (eaInt 1))
+                            ])
+                    ]
+                , sRet $ eaId "a"
+                ]
         it "fail with missing end of statement" $
             lexParse pBlockExpression "{i32 a = 4}"
             `shouldFailWith` err 5 (
@@ -422,3 +491,16 @@ spec = do
                 , fn "otherfunc" [vdecl "bool" "a"] Nothing []
                 , fn "lastfunc" [] Nothing []
                 ]
+        it "parseProgram error" $ do
+            let res = parseAndLexFile "file.cl" pProgram
+                    "fun a {\n    my_func(1, 2\n}"
+            let e = res >&< show
+            e `shouldBe` Left "\
+            \parse error:\n\
+            \file.cl:2:17:\n\
+            \  |\n\
+            \2 |     my_func(1, 2\n\
+            \  |                 ^\n\
+            \unexpected linebreak\n\
+            \expecting ) or ,\n\
+            \"

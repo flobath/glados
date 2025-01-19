@@ -7,6 +7,7 @@ module Lexer.Tokens (
 
 import Data.Int (Int64)
 import Data.Text (Text)
+import Data.IntMap (Key)
 
 data Token
     = Keyword Keyword
@@ -28,6 +29,8 @@ data Keyword
     | KeyWWhile
     | KeyWUntil
     | KeyWDo
+    | KeyWFor
+    | KeyWIn
     | KeyWFun
     | KeyWTrue
     | KeyWFalse
