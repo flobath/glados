@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-{-# OPTIONS_GHC -DDEBUG #-} -- Uncomment to activate tracing
+-- {-# OPTIONS_GHC -DDEBUG #-} -- Uncomment to activate tracing
 
 module StackMachine (
     Value(..),
