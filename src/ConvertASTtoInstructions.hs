@@ -4,7 +4,7 @@ module ConvertASTtoInstructions (
 
 import Parser.AST
 import StackMachine
-import Data.Text (unpack, Text)
+import Data.Text (pack, unpack, Text)
 import Control.Monad (foldM)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -48,6 +48,15 @@ replaceCallFuncName instrs funcLengths mainLength = mapM replace instrs
       Nothing -> Left $ "Function '" ++ unpack name ++ "' not defined"
     replace instr = Right instr
 
+replaceReturnType :: [StackInstruction] -> Text -> Type -> Either String [StackInstruction]
+replaceReturnType instrs funcName expectedType = mapM replace instrs
+  where
+    replace (ReturnType t)
+      | t == expectedType = Right Return
+      | t == UnknownType = Right Return
+      | otherwise = Left $ "Type mismatch in return for function '" ++ unpack funcName ++ "' expected '" ++ show expectedType ++ "' but got '" ++ show t ++ "'"
+    replace instr = Right instr
+
 getFunctionLength :: Set.Set (Text, Type) -> [Function] -> Function -> (Text, Int)
 getFunctionLength declaredVars functions func@(Function name _ _ _) =
   case convertFunction declaredVars functions func of
@@ -58,13 +67,13 @@ generateFunctionMap :: [Function] -> Map.Map Text Int
 generateFunctionMap functions = Map.fromList $ map (getFunctionLength Set.empty functions) functions
 
 convertFunction :: Set.Set (Text, Type) -> [Function] -> Function -> Either String [StackInstruction]
-convertFunction declaredVars functions (Function _ params _ (BlockExpression stmts)) = do
+convertFunction declaredVars functions (Function funcName params (Just funcType) (BlockExpression stmts)) = do
     let paramNames = Set.fromList $ map (\(VariableDeclaration declaredType (VarIdentifier name)) -> (name, getTypeOfTypeIdentifier declaredType)) params
     let newDeclaredVars = Set.union declaredVars paramNames
     (finalVars, instrs) <- foldM (\(vars, acc) stmt -> do
         (newVars, stmtInstrs) <- convertStatement vars functions stmt
         return (newVars, acc ++ stmtInstrs)) (newDeclaredVars, []) stmts
-    return instrs
+    replaceReturnType instrs funcName (getTypeOfTypeIdentifier funcType)
 
 convertMainFunction :: Set.Set (Text, Type) -> [Function] -> MainFunction -> Either String [StackInstruction]
 convertMainFunction declaredVars functions (MainFunction params (BlockExpression stmts)) = do
@@ -73,7 +82,7 @@ convertMainFunction declaredVars functions (MainFunction params (BlockExpression
     (_, instrs) <- foldM (\(vars, acc) stmt -> do
         (newVars, stmtInstrs) <- convertStatement vars functions stmt
         return (newVars, acc ++ stmtInstrs)) (newDeclaredVars, []) stmts
-    return instrs
+    replaceReturnType instrs (pack "main") IntType
 
 convertStatement :: Set.Set (Text, Type) -> [Function] -> Statement -> Either String (Set.Set (Text, Type), [StackInstruction])
 convertStatement declaredVars functions (StExpression expr) = do
@@ -102,7 +111,7 @@ convertStatement declaredVars functions (StAssignment (VarIdentifier name) expr)
         Nothing -> Left $ "Variable '" ++ unpack name ++ "' not declared"
 convertStatement declaredVars functions (StReturn expr) = do
     exprInstrs <- convertExpression declaredVars functions expr
-    return (declaredVars, exprInstrs ++ [Return])
+    return (declaredVars, exprInstrs ++ [ReturnType (getTypeOfExpression declaredVars functions expr)])
 
 convertExpression :: Set.Set (Text, Type) -> [Function] -> Expression -> Either String [StackInstruction]
 convertExpression declaredVars functions (ExprAtomic (AtomIdentifier (VarIdentifier name))) =

@@ -68,6 +68,7 @@ data StackInstruction
     --Temporary Instructions during compilation
     | StoreArgs Text Type Int
     | CallFuncName Text
+    | ReturnType Type
     deriving (Show, Eq)
 
 type Args = [Value]
