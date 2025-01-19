@@ -176,7 +176,7 @@ convertExpression declaredVars functions (ExprDoWhileLoop body cond) = do
 convertExpression declaredVars functions (ExprFunctionCall (ExprAtomic (AtomIdentifier (VarIdentifier name))) args) = do
     argsInstrs <- concat <$> mapM (convertExpression declaredVars functions) args
     let argTypes = map (getTypeOfExpression declaredVars functions) args
-    return $ [NewEnv] ++ argsInstrs ++ zipWith (\i argType -> StoreArgs name argType (length args - i - 1)) [0..] argTypes ++ [CallFuncName name]
+    return $ argsInstrs ++ [NewEnv] ++ zipWith (\i argType -> StoreArgs name argType (length args - i - 1)) [0..] argTypes ++ [CallFuncName name]
 
 convertExpression _ _ _ = Right []
 
