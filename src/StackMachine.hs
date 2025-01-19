@@ -1,5 +1,9 @@
+{-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -DDEBUG #-} -- Uncomment to activate tracing
+
 module StackMachine (
     Value(..),
+    Type(..),
     Operator(..),
     StackInstruction(..),
     Args,
@@ -28,9 +32,19 @@ module StackMachine (
 ) where
 
 import Data.Int (Int64)
-import Data.Text (Text)
+import Data.Text (Text, unpack)
+#ifdef DEBUG
+import Debug.Trace
+import Helpers(myShowList)
+#endif
 
 data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
+
+data Type = IntType | BoolType | UnknownType deriving (Eq, Ord)
+instance Show Type where
+    show IntType = "i32"
+    show BoolType = "bool"
+    show UnknownType = "unknown"
 
 data Operator
     = Add
@@ -54,12 +68,14 @@ data StackInstruction
     | StoreEnv Text
     | Call Int
     | NewEnv
-    | StoreArgs Text Int
-    | CallFuncName Text
     | Return
     | Jump Int
     | JumpIfFalse Int
     | OpValue Operator
+    --Temporary Instructions during compilation
+    | StoreArgs Text Type Int
+    | CallFuncName Text
+    | ReturnType Type
     deriving (Show, Eq)
 
 type Args = [Value]
@@ -86,7 +102,7 @@ pop [] = Left "Cannot pop empty stack"
 pushEnv :: Text -> Environment -> Stack -> Either String Stack
 pushEnv name env stack = case lookup name env of
     Just value -> Right (push value stack)
-    Nothing -> Left "Cannot find value in environment"
+    Nothing -> Left $ "Cannot find value " ++ show name ++ " in environment"
 
 storeEnv :: Text -> Environment -> Stack -> Either String Environment
 storeEnv name env (value : stack) =
@@ -177,12 +193,20 @@ execute' :: StackProgram -> Either String Value
 execute' prog = execute [[]] [] prog 0 [] []
 
 execute :: [Environment] -> Args -> StackProgram -> ProgramCounter -> ReturnStack -> Stack -> Either String Value
-execute _ _ [] _ _ stack = case pop stack of
+execute _ _ [] _ _ stack =
+#ifdef DEBUG
+    trace ("End of exec: left with stack: " ++ show stack) $
+#endif
+    case pop stack of
     Right (value, _) -> Right value
     Left err -> Left err
 execute envStack args prog pc returnStack stack
     | pc >= length prog = Left "Program counter out of bounds"
-    | otherwise = case prog !! pc of
+    | otherwise =
+#ifdef DEBUG
+        trace ("exec: " ++ show (prog !! pc) ++ "\n  envStack: " ++ myShowList envStack ++ "\n  args: " ++ show args ++ "\n  pc: " ++ show pc ++ "\n  retStack: " ++ myShowList returnStack ++ "\n  stack: " ++ myShowList stack) $
+#endif
+        case prog !! pc of
         Return -> case returnStack of
             (retAddr:rest) -> execute (tail envStack) args prog retAddr rest stack
             [] -> case pop stack of
@@ -193,11 +217,10 @@ execute envStack args prog pc returnStack stack
             Right stack' -> execute envStack args prog (pc + 1) returnStack stack'
             Left err -> Left err
         StoreEnv name -> case storeEnv name (head envStack) stack of
-            Right env' -> execute (env':tail envStack) args prog (pc + 1) returnStack stack
+            Right env' -> execute (env':tail envStack) args prog (pc + 1) returnStack (tail stack)
             Left err -> Left err
         NewEnv -> execute ([]:envStack) args prog (pc + 1) returnStack stack
         Call n -> execute envStack args prog n (pc + 1 : returnStack) stack
-        CallFuncName name -> Left $ "Call to " ++ show name ++ " Should not happen"
         OpValue op -> case applyOperator op stack of
             Left err -> Left err
             Right stack' -> execute envStack args prog (pc + 1) returnStack stack'
