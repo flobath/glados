@@ -268,3 +268,68 @@ spec = do
                     Return
                 ]
             `shouldBe` Right (IntValue 7)
+        it "execute do until loop" $ do
+            execute' [
+                    PushValue (IntValue 10),
+                    StoreEnv "a",
+                    PushValue (IntValue 1),
+                    PushEnv "a",
+                    OpValue Sub,
+                    StoreEnv "a",
+                    PushValue (IntValue 7),
+                    PushEnv "a",
+                    OpValue Lt,
+                    PushValue (BoolValue False),
+                    OpValue Eq,
+                    JumpIfFalse 2,
+                    Jump (-10),
+                    PushEnv "a",
+                    Return
+                ]
+            `shouldBe` Right (IntValue 6)
+        it "execute for loop" $ do
+            execute' [
+                    PushValue (IntValue 0),
+                    StoreEnv "a",
+                    PushValue (IntValue 0),
+                    StoreEnv "i",
+                    PushValue (IntValue 5),
+                    PushEnv "i",
+                    OpValue Lt,
+                    JumpIfFalse 10,
+                    PushEnv "i",
+                    PushEnv "a",
+                    OpValue Add,
+                    StoreEnv "a",
+                    PushValue (IntValue 1),
+                    PushEnv "i",
+                    OpValue Add,
+                    StoreEnv "i",
+                    Jump (-12),
+                    PushEnv "a",
+                    Return
+                ]
+            `shouldBe` Right (IntValue 10)
+        it "execute for loop with reversed range" $ do
+            execute' [
+                    PushValue (IntValue 0),
+                    StoreEnv "a",
+                    PushValue (IntValue 5),
+                    StoreEnv "i",
+                    PushValue (IntValue 0),
+                    PushEnv "i",
+                    OpValue Gt,
+                    JumpIfFalse 10,
+                    PushEnv "i",
+                    PushEnv "a",
+                    OpValue Add,
+                    StoreEnv "a",
+                    PushValue (IntValue (-1)),
+                    PushEnv "i",
+                    OpValue Add,
+                    StoreEnv "i",
+                    Jump (-12),
+                    PushEnv "a",
+                    Return
+                ]
+            `shouldBe` Right (IntValue 15)

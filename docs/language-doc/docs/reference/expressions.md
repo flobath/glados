@@ -47,7 +47,7 @@ Conditional expressions are the most basic control flow structure in FunChill. I
 - `unless`
 - `unless ... else`
 
-The expressions `if` and `unless` with no `else` are formed of 2 sub -expressions. `if ... else` and `unless ... else` are formed of 3 sub expressions.  
+The expressions `if` and `unless` with no `else` are formed of 2 sub-expressions. `if ... else` and `unless ... else` are formed of 3 sub-expressions.  
 All sub-expressions part of conditional expressions can be [any type of expression](#general-expressions).
 
 The expression `unless (A) ...` is just syntactic sugar for `if (!A) ...`. The condition is considered satisfied when it evaluates to `true` in the case of `if`, and when it evaluates to `false` in the case of `unless`.
@@ -56,6 +56,36 @@ All four conditional expressions expect their condition as a parenthesised expre
 `bool`.  
 In the case of `if` / `unless` without an `else` arm, an expression of type `()` is expected after the condition. If and only if the condition is satisfied, then the expression will be evaluated (and may produce side effects), then the control flow will continue right after, no matter whether the condition has been satisfied. These conditionals will always evaluate to `()`.  
 In the case of `if ... else` and `unless ... else`, a second expression is expected after the `else` block. Both expressions before and after the `else` must be of the same type. If the condition is satisfied, the first expression will be evaluated and the whole conditional will evaluate to its first arm. Otherwise, the second expression will be evaluted and the whole conditional will evaluate to its second arm.
+
+## Conditional loops
+
+Conditional loops are a simple control flow structure in FunChill, some of them are someway similar to conditional expressions. In total, 4 conditional loops exist:
+
+- `while`
+- `until`
+- `do ... while`
+- `do ... until`
+
+The expressions `while` and `until` with no `do` are formed of 2 sub-expressions. `do ... while` and `do ... until` are also formed of 2 sub-expressions but they evaluate them in the reverse order.
+All sub-expressions part of conditional loops can be [any type of expression](#general-expressions).
+
+The expression `until (A) ...` is just syntactic sugar for `while (!A) ...`. The condition is considered satisfied when it evaluates to `true` in the case of `while`, and when it evaluates to `false` in the case of `until`.
+
+All four conditional loops expect their condition as a parenthesised expression of type `bool`.
+In the case of `while` / `until`, an expression of type `()` is expected after the condition. If and only if the condition is satisfied, then the expression will be evaluated (and may produce side effects), then the control flow will re-evaluate the whole loop until the condition is no longer satisfied.
+In the case of `do ... while` and `do ... until`, a `do` keyword followed by an expression of type `()` is expected before the condition. The expression is evaluated before the control flow evaluates the condition. As for `while` / `until` loops, if the condition is evaluated to `true` / `false`, the whole loop is re-evaluated.
+After a conditional loop ends, the control flow continue to evaluate the next instructions.
+
+## Iterative loops
+
+Iterative loops are a complex control flow structure in FunChill with a behavior similar to conditional loops. Only one iterative loops exists:
+
+- `for ... in`
+
+The expression `for ... in` is formed of 2 [statements](./statements.md#list-of-statements) and 1 sub-expression: a variable declaration, a range definition (defined as `(a,b)`), an [expression of any type](#general-expressions).
+
+The `for ... in` loop first declares a locally scoped integer variable and assigns it to the first value of the range. The control flow then evaluates the sub-expression and increment the local variable of `1`. The control flow re-evaluate the loop (except the variable declaration) until the variable becomes equal to or greater than the last value of the range.
+After an iterative loop ends, the control flow continue as for conditional loops.
 
 ## General expressions
 
