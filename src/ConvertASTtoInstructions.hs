@@ -152,10 +152,10 @@ convertExpression declaredVars functions (ExprOperation (OpPrefix (PreNot e))) =
     return $ eInstrs ++ [PushValue (BoolValue False), OpValue Eq]
 convertExpression declaredVars functions (ExprOperation (OpPrefix (PrePlus e))) = do
     eInstrs <- convertExpression declaredVars functions e
-    return $ eInstrs ++ [PushValue (IntValue 1), OpValue Add]
+    return $ eInstrs
 convertExpression declaredVars functions (ExprOperation (OpPrefix (PreNeg e))) = do
     eInstrs <- convertExpression declaredVars functions e
-    return $ eInstrs ++ [PushValue (IntValue 1), OpValue Sub]
+    return $ eInstrs ++ [PushValue (IntValue -1), OpValue Mul]
 
 convertExpression declaredVars functions (ExprBlock (BlockExpression stmts)) = do
     (_, instrs) <- foldM (\(vars, acc) stmt -> do
