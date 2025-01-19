@@ -12,7 +12,9 @@ all: $(TARGET)
 
 $(TARGET):
 	@stack build
-	@ln -sf $$(stack path --local-install-root)/bin/$(STACK_TARGET)-exe $(TARGET)
+	@ln -sf $$(stack path --local-install-root)/bin/$(STACK_TARGET) $(TARGET)
+	@ln -sf $$(stack path --local-install-root)/bin/$(STACK_TARGET)-exe $(TARGET)-exe
+	@ln -sf $$(stack path --local-install-root)/bin/$(STACK_TARGET)-cmp $(TARGET)-cmp
 
 clean:
 	@stack clean
@@ -32,7 +34,7 @@ tests_functional_run: $(TARGET)
 	@echo
 	@echo 'Running functional tests'
 	@echo
-	@GLaDOS_EXEC_PATH="$$(realpath '$(TARGET)')" \
+	@GLaDOS_EXEC_PATH="$$(realpath '$(TARGET)-exe')" \
 	 TEST_CASES_DIRECTORY=./test/functional_tests/cases \
 	 ./test/functional_tests/tester.sh
 

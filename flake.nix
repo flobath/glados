@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     flake-parts.url = "github:hercules-ci/flake-parts";
     haskell-flake.url = "github:srid/haskell-flake";
   };
@@ -21,7 +21,7 @@
         ...
       }: {
         haskellProjects.default = {
-          basePackages = pkgs.haskell.packages.ghc964;
+          basePackages = pkgs.haskell.packages.ghc966;
 
           devShell = {
             # Disable the automatically generated devShell to
@@ -43,7 +43,14 @@
         devShells.default = pkgs.mkShell {
           name = "Superb haskell flake shell";
           inputsFrom = [config.haskellProjects.default.outputs.devShell];
-          nativeBuildInputs = with pkgs; [bashInteractiveFHS chez stack];
+          nativeBuildInputs = with pkgs; [
+            # Build tools
+            stack
+
+            # Documentation tools
+            mkdocs
+            python312Packages.mkdocs-macros
+          ];
         };
 
         packages.default = self'.packages.GLaDOS;

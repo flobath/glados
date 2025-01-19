@@ -1,5 +1,0 @@
-(define (read_a_dynamically) a)
-(define a 164)
-(read_a_dynamically)
-(define a 42)
-(read_a_dynamically)

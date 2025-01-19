@@ -21,11 +21,16 @@ description:         Please see the README on GitHub at <https://github.com/Thib
 
 dependencies:
   - base >= 4.7 && < 5
+  - ilist
   - megaparsec
   - composition-prelude
   - transformers
   - monad-loops
   - text
+  - binary
+  - bytestring
+  - array
+  - containers
 
 ghc-options:
   - -Wall
@@ -38,12 +43,33 @@ ghc-options:
   - -Wpartial-fields
   - -Wredundant-constraints
 
+build-tools:
+  - alex
+
 library:
   source-dirs: src
 
 executables:
   GLaDOS-exe:
-    main:                Main.hs
+    main:                Main-exe.hs
+    source-dirs:         app
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - GLaDOS
+  GLaDOS-cmp:
+    main:                Main-cmp.hs
+    source-dirs:         app
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - GLaDOS
+  GLaDOS:
+    main:                Main-all.hs
     source-dirs:         app
     ghc-options:
       - -threaded
