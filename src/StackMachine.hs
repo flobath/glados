@@ -41,11 +41,12 @@ import Helpers (safeTail)
 
 data Value = IntValue Int64 | BoolValue Bool deriving (Show, Eq)
 
-data Type = IntType | BoolType | UnknownType deriving (Eq, Ord)
+data Type = IntType | BoolType | UnknownType | VoidType deriving (Eq, Ord)
 instance Show Type where
     show IntType = "i32"
     show BoolType = "bool"
     show UnknownType = "unknown"
+    show VoidType = "()"
 
 data Operator
     = Add

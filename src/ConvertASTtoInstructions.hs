@@ -72,7 +72,6 @@ isReturnStatement (StReturn _) = True
 isReturnStatement _ = False
 
 convertFunction :: Set.Set (Text, Type) -> [Function] -> Function -> Either String [StackInstruction]
---convertFunction declaredVars functions (Function funcName params Nothing expr) = convertFunction declaredVars functions (Function funcName params (Just (TypeIdentifier (pack "i32"))) expr) --TODO: implement void type
 convertFunction declaredVars functions (Function funcName params (Just funcType) (BlockExpression stmts)) = do
     let paramNames = Set.fromList $ map (\(VariableDeclaration declaredType (VarIdentifier name)) -> (name, getTypeOfTypeIdentifier declaredType)) params
     let newDeclaredVars = Set.union declaredVars paramNames
@@ -80,11 +79,12 @@ convertFunction declaredVars functions (Function funcName params (Just funcType)
         (newVars, stmtInstrs) <- convertStatement vars functions stmt
         return (newVars, acc ++ stmtInstrs)) (newDeclaredVars, []) stmts
     if null stmts || not (isReturnStatement (last stmts))
-        then Left $ "Function '" ++ unpack funcName ++ "' does not end with a return statement"
+        then if getTypeOfTypeIdentifier funcType == VoidType
+             then replaceReturnType (instrs ++ [ReturnType VoidType]) funcName VoidType
+             else Left $ "Function '" ++ unpack funcName ++ "' must end with a return of type '" ++ show funcType ++ "'"
         else replaceReturnType instrs funcName (getTypeOfTypeIdentifier funcType)
-    replaceReturnType instrs funcName (getTypeOfTypeIdentifier funcType)
 convertFunction declaredVars functions (Function funcName params Nothing (BlockExpression stmts))
-    = Left "Cannot yet convert function with no return type"
+    = convertFunction declaredVars functions (Function funcName params (Just (TypeIdentifier (pack "()"))) (BlockExpression stmts))
 
 convertMainFunction :: Set.Set (Text, Type) -> [Function] -> MainFunction -> Either String [StackInstruction]
 convertMainFunction declaredVars functions (MainFunction params (BlockExpression stmts)) = do
@@ -94,7 +94,7 @@ convertMainFunction declaredVars functions (MainFunction params (BlockExpression
         (newVars, stmtInstrs) <- convertStatement vars functions stmt
         return (newVars, acc ++ stmtInstrs)) (newDeclaredVars, []) stmts
     if null stmts || not (isReturnStatement (last stmts))
-        then Left "Main function does not end with a return statement"
+        then Left "Main function must end with a return of type 'i32'"
         else replaceReturnType instrs (pack "main") IntType
 
 convertStatement :: Set.Set (Text, Type) -> [Function] -> Statement -> Either String (Set.Set (Text, Type), [StackInstruction])
@@ -213,6 +213,7 @@ getTypeOfTypeIdentifier :: TypeIdentifier -> Type
 getTypeOfTypeIdentifier (TypeIdentifier typename) = case unpack typename of
     "i32" -> IntType
     "bool" -> BoolType
+    "()" -> VoidType
     _ -> UnknownType
 
 getTypeOfExpression :: Set.Set (Text, Type) -> [Function] -> Expression -> Type

@@ -53,6 +53,16 @@ programF = Program (MainFunction [] (BlockExpression [localIntDecl "a" 5, localI
             Function (pack "inc") [VariableDeclaration (typeId "i32") $ varId "a"] (Just $ typeId "i32")
                 (BlockExpression [StReturn $ sumExpr (varRef "a") (intConstant 1)])
         ]
+--Program with function that have no return Type
+programG = Program (MainFunction [] (BlockExpression [localIntDecl "a" 5, localIntDecl "b" 5,
+        StExpression $ ExprFunctionCall (varRef "f") [varRef "a", varRef "b"], StReturn $ intConstant 0
+    ])) [
+            Function (pack "f") [VariableDeclaration (typeId "i32") $ varId "x", VariableDeclaration (typeId "i32") $ varId "y"] Nothing
+                (BlockExpression [StExpression $ sumExpr (varRef "x") (ExprFunctionCall (varRef "inc") [varRef "y"])]),
+            Function (pack "inc") [VariableDeclaration (typeId "i32") $ varId "a"] (Just $ typeId "i32")
+                (BlockExpression [StReturn $ sumExpr (varRef "a") (intConstant 1)])
+        ]
+
 errorProgramA = Program (MainFunction [] (BlockExpression [StReturn $ ExprFunctionCall (varRef "f") []])) []
 errorProgramB = Program (MainFunction [] (BlockExpression [StReturn $ intConstant 0])) [Function (pack "my_add") [VariableDeclaration (typeId "i32") (varId "a"), VariableDeclaration (typeId "i32") (varId "b")] (Just $ typeId "i32") (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") (varId "result")) (Just (intConstant 1)), StReturn (sumExpr (varRef "a") (varRef "z"))])]
 errorProgramC = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ boolConstant True, StReturn $ intConstant 0])) []
@@ -61,6 +71,14 @@ errorProgramE = Program (MainFunction [] (BlockExpression [StVariableDecl (Varia
 errorProgramF = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ intConstant 5, StAssignment (varId "a") $ ExprFunctionCall (varRef "f") [varRef "a"], StReturn $ intConstant 0])) [Function (pack "f") [VariableDeclaration (typeId "i32") $ varId "x"] (Just $ typeId "bool") (BlockExpression [StReturn $ boolConstant False])]
 errorProgramG = Program (MainFunction [] (BlockExpression [StVariableDecl (VariableDeclaration (typeId "i32") $ varId "a") $ Just $ intConstant 5, StAssignment (varId "a") $ ExprFunctionCall (varRef "f") [varRef "a"], StReturn $ intConstant 0])) [Function (pack "f") [VariableDeclaration (typeId "i32") $ varId "x"] (Just $ typeId "i32") (BlockExpression [StReturn $ boolConstant False])]
 errorProgramH = Program (MainFunction [] (BlockExpression [StExpression $ intConstant 0])) []
+errorProgramI = Program (MainFunction [] (BlockExpression [localIntDecl "a" 5, localIntDecl "b" 5,
+          StExpression $ ExprFunctionCall (varRef "f") [varRef "a", varRef "b"], StReturn $ intConstant 0
+      ])) [
+            Function (pack "f") [VariableDeclaration (typeId "i32") $ varId "x", VariableDeclaration (typeId "i32") $ varId "y"] Nothing
+                (BlockExpression [StReturn $ sumExpr (varRef "x") (ExprFunctionCall (varRef "inc") [varRef "y"])]),
+            Function (pack "inc") [VariableDeclaration (typeId "i32") $ varId "a"] (Just $ typeId "i32")
+                (BlockExpression [StReturn $ sumExpr (varRef "a") (intConstant 1)])
+          ]
 
 spec :: Spec
 spec = do
@@ -156,6 +174,32 @@ spec = do
                 OpValue Add,
                 Return
               ]
+        it "Function call without return type" $ do
+            convertToStackInstructions programG `shouldBe` Right [
+                PushValue (IntValue 5),
+                StoreEnv "a",
+                PushValue (IntValue 5),
+                StoreEnv "b",
+                PushEnv "a",
+                PushEnv "b",
+                NewEnv,
+                StoreEnv "y",
+                StoreEnv "x",
+                Call 12,
+                PushValue (IntValue 0),
+                Return,
+                PushEnv "y",
+                NewEnv,
+                StoreEnv "a",
+                Call 19,
+                PushEnv "x",
+                OpValue Add,
+                Return,
+                PushValue (IntValue 1),
+                PushEnv "a",
+                OpValue Add,
+                Return
+              ]
         it "Missing function" $ do
             convertToStackInstructions errorProgramA `shouldBe` Left "Function 'f' not defined"
         it "Missing variable" $ do
@@ -171,7 +215,9 @@ spec = do
         it "Invalid return type function definition" $ do
             convertToStackInstructions errorProgramG `shouldBe` Left "Type mismatch in return for function 'f' expected 'i32' but got 'bool'"
         it "No return main function" $ do
-            convertToStackInstructions errorProgramH `shouldBe` Left "Main function does not end with a return statement"
+            convertToStackInstructions errorProgramH `shouldBe` Left "Main function must end with a return of type 'i32'"
+        it "Function should not return" $ do
+            convertToStackInstructions errorProgramI `shouldBe` Left "Type mismatch in return for function 'f' expected '()' but got 'i32'"
         it "Simple while return" $ do
             convertToStackInstructions (Program (fnMain [] [
                         sDecl (tId "i32") (vId "a") (Just $ eaInt 5),
