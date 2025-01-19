@@ -1,0 +1,15 @@
+fun tata(i32 a): i32 {
+    return toto(a + 1)
+}
+
+fun toto(i32 a): i32 {
+    if (a < 5) {
+        a = tata(a + 1)
+    }
+    return a
+}
+
+main {
+    i32 result = toto(0)
+    return result
+}
